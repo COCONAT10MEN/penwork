@@ -1,6 +1,8 @@
 # Dependencies & builds
 node_modules/
 dist/
+dist-ssr/
+*.local
 src-tauri/target/
 src-tauri/gen/
 
@@ -18,4 +20,7 @@ CLAUDE.local.md
 Thumbs.db
 .vscode/*
 !.vscode/extensions.json
+.idea/
+*.suo
+*.sw?
 *.log

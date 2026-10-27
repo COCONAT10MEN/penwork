@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- Static mockup exported from the Penwork design canvas. Visual reference only: real colors come from src/theme tokens. -->
+<meta charset="utf-8">
+<title>PDF annotate</title>
+</head>
+<body>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,400..900&amp;family=Caveat:wght@500;700&amp;display=swap">
+<style>
+body{margin:0;background:#EFEDF4}
+a{color:#3F5BD4}a:hover{color:#1A2F9E}
+button,input{font-family:inherit}
+</style>
+<div style="font-family: 'Roboto Flex', Roboto, system-ui, sans-serif; color: #1B1B21; background: #EFEDF4; min-height: 800px; display: flex; flex-direction: column">
+
+  <header style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-height: 64px; padding: 8px 16px 8px 8px; background: #FBF8FF; box-sizing: border-box">
+    <button type="button" aria-label="Back to library" style="width: 48px; height: 48px; border: 0; border-radius: 50%; background: transparent; color: #45464F; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"></path></svg></button>
+    <div style="display: flex; flex-direction: column; min-width: 0">
+      <div style="font-size: 20px; font-weight: 700">Scanned contract.pdf</div>
+      <div style="font-size: 13px; color: #45464F">Original kept untouched · edits saved as a copy</div>
+    </div>
+    <div style="flex: 1"></div>
+    <button type="button" aria-label="Search in PDF" style="width: 48px; height: 48px; border: 0; border-radius: 50%; background: transparent; color: #45464F; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6"></circle><path d="M20 20l-4-4"></path></svg></button>
+    <span style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border-radius: 999px; background: #E3E1E9; font-size: 14px; font-weight: 700; color: #45464F">2 / 5</span>
+    <button type="button" style="display: flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 20px; border: 0; border-radius: 999px; background: #FFD7F1; color: #6E3864; font-size: 15px; font-weight: 700"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17c3 0 4-8 6-8s0 8 3 8 3-4 5-4 2 3 4 3"></path><path d="M3 21h18"></path></svg>Sign</button>
+    <button type="button" style="min-height: 48px; padding: 0 22px; border: 0; border-radius: 999px; background: #3F5BD4; color: #FFFFFF; font-size: 15px; font-weight: 700">Save copy</button>
+  </header>
+
+  <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: stretch; gap: 12px; padding: 0 12px 12px">
+    <main style="flex: 999 1 560px; min-width: 0; padding: 20px 20px 116px; box-sizing: border-box; display: flex; justify-content: center; position: relative; border-radius: 28px; background: #E3E1E9">
+      <div style="width: 100%; max-width: 520px; height: 580px; background: #FFFFFF; border-radius: 4px; box-shadow: 0 1px 3px rgba(27,27,33,0.12); padding: 44px 48px; box-sizing: border-box; display: flex; flex-direction: column; gap: 9px; position: relative">
+        <div style="height: 12px; width: 52%; background: #4A4B57; border-radius: 2px; margin-bottom: 10px"></div>
+        <div style="height: 7px; width: 100%; background: #C6C5D0; border-radius: 2px"></div>
+        <div style="height: 7px; width: 96%; background: #C6C5D0; border-radius: 2px"></div>
+        <div style="height: 7px; width: 98%; background: #C6C5D0; border-radius: 2px"></div>
+        <div style="height: 13px; width: 100%; background: rgba(251, 214, 74, 0.6); border-radius: 3px; display: flex; align-items: center; padding: 0 2px; box-sizing: border-box"><span style="height: 7px; width: 100%; background: #A9A8B3; border-radius: 2px"></span></div>
+        <div style="height: 13px; width: 72%; background: rgba(251, 214, 74, 0.6); border-radius: 3px; display: flex; align-items: center; padding: 0 2px; box-sizing: border-box"><span style="height: 7px; width: 100%; background: #A9A8B3; border-radius: 2px"></span></div>
+        <div style="height: 7px; width: 94%; background: #C6C5D0; border-radius: 2px; margin-top: 8px"></div>
+        <div style="height: 7px; width: 100%; background: #C6C5D0; border-radius: 2px"></div>
+        <div style="height: 7px; width: 90%; background: #C6C5D0; border-radius: 2px; border-bottom: 3px solid #3F5BD4; padding-bottom: 2px"></div>
+        <div style="height: 7px; width: 97%; background: #C6C5D0; border-radius: 2px"></div>
+        <div style="height: 7px; width: 60%; background: #C6C5D0; border-radius: 2px"></div>
+        <div style="height: 7px; width: 99%; background: #C6C5D0; border-radius: 2px; margin-top: 8px"></div>
+        <div style="height: 7px; width: 93%; background: #C6C5D0; border-radius: 2px"></div>
+        <div style="height: 7px; width: 85%; background: #C6C5D0; border-radius: 2px"></div>
+        <div style="margin-top: auto; display: flex; align-items: flex-end; gap: 24px">
+          <div style="flex: 1; display: flex; flex-direction: column; gap: 4px">
+            <div style="font-family: Caveat, cursive; font-size: 38px; font-weight: 700; color: #1A2F9E; line-height: 1; padding-left: 8px">Your Name</div>
+            <div style="height: 2px; background: #4A4B57"></div>
+            <div style="height: 6px; width: 40%; background: #C6C5D0; border-radius: 2px"></div>
+          </div>
+          <div style="flex: 1; display: flex; flex-direction: column; gap: 4px">
+            <div style="height: 30px"></div>
+            <div style="height: 2px; background: #4A4B57"></div>
+            <div style="height: 6px; width: 30%; background: #C6C5D0; border-radius: 2px"></div>
+          </div>
+        </div>
+        <div style="position: absolute; right: -132px; top: 120px; width: 120px; font-family: Caveat, cursive; font-size: 22px; line-height: 1.1; color: #8A4F7D; transform: rotate(-3deg)">← check this date with the landlord</div>
+        <div aria-label="Comment" style="position: absolute; right: 14px; top: 232px; width: 32px; height: 32px; border-radius: 16px 16px 16px 4px; background: #3F5BD4; color: #FFFFFF; font-size: 14px; font-weight: 800; display: flex; align-items: center; justify-content: center">1</div>
+      </div>
+
+      <div role="toolbar" aria-label="Annotation tools" style="position: absolute; left: 50%; bottom: 20px; transform: translateX(-50%); display: flex; align-items: center; gap: 4px; padding: 8px; border-radius: 999px; background: #DDE1FF; box-shadow: 0 4px 14px rgba(27,27,33,0.14)">
+        <button type="button" aria-label="Highlighter" aria-pressed="true" style="width: 56px; height: 56px; border: 0; border-radius: 50%; background: #3F5BD4; color: #FFFFFF; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14l6-10 4 3-7 9z"></path><path d="M9 14l-2 4h4l1-2"></path><path d="M4 21h9"></path></svg></button>
+        <button type="button" aria-label="Underline" style="width: 52px; height: 52px; border: 0; border-radius: 16px; background: transparent; color: #1A2F9E; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4v7a5 5 0 0 0 10 0V4"></path><path d="M5 20h14"></path></svg></button>
+        <button type="button" aria-label="Pen" style="width: 52px; height: 52px; border: 0; border-radius: 16px; background: transparent; color: #1A2F9E; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l3-1 11-11-2-2L5 17z"></path></svg></button>
+        <button type="button" aria-label="Comment" style="width: 52px; height: 52px; border: 0; border-radius: 16px; background: transparent; color: #1A2F9E; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"></path></svg></button>
+        <button type="button" aria-label="Text box" style="width: 52px; height: 52px; border: 0; border-radius: 16px; background: transparent; color: #1A2F9E; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 6V4h14v2M12 4v16M9 20h6"></path></svg></button>
+        <span style="width: 1px; height: 28px; background: #A9B0E6; margin: 0 4px"></span>
+        <button type="button" aria-label="Yellow highlight, selected" style="width: 44px; height: 44px; border: 0; padding: 0; border-radius: 14px; background: #FBD64A; box-shadow: inset 0 0 0 3px #1A2F9E"></button>
+        <button type="button" aria-label="Green highlight" style="width: 44px; height: 44px; border: 0; border-radius: 50%; background: #A8E6B8"></button>
+        <button type="button" aria-label="Pink highlight" style="width: 44px; height: 44px; border: 0; border-radius: 50%; background: #F9B8DC"></button>
+      </div>
+    </main>
+
+    <aside aria-label="Annotations" style="flex: 1 1 300px; background: #F5F2FA; border-radius: 28px; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px">
+      <div style="display: flex; align-items: center; justify-content: space-between">
+        <h2 style="margin: 0; font-size: 22px; font-weight: 800">Annotations</h2>
+        <span style="min-width: 28px; height: 28px; padding: 0 8px; box-sizing: border-box; border-radius: 14px; background: #3F5BD4; color: #FFFFFF; font-size: 13px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center">5</span>
+      </div>
+      <div role="group" aria-label="Show" style="display: flex">
+        <button type="button" aria-pressed="true" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; border: 1px solid #767680; border-radius: 999px 0 0 999px; background: #DFE1F9; color: #2B2E42; font-size: 13px; font-weight: 700"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l4 4 10-10"></path></svg>All</button>
+        <button type="button" aria-pressed="false" style="flex: 1; min-height: 44px; border: 1px solid #767680; border-left: 0; background: transparent; color: #45464F; font-size: 13px; font-weight: 700">Marks</button>
+        <button type="button" aria-pressed="false" style="flex: 1; min-height: 44px; border: 1px solid #767680; border-left: 0; border-radius: 0 999px 999px 0; background: transparent; color: #45464F; font-size: 13px; font-weight: 700">Ink</button>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <a href="#a1" style="display: flex; gap: 14px; align-items: center; padding: 12px; border-radius: 20px; background: #FFFFFF; text-decoration: none; color: #1B1B21">
+          <span style="width: 44px; height: 44px; border-radius: 14px; background: #FBE38A; display: flex; align-items: center; justify-content: center; flex: none; color: #5C4A00"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14l6-10 4 3-7 9z"></path><path d="M9 14l-2 4h4l1-2"></path></svg></span>
+          <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="font-size: 15px; font-weight: 700">Highlight · 2 lines</span><span style="font-size: 13px; color: #45464F">Page 2 · just now</span></span>
+        </a>
+        <a href="#a2" style="display: flex; gap: 14px; align-items: center; padding: 12px; border-radius: 20px; text-decoration: none; color: #1B1B21">
+          <span style="width: 44px; height: 44px; border-radius: 50%; background: #FFD7F1; display: flex; align-items: center; justify-content: center; flex: none; color: #6E3864"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l3-1 11-11-2-2L5 17z"></path></svg></span>
+          <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="font-size: 15px; font-weight: 700">Handwritten note</span><span style="font-size: 13px; color: #45464F">Page 2 · margin</span></span>
+        </a>
+        <a href="#a3" style="display: flex; gap: 14px; align-items: center; padding: 12px; border-radius: 20px; text-decoration: none; color: #1B1B21">
+          <span style="width: 44px; height: 44px; border-radius: 14px 14px 14px 4px; background: #DDE1FF; display: flex; align-items: center; justify-content: center; flex: none; color: #1A2F9E"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"></path></svg></span>
+          <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="font-size: 15px; font-weight: 700">Comment: "Move-in date?"</span><span style="font-size: 13px; color: #45464F">Page 2</span></span>
+        </a>
+        <a href="#a4" style="display: flex; gap: 14px; align-items: center; padding: 12px; border-radius: 20px; text-decoration: none; color: #1B1B21">
+          <span style="width: 44px; height: 44px; border-radius: 14px; background: #E3E1E9; display: flex; align-items: center; justify-content: center; flex: none; color: #45464F"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4v7a5 5 0 0 0 10 0V4"></path><path d="M5 20h14"></path></svg></span>
+          <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="font-size: 15px; font-weight: 700">Underline</span><span style="font-size: 13px; color: #45464F">Page 2</span></span>
+        </a>
+        <a href="#a5" style="display: flex; gap: 14px; align-items: center; padding: 12px; border-radius: 20px; text-decoration: none; color: #1B1B21">
+          <span style="width: 44px; height: 44px; border-radius: 50%; background: #DFE1F9; display: flex; align-items: center; justify-content: center; flex: none; color: #2B2E42"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17c3 0 4-8 6-8s0 8 3 8 3-4 5-4 2 3 4 3"></path></svg></span>
+          <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="font-size: 15px; font-weight: 700">Signature</span><span style="font-size: 13px; color: #45464F">Page 2 · saved signature</span></span>
+        </a>
+      </div>
+      <button type="button" style="margin-top: auto; display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px; border: 0; border-radius: 16px; background: #DFE1F9; color: #2B2E42; font-size: 15px; font-weight: 700"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"></path><path d="M9 15c2-3 3 1 5-2s2 1 3 0"></path></svg>Add page to a notebook</button>
+    </aside>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- Static mockup exported from the Penwork design canvas. Visual reference only: real colors come from src/theme tokens. -->
+<meta charset="utf-8">
+<title>Penwork architecture</title>
+</head>
+<body>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,400..900&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#3F5BD4}a:hover{color:#1A2F9E}
+</style>
+<div style="width: 1280px; height: 844px; box-sizing: border-box; padding: 40px 48px; font-family: 'Roboto Flex', Roboto, system-ui, sans-serif; color: #1B1B21; background: #FBF8FF; display: flex; flex-direction: column; gap: 16px">
+  <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 24px">
+    <h1 style="margin: 0; font-size: 36px; font-weight: 800; letter-spacing: -0.02em">One codebase, three apps</h1>
+    <p style="margin: 0; font-size: 14px; color: #45464F">Version 1 scope: notes + PDFs · everything above the bottom row is shared</p>
+  </div>
+
+  <section style="display: flex; flex-direction: column; gap: 8px">
+    <div style="font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #45464F">Screens</div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px">
+      <div style="border-radius: 24px; background: #DDE1FF; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px"><b style="font-size: 17px">Library</b><span style="font-size: 13px; color: #1A2F9E; line-height: 1.4">Folders, search, recents, templates, import</span></div>
+      <div style="border-radius: 24px; background: #DDE1FF; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px"><b style="font-size: 17px">Notebook editor</b><span style="font-size: 13px; color: #1A2F9E; line-height: 1.4">Pages, pens, lasso, shapes, images, PDF pages inside notes</span></div>
+      <div style="border-radius: 24px; background: #FFD7F1; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px"><b style="font-size: 17px">PDF annotate</b><span style="font-size: 13px; color: #6E3864; line-height: 1.4">Highlight, ink, comment, sign · shown with pdf.js, saved with pdf-lib</span></div>
+    </div>
+  </section>
+
+  <section style="display: flex; flex-direction: column; gap: 8px">
+    <div style="font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #45464F">Our Material 3 Expressive kit</div>
+    <div style="border-radius: 24px; background: #EFEDF4; padding: 14px 18px; display: flex; flex-wrap: wrap; gap: 8px">
+      <span style="padding: 8px 14px; border-radius: 999px; background: #FFFFFF; font-size: 14px; font-weight: 600">Color tokens from material-color-utilities</span>
+      <span style="padding: 8px 14px; border-radius: 999px; background: #FFFFFF; font-size: 14px; font-weight: 600">Floating toolbar</span>
+      <span style="padding: 8px 14px; border-radius: 999px; background: #FFFFFF; font-size: 14px; font-weight: 600">FAB menu</span>
+      <span style="padding: 8px 14px; border-radius: 999px; background: #FFFFFF; font-size: 14px; font-weight: 600">Button groups &amp; split buttons</span>
+      <span style="padding: 8px 14px; border-radius: 999px; background: #FFFFFF; font-size: 14px; font-weight: 600">Wavy progress</span>
+      <span style="padding: 8px 14px; border-radius: 999px; background: #FFFFFF; font-size: 14px; font-weight: 600">Shape morphing</span>
+      <span style="padding: 8px 14px; border-radius: 999px; background: #FFFFFF; font-size: 14px; font-weight: 600">Spring motion</span>
+      <span style="padding: 8px 14px; border-radius: 999px; background: #FFFFFF; font-size: 14px; font-weight: 600">Light + dark</span>
+    </div>
+  </section>
+
+  <section style="display: flex; flex-direction: column; gap: 8px">
+    <div style="font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #45464F">Ink engine — the heart of the app</div>
+    <div style="border-radius: 24px; background: #303036; color: #F2EFF7; padding: 14px 18px; display: flex; flex-wrap: wrap; gap: 8px">
+      <span style="padding: 8px 14px; border-radius: 999px; background: #46464F; font-size: 14px; font-weight: 600">Pen pressure &amp; tilt</span>
+      <span style="padding: 8px 14px; border-radius: 999px; background: #46464F; font-size: 14px; font-weight: 600">Smooth strokes (perfect-freehand)</span>
+      <span style="padding: 8px 14px; border-radius: 999px; background: #46464F; font-size: 14px; font-weight: 600">Palm rejection</span>
+      <span style="padding: 8px 14px; border-radius: 999px; background: #46464F; font-size: 14px; font-weight: 600">Lasso · erase · undo</span>
+      <span style="padding: 8px 14px; border-radius: 999px; background: #46464F; font-size: 14px; font-weight: 600">Zoom &amp; pan</span>
+    </div>
+  </section>
+
+  <section style="display: flex; flex-direction: column; gap: 8px">
+    <div style="font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #45464F">App core + native shell</div>
+    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px">
+      <div style="border-radius: 20px; background: #F5F2FA; border: 1px solid #C6C5D0; padding: 12px 16px; font-size: 14px; font-weight: 700">.pwk notebook files</div>
+      <div style="border-radius: 20px; background: #F5F2FA; border: 1px solid #C6C5D0; padding: 12px 16px; font-size: 14px; font-weight: 700">Autosave &amp; history</div>
+      <div style="border-radius: 20px; background: #F5F2FA; border: 1px solid #C6C5D0; padding: 12px 16px; font-size: 14px; font-weight: 700">Search &amp; settings</div>
+      <div style="border-radius: 20px; background: #F5F2FA; border: 2px solid #1B1B21; padding: 12px 16px; font-size: 14px; font-weight: 700">Tauri 2 shell (Rust)</div>
+    </div>
+  </section>
+
+  <section style="display: flex; flex-direction: column; gap: 8px">
+    <div style="font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #45464F">Platforms — release order</div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px">
+      <div style="border-radius: 24px; background: #3F5BD4; color: #FFFFFF; padding: 14px 18px; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 12px; font-weight: 800; letter-spacing: 0.06em">PHASE 1</span><b style="font-size: 18px">Windows 10 / 11</b><span style="font-size: 13px; color: #E0E4FF">WebView2</span></div>
+      <div style="border-radius: 24px; background: #F5F2FA; border: 1px solid #C6C5D0; padding: 14px 18px; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 12px; font-weight: 800; letter-spacing: 0.06em; color: #45464F">PHASE 2</span><b style="font-size: 18px">Linux</b><span style="font-size: 13px; color: #45464F">WebKitGTK · AppImage / Flatpak</span></div>
+      <div style="border-radius: 24px; background: #F5F2FA; border: 1px solid #C6C5D0; padding: 14px 18px; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 12px; font-weight: 800; letter-spacing: 0.06em; color: #45464F">PHASE 3</span><b style="font-size: 18px">Android</b><span style="font-size: 13px; color: #45464F">System WebView · .apk</span></div>
+    </div>
+  </section>
+</div>
+</body>
+</html>

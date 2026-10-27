@@ -1,0 +1,21 @@
+# Dependencies & builds
+node_modules/
+dist/
+src-tauri/target/
+src-tauri/gen/
+
+# Environment / secrets (only .env.example is committed)
+.env
+.env.*
+!.env.example
+
+# Claude Code personal files
+CLAUDE.local.md
+.claude/settings.local.json
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+*.log

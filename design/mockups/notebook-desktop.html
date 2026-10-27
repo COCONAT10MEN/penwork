@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- Static mockup exported from the Penwork design canvas. Visual reference only: real colors come from src/theme tokens. -->
+<meta charset="utf-8">
+<title>Notebook editor</title>
+</head>
+<body>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,400..900&amp;family=Caveat:wght@500;700&amp;display=swap">
+<style>
+body{margin:0;background:#EFEDF4}
+a{color:#3F5BD4}a:hover{color:#1A2F9E}
+button,input{font-family:inherit}
+</style>
+<div style="font-family: 'Roboto Flex', Roboto, system-ui, sans-serif; color: #1B1B21; background: #EFEDF4; min-height: 800px; display: flex; flex-direction: column">
+
+  <header style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-height: 64px; padding: 8px 16px 8px 8px; background: #FBF8FF; box-sizing: border-box">
+    <button type="button" aria-label="Back to library" style="width: 48px; height: 48px; border: 0; border-radius: 50%; background: transparent; color: #45464F; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"></path></svg></button>
+    <div style="display: flex; flex-direction: column; min-width: 0">
+      <div style="font-size: 20px; font-weight: 700">Lecture notes — Week 4</div>
+      <div style="font-size: 13px; color: #45464F">Saved · Term 1</div>
+    </div>
+    <div style="flex: 1"></div>
+    <span style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border-radius: 999px; background: #E3E1E9; font-size: 14px; font-weight: 700; color: #45464F">3 / 12</span>
+    <div role="group" aria-label="Export" style="display: flex; gap: 2px">
+      <button type="button" style="min-height: 48px; padding: 0 16px 0 20px; border: 0; border-radius: 999px 6px 6px 999px; background: #DFE1F9; color: #2B2E42; font-size: 15px; font-weight: 700">Export PDF</button>
+      <button type="button" aria-label="More export options" style="width: 44px; min-height: 48px; border: 0; border-radius: 6px 999px 999px 6px; background: #DFE1F9; color: #2B2E42; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button>
+    </div>
+    <button type="button" style="min-height: 48px; padding: 0 22px; border: 0; border-radius: 999px; background: #3F5BD4; color: #FFFFFF; font-size: 15px; font-weight: 700">Share</button>
+  </header>
+
+  <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: stretch; gap: 12px; padding: 0 12px 12px">
+    <aside aria-label="Pages" style="flex: 1 1 150px; background: #F5F2FA; border-radius: 28px; padding: 18px 16px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; gap: 14px">
+      <div style="align-self: stretch; font-size: 14px; font-weight: 800; padding-left: 4px">Pages</div>
+      <a href="#p2" style="display: flex; flex-direction: column; align-items: center; gap: 6px; text-decoration: none; color: #45464F; font-size: 12px; font-weight: 700">
+        <span style="width: 96px; height: 122px; background: #FFFFFF; border-radius: 12px; box-sizing: border-box; padding: 12px 10px; display: flex; flex-direction: column; gap: 6px"><span style="height: 46px; background: #EFEDF4; border-radius: 6px"></span><span style="height: 4px; width: 80%; background: #C6C5D0; border-radius: 2px"></span></span>
+        2 · PDF page
+      </a>
+      <a href="#p3" aria-current="page" style="display: flex; flex-direction: column; align-items: center; gap: 6px; text-decoration: none; color: #1A2F9E; font-size: 12px; font-weight: 800">
+        <span style="width: 96px; height: 122px; background: #FFFFFF; border-radius: 24px; outline: 3px solid #3F5BD4; outline-offset: 2px; box-sizing: border-box; padding: 14px 12px; display: flex; flex-direction: column; gap: 6px"><span style="height: 5px; width: 66%; background: #1F2A44; border-radius: 2px"></span><span style="height: 4px; width: 84%; background: #9A9BA8; border-radius: 2px"></span><span style="height: 4px; width: 60%; background: #9A9BA8; border-radius: 2px"></span></span>
+        3
+      </a>
+      <a href="#p4" style="display: flex; flex-direction: column; align-items: center; gap: 6px; text-decoration: none; color: #45464F; font-size: 12px; font-weight: 700">
+        <span style="width: 96px; height: 122px; background: #FFFFFF; border-radius: 12px"></span>
+        4
+      </a>
+      <button type="button" style="display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 48px; padding: 0 18px; border: 0; border-radius: 16px; background: #DFE1F9; color: #2B2E42; font-size: 14px; font-weight: 700"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Page</button>
+    </aside>
+
+    <main style="flex: 999 1 560px; min-width: 0; padding: 20px 20px 120px; box-sizing: border-box; display: flex; justify-content: center; position: relative">
+      <div style="width: 100%; max-width: 760px; height: 540px; background-color: #FFFFFF; background-image: radial-gradient(#D7D8E4 1.2px, transparent 1.2px); background-size: 24px 24px; border-radius: 16px; padding: 40px 52px; box-sizing: border-box; font-family: Caveat, cursive; color: #1F2A44; position: relative; overflow: hidden">
+        <div style="display: inline-flex; flex-direction: column">
+          <div style="font-size: 44px; font-weight: 700; line-height: 1">Week 4 · Waves</div>
+          <svg width="250" height="14" viewBox="0 0 250 14" fill="none" aria-hidden="true"><path d="M3 9c40-6 90-7 140-4s80 3 104-1" stroke="#3F5BD4" stroke-width="3" stroke-linecap="round"></path></svg>
+        </div>
+        <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 6px; font-size: 27px; line-height: 1.25">
+          <div>• A wave carries <span style="background: rgba(251, 214, 74, 0.55); padding: 0 6px; border-radius: 4px">energy, not matter</span></div>
+          <div>• Speed: v = f × λ</div>
+          <div>• Transverse vs longitudinal → page 2 (PDF)</div>
+        </div>
+        <svg width="420" height="140" viewBox="0 0 420 150" fill="none" role="img" aria-label="Hand-drawn sine wave with the wavelength marked" style="display: block; margin-top: 16px">
+          <path d="M10 75c25-62 55-62 80 0s55 62 80 0 55-62 80 0 55 62 80 0 40-50 60-30" stroke="#16181D" stroke-width="3" stroke-linecap="round"></path>
+          <path d="M10 75h395" stroke="#9A9BA8" stroke-width="1.5" stroke-dasharray="5 6"></path>
+          <path d="M50 22h160" stroke="#8A4F7D" stroke-width="2.5" stroke-linecap="round"></path>
+          <path d="M58 16l-8 6 8 6M202 16l8 6-8 6" stroke="#8A4F7D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path>
+          <text x="122" y="14" fill="#8A4F7D" font-family="Caveat, cursive" font-size="24" font-weight="700">λ</text>
+        </svg>
+        <div style="position: absolute; right: 44px; top: 140px; transform: rotate(-4deg); background: #FFD7F1; padding: 14px 16px; width: 168px; border-radius: 4px 20px 20px 20px; font-size: 23px; line-height: 1.15; color: #4A1F42">Ask about the quiz on Thursday!</div>
+      </div>
+
+      <div role="dialog" aria-label="Pen settings" style="position: absolute; left: 50%; bottom: 100px; transform: translateX(-108%); width: 300px; padding: 18px 20px 20px; box-sizing: border-box; border-radius: 28px; background: #E9E7EF; box-shadow: 0 4px 14px rgba(27,27,33,0.12); display: flex; flex-direction: column; gap: 16px">
+        <div style="font-size: 16px; font-weight: 800">Fountain pen</div>
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; color: #45464F"><span>Thickness</span><span>2.4 pt</span></div>
+          <div role="slider" aria-label="Thickness" aria-valuemin="0" aria-valuemax="10" aria-valuenow="4" tabindex="0" style="display: flex; align-items: center; gap: 6px; height: 44px">
+            <span style="width: 40%; height: 16px; border-radius: 8px 2px 2px 8px; background: #3F5BD4"></span>
+            <span style="width: 4px; height: 44px; border-radius: 2px; background: #3F5BD4"></span>
+            <span style="flex: 1; height: 16px; border-radius: 2px 8px 8px 2px; background: #DDE1FF; display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; box-sizing: border-box"><span style="width: 4px; height: 4px; border-radius: 50%; background: #3F5BD4"></span></span>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <div style="font-size: 13px; font-weight: 700; color: #45464F">Color</div>
+          <div style="display: flex; align-items: center; gap: 8px">
+            <button type="button" aria-label="Ink black, selected" style="width: 40px; height: 40px; border: 0; padding: 0; background: transparent"><svg width="40" height="40" viewBox="0 0 100 100" aria-hidden="true"><path fill="#16181D" d="M50.0 1.0L52.8 1.8L55.4 3.8L57.6 6.7L59.6 9.6L61.4 12.0L63.3 13.4L65.7 13.6L68.6 12.9L72.0 11.9L75.6 11.1L78.9 11.2L81.5 12.5L83.2 14.8L83.8 18.1L83.7 21.7L83.3 25.2L83.1 28.2L83.8 30.5L85.5 32.2L88.1 33.6L91.3 35.0L94.5 36.7L97.0 38.9L98.3 41.5L98.0 44.4L96.4 47.3L94.0 50.0L91.4 52.4L89.4 54.6L88.4 56.8L88.6 59.1L89.8 61.9L91.3 65.0L92.7 68.4L93.2 71.7L92.4 74.5L90.4 76.6L87.3 77.8L83.7 78.3L80.2 78.5L77.2 78.9L75.1 79.9L73.7 81.8L72.8 84.7L72.0 88.1L70.9 91.6L69.1 94.4L66.8 96.0L63.9 96.3L60.7 95.2L57.6 93.3L54.8 91.2L52.3 89.6L50.0 89.0L47.7 89.6L45.2 91.2L42.4 93.3L39.3 95.2L36.1 96.3L33.2 96.0L30.9 94.4L29.1 91.6L28.0 88.1L27.2 84.7L26.3 81.8L24.9 79.9L22.8 78.9L19.8 78.5L16.3 78.3L12.7 77.8L9.6 76.6L7.6 74.5L6.8 71.7L7.3 68.4L8.7 65.0L10.2 61.9L11.4 59.1L11.6 56.8L10.6 54.6L8.6 52.4L6.0 50.0L3.6 47.3L2.0 44.4L1.7 41.5L3.0 38.9L5.5 36.7L8.7 35.0L11.9 33.6L14.5 32.2L16.2 30.5L16.9 28.2L16.7 25.2L16.3 21.7L16.2 18.1L16.8 14.8L18.5 12.5L21.1 11.2L24.4 11.1L28.0 11.9L31.4 12.9L34.3 13.6L36.7 13.4L38.6 12.0L40.4 9.6L42.4 6.7L44.6 3.8L47.2 1.8Z"></path><path d="M34 51l11 11 21-23" fill="none" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+            <button type="button" aria-label="Ink blue" style="width: 34px; height: 34px; border: 0; border-radius: 50%; background: #3F5BD4"></button>
+            <button type="button" aria-label="Ink plum" style="width: 34px; height: 34px; border: 0; border-radius: 50%; background: #8A4F7D"></button>
+            <button type="button" aria-label="Ink green" style="width: 34px; height: 34px; border: 0; border-radius: 50%; background: #2E6A4F"></button>
+            <button type="button" aria-label="Ink orange" style="width: 34px; height: 34px; border: 0; border-radius: 50%; background: #9A4523"></button>
+            <button type="button" aria-label="More colors" style="width: 34px; height: 34px; border: 2px solid #767680; border-radius: 50%; background: transparent; color: #45464F; font-size: 18px; line-height: 1">+</button>
+          </div>
+        </div>
+        <label style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; font-size: 14px; font-weight: 700">
+          Pressure changes thickness
+          <span style="width: 52px; height: 32px; border-radius: 16px; background: #3F5BD4; display: flex; align-items: center; justify-content: flex-end; padding: 0 4px; box-sizing: border-box; flex: none"><span style="width: 24px; height: 24px; border-radius: 50%; background: #FFFFFF; display: flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3F5BD4" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l4 4 10-10"></path></svg></span></span>
+          <input type="checkbox" checked style="position: absolute; opacity: 0; width: 1px; height: 1px">
+        </label>
+      </div>
+
+      <div style="position: absolute; left: 50%; bottom: 20px; transform: translateX(-50%); display: flex; align-items: center; gap: 12px">
+        <div role="toolbar" aria-label="Ink tools" style="display: flex; align-items: center; gap: 4px; padding: 8px; border-radius: 999px; background: #DDE1FF; box-shadow: 0 4px 14px rgba(27,27,33,0.14)">
+          <button type="button" aria-label="Pen" aria-pressed="true" style="width: 56px; height: 56px; border: 0; border-radius: 50%; background: #3F5BD4; color: #FFFFFF; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l3-1 11-11-2-2L5 17z"></path><path d="M14 6l2 2"></path></svg></button>
+          <button type="button" aria-label="Highlighter" style="width: 52px; height: 52px; border: 0; border-radius: 16px; background: transparent; color: #1A2F9E; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14l6-10 4 3-7 9z"></path><path d="M9 14l-2 4h4l1-2"></path><path d="M4 21h9"></path></svg></button>
+          <button type="button" aria-label="Eraser" style="width: 52px; height: 52px; border: 0; border-radius: 16px; background: transparent; color: #1A2F9E; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 20l-4-4L14 6l6 6-8 8z"></path><path d="M11 9l6 6M8 20h12"></path></svg></button>
+          <button type="button" aria-label="Lasso select" style="width: 52px; height: 52px; border: 0; border-radius: 16px; background: transparent; color: #1A2F9E; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 18c-3-1-4-4-3-7 2-5 10-7 14-4s1 9-6 9c-2 0-3 1-3 2s1 2 2 2"></path></svg></button>
+          <button type="button" aria-label="Shapes" style="width: 52px; height: 52px; border: 0; border-radius: 16px; background: transparent; color: #1A2F9E; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="9" r="4"></circle><rect x="11" y="12" width="9" height="8" rx="1"></rect></svg></button>
+          <button type="button" aria-label="Text" style="width: 52px; height: 52px; border: 0; border-radius: 16px; background: transparent; color: #1A2F9E; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 6V4h14v2M12 4v16M9 20h6"></path></svg></button>
+          <span style="width: 1px; height: 28px; background: #A9B0E6; margin: 0 4px"></span>
+          <button type="button" aria-label="Undo" style="width: 52px; height: 52px; border: 0; border-radius: 16px; background: transparent; color: #1A2F9E; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14L4 9l5-5"></path><path d="M4 9h10a6 6 0 0 1 0 12h-3"></path></svg></button>
+          <button type="button" aria-label="Redo" style="width: 52px; height: 52px; border: 0; border-radius: 16px; background: transparent; color: #1A2F9E; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 14l5-5-5-5"></path><path d="M20 9H10a6 6 0 0 0 0 12h3"></path></svg></button>
+        </div>
+        <button type="button" aria-label="Insert image or PDF" style="width: 72px; height: 72px; border: 0; border-radius: 22px; background: #FFD7F1; color: #6E3864; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(27,27,33,0.14)"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

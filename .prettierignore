@@ -1,0 +1,8 @@
+dist
+node_modules
+package-lock.json
+src-tauri/target
+src-tauri/gen
+# Docs and design references are written by hand; only format code
+*.md
+design

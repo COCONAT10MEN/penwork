@@ -1,2 +1,6 @@
-# Shell scripts must keep LF endings or bash fails on Windows
-*.sh text eol=lf
+# Keep LF everywhere so Prettier and git agree on Windows
+* text=auto eol=lf
+*.png binary
+*.ico binary
+*.icns binary
+*.woff2 binary

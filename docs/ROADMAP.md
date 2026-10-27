@@ -4,15 +4,15 @@ Work top to bottom. Tick boxes as items are finished and verified in the running
 Each milestone should end with a working, committed app.
 
 ## M0 — Project scaffold & tooling
-- [ ] Scaffold Tauri 2 + React + TypeScript + Vite into this repo root (keep existing docs, `.claude/`, `CLAUDE.md`, `design/`)
-- [ ] App identifier `com.penwork.app`, window title "Penwork", min window size 960×640
-- [ ] Scripts: `dev`, `build`, `typecheck`, `lint`, `test`, `tauri`
-- [ ] ESLint + Prettier configured; TypeScript strict
-- [ ] Vitest set up with one passing example test
-- [ ] Folder layout from `CLAUDE.md` created
-- [ ] Roboto Flex, Caveat and Material Symbols Rounded bundled locally (no CDN)
-- [ ] `THIRD_PARTY.md` filled in for everything installed
-- [ ] `git init`, first commit; `npm run tauri dev` opens an empty window
+- [x] Scaffold Tauri 2 + React + TypeScript + Vite into this repo root (keep existing docs, `.claude/`, `CLAUDE.md`, `design/`)
+- [x] App identifier `com.penwork.app`, window title "Penwork", min window size 960×640
+- [x] Scripts: `dev`, `build`, `typecheck`, `lint`, `test`, `tauri`
+- [x] ESLint + Prettier configured; TypeScript strict
+- [x] Vitest set up with one passing example test
+- [x] Folder layout from `CLAUDE.md` created
+- [x] Roboto Flex, Caveat and Material Symbols Rounded bundled locally (no CDN)
+- [x] `THIRD_PARTY.md` filled in for everything installed
+- [x] `git init`, first commit; `npm run tauri dev` opens an empty window
 
 ## M1 — Theme & Material 3 Expressive component kit
 - [ ] Theme generation from a seed color with material-color-utilities → CSS variables (light + dark)

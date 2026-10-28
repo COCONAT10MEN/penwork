@@ -46,6 +46,8 @@
 }
 
 .panels {
+  /* Positioned, so hidden screen-reader text scrolls with the panels. */
+  position: relative;
   display: grid;
   grid-template-columns: 1fr 1fr;
   flex: 1;
@@ -88,7 +90,7 @@
 .railBox {
   display: flex;
   gap: 12px;
-  height: 440px;
+  height: 500px;
   overflow: hidden;
   border-radius: var(--pw-shape-card);
   background: var(--md-sys-color-surface-container-lowest);

@@ -15,11 +15,11 @@ Each milestone should end with a working, committed app.
 - [x] `git init`, first commit; `npm run tauri dev` opens an empty window
 
 ## M1 — Theme & Material 3 Expressive component kit
-- [ ] Theme generation from a seed color with material-color-utilities → CSS variables (light + dark)
-- [ ] Follow system light/dark; manual override in settings later (M2)
-- [ ] Seed from the Windows accent color (Rust command), fallback to Ink blue `#3F5BD4`
-- [ ] Typography, shape, elevation and state-layer tokens (`docs/DESIGN.md`)
-- [ ] Motion presets (springs) + reduced-motion fallback
+- [x] Theme generation from a seed color with material-color-utilities → CSS variables (light + dark)
+- [x] Follow system light/dark; manual override in settings later (M2)
+- [x] Seed from the Windows accent color (Rust command), fallback to Ink blue `#3F5BD4`
+- [x] Typography, shape, elevation and state-layer tokens (`docs/DESIGN.md`)
+- [x] Motion presets (springs) + reduced-motion fallback
 - [ ] Components in `src/ui/`: Button (filled, tonal, outlined, text; small/medium/large), IconButton (standard, filled, tonal, toggle),
       ButtonGroup (connected, shape morph on select), SplitButton, FAB, FAB menu, Chip (filter/assist), SearchBar,
       NavigationRail, TopAppBar, Card, List + ListItem, Menu, Dialog, SideSheet, Snackbar, Tooltip, Slider, Switch,

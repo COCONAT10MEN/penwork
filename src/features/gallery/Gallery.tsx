@@ -1,3 +1,4 @@
+import { isTauri } from "@tauri-apps/api/core";
 import { useEffect, useState } from "react";
 import { getSystemSeed } from "../../theme/accent";
 import { DEFAULT_SEED, applyTheme, type SchemeVariant } from "../../theme/theme";
@@ -51,7 +52,8 @@ export default function Gallery({ onClose }: { onClose: () => void }) {
   const [systemSeed, setSystemSeed] = useState<string | null>(null);
 
   useEffect(() => {
-    void getSystemSeed().then(setSystemSeed);
+    // In a plain browser there is no Windows accent (it would just repeat Ink blue).
+    if (isTauri()) void getSystemSeed().then(setSystemSeed);
   }, []);
 
   useEffect(() => {

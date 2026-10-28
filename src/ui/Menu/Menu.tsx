@@ -71,10 +71,11 @@ export function Menu({ open, onClose, anchor, label, items }: MenuProps) {
           role="menu"
           aria-label={label}
           className={styles.menu}
+          // Until measured it sits off-screen, not visibility:hidden, so the first item can take focus.
           style={
             pos
               ? { left: pos.left, top: pos.top, transformOrigin: pos.up ? "bottom" : "top" }
-              : { visibility: "hidden" }
+              : { left: -10000, top: 0 }
           }
           initial={reduce ? { opacity: 0 } : { opacity: 0, scaleY: 0.85 }}
           animate={{ opacity: 1, scaleY: 1, transition: spring }}

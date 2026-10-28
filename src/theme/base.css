@@ -22,6 +22,15 @@ body,
   height: 100%;
   margin: 0;
 }
+/*
+  The app shell owns all scrolling (panes scroll, the page never does). Absolutely positioned
+  things whose nearest box isn't positioned (e.g. .pw-visually-hidden text) land here instead
+  of stretching the document.
+*/
+#root {
+  position: relative;
+  overflow: hidden;
+}
 
 button,
 input,

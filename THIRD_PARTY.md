@@ -3,7 +3,7 @@
 Penwork is built on these open-source projects. Each is used as a normal dependency, unmodified.
 Keep these tables up to date whenever a dependency is added or removed.
 Licenses below were checked against the installed packages (`package.json` / `LICENSE` files and
-`cargo metadata`) on 2026-10-27.
+`cargo metadata`) on 2026-10-27 (M0) and 2026-10-28 (M1).
 
 ## In the app (shipped to users)
 
@@ -15,6 +15,9 @@ Licenses below were checked against the installed packages (`package.json` / `LI
 | Roboto Flex (`@fontsource-variable/roboto-flex`) | The Roboto Flex Project Authors (Google); packaged by Fontsource | SIL OFL 1.1 | UI font |
 | Caveat (`@fontsource-variable/caveat`) | The Caveat Project Authors (Impallari Type); packaged by Fontsource | SIL OFL 1.1 | Handwriting-style sample text |
 | Material Symbols Rounded (`material-symbols`) | Google; packaged by marella/material-symbols | Apache-2.0 | Icons |
+| Material Color Utilities (`@material/material-color-utilities`) | Google (material-foundation) | Apache-2.0 | Generating the color theme from a seed |
+| Motion (`motion`, with `framer-motion`) | Motion B.V. / Framer B.V. (Matt Perry) | MIT | Spring animations |
+| `windows` crate (Windows only) | Microsoft | MIT / Apache-2.0 | Reading the Windows accent color |
 
 Tauri pulls in about 240 smaller Rust crates. Almost all are MIT, Apache-2.0, BSD, Zlib, Unicode-3.0
 or public domain. Five (`cssparser`, `cssparser-macros`, `selectors`, `dtoa-short`, `option-ext`) are
@@ -36,6 +39,8 @@ them unmodified. They come with every Tauri app. Run `cargo metadata` in `src-ta
 | globals | Sindre Sorhus | MIT | Browser/Node global names for ESLint |
 | Prettier | James Long and contributors | MIT | Code formatting |
 | Vitest | Anthony Fu and contributors | MIT | Unit tests |
+| Testing Library (`@testing-library/react`, `@testing-library/dom`) | Kent C. Dodds and contributors | MIT | Component behavior tests |
+| jsdom | Elijah Insua and contributors | MIT | Browser-like environment for tests |
 | `@types/react`, `@types/react-dom`, `@types/node` | DefinitelyTyped contributors | MIT | Type definitions |
 
 ## Planned (added in later milestones — verify when installed)
@@ -44,8 +49,6 @@ them unmodified. They come with every Tauri app. Run `cargo metadata` in `src-ta
 |---|---|---|---|
 | pdf.js (`pdfjs-dist`) | Mozilla | Apache-2.0 | Rendering PDFs, text layer, search |
 | pdf-lib | Andrew Dillon | MIT | Writing annotations into PDFs |
-| Material Color Utilities | Google (material-foundation) | Apache-2.0 | Generating the color theme |
-| Motion | Motion Division (Matt Perry) | MIT | Spring animations |
 | Zustand | Poimandres | MIT | App state |
 | perfect-freehand | Steve Ruiz | MIT | Smooth ink strokes |
 | fflate | Arjun Barrett | MIT | `.pwk` zip files |

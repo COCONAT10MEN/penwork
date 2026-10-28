@@ -1,6 +1,7 @@
 // Theme first, so component styles (imported through App) come later and win over library CSS.
 import "./theme/fonts";
 import "./theme/tokens.css";
+import "./theme/typography.css";
 import "./theme/base.css";
 import { getSystemSeed, onSystemSeedChange } from "./theme/accent";
 import { DEFAULT_SEED, applyTheme } from "./theme/theme";

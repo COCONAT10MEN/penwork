@@ -22,6 +22,10 @@ tauri = { version = "2", features = [] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 
+# Same version Tauri already uses, so this adds no new download. Only for the accent color.
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.62", features = ["UI_ViewManagement", "Foundation"] }
+
 
 # Read the optimization guideline for more details: https://tauri.app/concept/size/#cargo-configuration
 [profile.release]

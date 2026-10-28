@@ -53,6 +53,8 @@
   --md-sys-shape-corner-extra-large-increased: 32px;
   --md-sys-shape-corner-extra-extra-large: 48px;
   --md-sys-shape-corner-full: 9999px;
+  /* Penwork-specific: DESIGN.md gives cards 24px, which isn't a step in M3's scale. */
+  --pw-shape-card: 24px;
 
   /* ---------- Typeface ---------- */
   /* "… Variable" are the family names of the bundled Fontsource packages (see src/theme/fonts.ts) */

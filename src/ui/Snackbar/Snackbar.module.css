@@ -1,0 +1,48 @@
+.region {
+  position: fixed;
+  inset: auto 0 24px;
+  z-index: 950;
+  display: flex;
+  justify-content: center;
+  padding: 0 16px;
+  pointer-events: none;
+}
+
+.snackbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 48px;
+  min-width: 288px;
+  max-width: 600px;
+  padding: 4px 4px 4px 16px;
+  border-radius: var(--md-sys-shape-corner-extra-small);
+  background: var(--md-sys-color-inverse-surface);
+  color: var(--md-sys-color-inverse-on-surface);
+  box-shadow: var(--md-sys-elevation-floating);
+  pointer-events: auto;
+}
+
+.message {
+  flex: 1;
+  padding: 10px 0;
+  font-size: var(--md-sys-typescale-body-medium-size);
+  line-height: var(--md-sys-typescale-body-medium-line-height);
+  letter-spacing: var(--md-sys-typescale-body-medium-tracking);
+}
+
+.action {
+  min-height: 40px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: transparent;
+  color: var(--md-sys-color-inverse-primary);
+  cursor: pointer;
+  font-size: var(--md-sys-typescale-label-large-size);
+  font-weight: var(--md-sys-typescale-label-large-weight-emphasized);
+}
+
+.close.close {
+  color: var(--md-sys-color-inverse-on-surface);
+}

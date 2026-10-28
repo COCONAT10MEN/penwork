@@ -1,0 +1,26 @@
+.wrapper {
+  /* Invisible to layout: the child sits in the parent's flex/grid as if unwrapped. */
+  display: contents;
+}
+
+.tooltip {
+  position: fixed;
+  z-index: 1000;
+  max-width: 240px;
+  padding: 4px 8px;
+  border-radius: var(--md-sys-shape-corner-extra-small);
+  background: var(--md-sys-color-inverse-surface);
+  color: var(--md-sys-color-inverse-on-surface);
+  font-size: var(--md-sys-typescale-body-small-size);
+  line-height: var(--md-sys-typescale-body-small-line-height);
+  letter-spacing: var(--md-sys-typescale-body-small-tracking);
+  pointer-events: none;
+  animation: fade-in var(--md-sys-motion-effects-default-duration)
+    var(--md-sys-motion-effects-default-easing);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}

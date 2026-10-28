@@ -1,0 +1,97 @@
+.rail {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  height: 100%;
+  padding: 20px 12px;
+  overflow: hidden auto;
+  background: var(--md-sys-color-surface-container-low);
+  transition: width var(--md-sys-motion-spatial-default-duration)
+    var(--md-sys-motion-spatial-default-easing);
+}
+.expanded {
+  width: 232px;
+}
+.collapsed {
+  width: 96px;
+  align-items: center;
+}
+
+.header {
+  padding-bottom: 16px;
+}
+
+.items {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.collapsed .items {
+  gap: 12px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: transparent;
+  color: var(--md-sys-color-on-surface-variant);
+  cursor: pointer;
+  text-align: start;
+}
+.collapsed .item {
+  justify-content: center;
+  width: 56px;
+  min-height: 40px;
+  padding: 0;
+}
+.item[data-active] {
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+
+.label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--md-sys-typescale-label-large-size);
+  line-height: var(--md-sys-typescale-label-large-line-height);
+  letter-spacing: var(--md-sys-typescale-label-large-tracking);
+  font-weight: var(--md-sys-typescale-label-large-weight);
+}
+.item[data-active] .label {
+  font-weight: var(--md-sys-typescale-label-large-weight-emphasized);
+}
+
+.iconWrap {
+  position: relative;
+  display: inline-grid;
+}
+.badge {
+  position: absolute;
+  top: -4px;
+  left: 14px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-error);
+  color: var(--md-sys-color-on-error);
+  font-size: var(--md-sys-typescale-label-small-size);
+  line-height: 16px;
+  font-weight: var(--md-sys-typescale-label-small-weight);
+  text-align: center;
+}
+
+.footer {
+  margin-top: auto;
+  padding-top: 16px;
+}

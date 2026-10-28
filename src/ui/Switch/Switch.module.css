@@ -1,0 +1,101 @@
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 48px;
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+}
+.label {
+  cursor: pointer;
+  font-size: var(--md-sys-typescale-body-large-size);
+  line-height: var(--md-sys-typescale-body-large-line-height);
+  letter-spacing: var(--md-sys-typescale-body-large-tracking);
+}
+.description {
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: var(--md-sys-typescale-body-medium-size);
+  line-height: var(--md-sys-typescale-body-medium-line-height);
+}
+
+/* Track 52×32. Off: outlined; on: primary. */
+.track {
+  position: relative;
+  flex: none;
+  width: 52px;
+  height: 32px;
+  padding: 0;
+  border: 2px solid var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-surface-container-highest);
+  cursor: pointer;
+  transition:
+    background-color var(--md-sys-motion-effects-fast-duration)
+      var(--md-sys-motion-effects-fast-easing),
+    border-color var(--md-sys-motion-effects-fast-duration) var(--md-sys-motion-effects-fast-easing);
+}
+.track[data-checked] {
+  border-color: var(--md-sys-color-primary);
+  background: var(--md-sys-color-primary);
+}
+
+/* Handle: 16px off, 24px on, 28px while pressed. A hover/press halo comes from .pw-state. */
+.handle {
+  position: absolute;
+  top: 50%;
+  left: 6px;
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-outline);
+  color: var(--md-sys-color-on-primary-container);
+  translate: 0 -50%;
+  transition:
+    left var(--md-sys-motion-spatial-fast-duration) var(--md-sys-motion-spatial-fast-easing),
+    width var(--md-sys-motion-spatial-fast-duration) var(--md-sys-motion-spatial-fast-easing),
+    height var(--md-sys-motion-spatial-fast-duration) var(--md-sys-motion-spatial-fast-easing);
+  --pw-state-color: var(--md-sys-color-on-surface);
+}
+.handle::before {
+  inset: -12px;
+}
+.track:hover .handle::before {
+  opacity: var(--md-sys-state-hover-opacity);
+}
+.track:focus-visible .handle::before {
+  opacity: var(--md-sys-state-focus-opacity);
+}
+.track:active .handle::before {
+  opacity: var(--md-sys-state-pressed-opacity);
+}
+.track[data-checked] .handle {
+  left: 22px;
+  width: 24px;
+  height: 24px;
+  background: var(--md-sys-color-on-primary);
+  --pw-state-color: var(--md-sys-color-primary);
+}
+.track:active:not(:disabled) .handle {
+  width: 28px;
+  height: 28px;
+  left: 2px;
+}
+.track[data-checked]:active:not(:disabled) .handle {
+  left: 20px;
+}
+
+.disabled .label {
+  cursor: default;
+}
+.disabled {
+  opacity: var(--md-sys-state-disabled-content-opacity);
+}
+.track:disabled {
+  cursor: default;
+}

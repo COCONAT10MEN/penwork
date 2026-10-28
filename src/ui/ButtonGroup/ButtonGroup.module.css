@@ -1,0 +1,72 @@
+.group {
+  display: inline-flex;
+  gap: 2px;
+}
+
+/* Ends are marked in JS (data-first/last): tooltip wrappers would confuse :first-child. */
+
+.segment {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 0;
+  cursor: pointer;
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+  font-weight: var(--md-sys-typescale-label-large-weight-emphasized);
+  border-radius: var(--md-sys-shape-corner-small);
+  transition: border-radius var(--md-sys-motion-spatial-fast-duration)
+    var(--md-sys-motion-spatial-fast-easing);
+}
+.segment[data-first] {
+  border-start-start-radius: var(--md-sys-shape-corner-full);
+  border-end-start-radius: var(--md-sys-shape-corner-full);
+}
+.segment[data-last] {
+  border-start-end-radius: var(--md-sys-shape-corner-full);
+  border-end-end-radius: var(--md-sys-shape-corner-full);
+}
+.segment[data-selected] {
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+  border-radius: var(--md-sys-shape-corner-full);
+}
+.segment:active:not(:disabled) {
+  border-radius: var(--md-sys-shape-corner-extra-small);
+}
+
+.small .segment {
+  min-height: 40px;
+  padding: 0 16px;
+  font-size: var(--md-sys-typescale-label-large-size);
+  line-height: var(--md-sys-typescale-label-large-line-height);
+}
+.small .iconOnly {
+  min-width: 48px;
+  padding: 0 12px;
+}
+.medium .segment {
+  min-height: 56px;
+  padding: 0 24px;
+  font-size: var(--md-sys-typescale-title-medium-size);
+  line-height: var(--md-sys-typescale-title-medium-line-height);
+}
+.medium .iconOnly {
+  min-width: 64px;
+  padding: 0 16px;
+}
+
+.segment:disabled {
+  cursor: default;
+  color: color-mix(
+    in srgb,
+    var(--md-sys-color-on-surface) calc(var(--md-sys-state-disabled-content-opacity) * 100%),
+    transparent
+  );
+  background: color-mix(
+    in srgb,
+    var(--md-sys-color-on-surface) calc(var(--md-sys-state-disabled-container-opacity) * 100%),
+    transparent
+  );
+}

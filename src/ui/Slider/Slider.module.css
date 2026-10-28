@@ -1,0 +1,78 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 160px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.label {
+  font-size: var(--md-sys-typescale-label-large-size);
+  line-height: var(--md-sys-typescale-label-large-line-height);
+  letter-spacing: var(--md-sys-typescale-label-large-tracking);
+}
+.value {
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: var(--md-sys-typescale-label-large-size);
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+  The track is drawn as the input's background: active part, a 6px gap each side of the
+  handle, then the inactive part. --pw-pct is set from React.
+*/
+.input {
+  --pw-handle-x: calc(2px + (100% - 4px) * var(--pw-pct) / 100);
+  --pw-active: var(--md-sys-color-primary);
+  --pw-inactive: var(--md-sys-color-secondary-container);
+  appearance: none;
+  width: 100%;
+  height: 44px;
+  margin: 0;
+  background:
+    linear-gradient(var(--pw-active), var(--pw-active)) left center /
+      max(0px, calc(var(--pw-handle-x) - 8px)) 16px no-repeat,
+    linear-gradient(var(--pw-inactive), var(--pw-inactive)) right center /
+      max(0px, calc(100% - var(--pw-handle-x) - 8px)) 16px no-repeat;
+  /* Rounded outer ends of the track. */
+  border-radius: var(--md-sys-shape-corner-small);
+  cursor: pointer;
+}
+.input:focus-visible {
+  outline: none;
+}
+
+.input::-webkit-slider-thumb {
+  appearance: none;
+  width: 4px;
+  height: 44px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--pw-active);
+  transition: width var(--md-sys-motion-spatial-fast-duration)
+    var(--md-sys-motion-spatial-fast-easing);
+}
+.input:active::-webkit-slider-thumb {
+  width: 2px;
+}
+.input:focus-visible::-webkit-slider-thumb {
+  outline: var(--md-sys-focus-ring-width) solid var(--md-sys-focus-ring-color);
+  outline-offset: var(--md-sys-focus-ring-offset);
+}
+
+.input:disabled {
+  --pw-active: color-mix(
+    in srgb,
+    var(--md-sys-color-on-surface) calc(var(--md-sys-state-disabled-content-opacity) * 100%),
+    transparent
+  );
+  --pw-inactive: color-mix(
+    in srgb,
+    var(--md-sys-color-on-surface) calc(var(--md-sys-state-disabled-container-opacity) * 100%),
+    transparent
+  );
+  cursor: default;
+}

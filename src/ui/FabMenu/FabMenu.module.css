@@ -1,0 +1,72 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.item {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 0 24px 0 20px;
+  border: 0;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+  box-shadow: var(--md-sys-elevation-floating);
+  cursor: pointer;
+  white-space: nowrap;
+  font-size: var(--md-sys-typescale-title-medium-size);
+  line-height: var(--md-sys-typescale-title-medium-line-height);
+  font-weight: var(--md-sys-typescale-title-medium-weight-emphasized);
+  transform-origin: right center;
+}
+.item[aria-disabled="true"] {
+  cursor: default;
+  background: var(--md-sys-color-surface-container-high);
+  color: color-mix(
+    in srgb,
+    var(--md-sys-color-on-surface) calc(var(--md-sys-state-disabled-content-opacity) * 100%),
+    transparent
+  );
+}
+
+/* Closed: an 80px rounded-square FAB. Open: a 56px circle in primary. */
+.fab {
+  display: grid;
+  place-items: center;
+  width: 80px;
+  height: 80px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--md-sys-shape-corner-large-increased);
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+  box-shadow: var(--md-sys-elevation-floating);
+  cursor: pointer;
+  transition:
+    width var(--md-sys-motion-spatial-default-duration) var(--md-sys-motion-spatial-default-easing),
+    height var(--md-sys-motion-spatial-default-duration) var(--md-sys-motion-spatial-default-easing),
+    margin var(--md-sys-motion-spatial-default-duration) var(--md-sys-motion-spatial-default-easing),
+    border-radius var(--md-sys-motion-spatial-default-duration)
+      var(--md-sys-motion-spatial-default-easing);
+}
+.fab[data-open] {
+  width: 56px;
+  height: 56px;
+  /* Keeps the button's center where it was, so the icon doesn't jump. */
+  margin: 12px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+}

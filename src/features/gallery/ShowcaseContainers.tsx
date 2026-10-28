@@ -9,6 +9,7 @@ import {
   NavigationRail,
   TopAppBar,
   type RailItem,
+  useSnackbar,
 } from "../../ui";
 import { Section } from "./ShowcaseActions";
 import styles from "./Gallery.module.css";
@@ -72,10 +73,17 @@ export function ShowcaseAppBar() {
 }
 
 export function ShowcaseCards() {
+  const snack = useSnackbar();
   return (
     <Section title="Cards">
       <div className={styles.row}>
-        <Card color="primary" shape="hero" onClick={() => {}} style={{ flex: "2 1 260px" }}>
+        <Card
+          color="primary"
+          shape="hero"
+          actionLabel="Open Lecture notes — Week 4"
+          onClick={() => snack({ message: "Card opened" })}
+          style={{ flex: "2 1 260px" }}
+        >
           <div className={styles.heroText}>
             <span className={`pw-type-label-medium pw-type--emphasized ${styles.overline}`}>
               Continue reading
@@ -84,6 +92,9 @@ export function ShowcaseCards() {
               Lecture notes — Week 4
             </span>
             <span className="pw-type-body-medium">Page 3 of 12 · edited 2 hours ago</span>
+            <Button icon="edit" onClick={() => snack({ message: "Resume clicked" })}>
+              Resume
+            </Button>
           </div>
         </Card>
         <Card color="tertiary" shape="hero" style={{ flex: "1 1 160px" }}>

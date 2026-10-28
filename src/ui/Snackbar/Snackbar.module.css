@@ -21,6 +21,8 @@
   color: var(--md-sys-color-inverse-on-surface);
   box-shadow: var(--md-sys-elevation-floating);
   pointer-events: auto;
+  /* The usual secondary ring is nearly invisible on inverse-surface. */
+  --md-sys-focus-ring-color: var(--md-sys-color-inverse-primary);
 }
 
 .message {

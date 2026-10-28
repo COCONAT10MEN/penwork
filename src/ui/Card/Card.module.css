@@ -33,9 +33,24 @@
   box-shadow: inset 0 0 0 1px var(--md-sys-color-outline-variant);
 }
 
+/*
+  Clickable card: an invisible button fills the card and takes the click and keyboard focus.
+  Buttons and links inside the card sit above it, so they stay clickable on their own.
+*/
 .interactive {
-  width: 100%;
-  border: 0;
   cursor: pointer;
-  font: inherit;
+}
+.stretched {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  padding: 0;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+.interactive :is(a, button, input, select, textarea):not(.stretched) {
+  position: relative;
+  z-index: 1;
 }

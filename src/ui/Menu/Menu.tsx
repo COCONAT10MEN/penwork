@@ -34,6 +34,7 @@ export function Menu({ open, onClose, anchor, label, items }: MenuProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState<{ left: number; top: number; up: boolean } | null>(null);
   const spring = useSpring("spatialDefault");
+  const fade = useSpring("effectsFast");
   const reduce = useReduceMotion();
 
   useLayoutEffect(() => {
@@ -77,7 +78,7 @@ export function Menu({ open, onClose, anchor, label, items }: MenuProps) {
           }
           initial={reduce ? { opacity: 0 } : { opacity: 0, scaleY: 0.85 }}
           animate={{ opacity: 1, scaleY: 1, transition: spring }}
-          exit={{ opacity: 0, transition: { duration: 0.1 } }}
+          exit={{ opacity: 0, transition: fade }}
           onKeyDown={(e) => {
             if (handleMenuKeys(e, ref.current)) return;
             if (e.key === "Escape") {

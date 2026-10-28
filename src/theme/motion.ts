@@ -104,7 +104,7 @@ export function motionCss(): string {
   return [
     `:root {\n${vars.join("\n")}\n}`,
     `@media (prefers-reduced-motion: reduce) {\n:root {\n${reduced.join("\n")}\n}\n}`,
-    `:root[data-reduce-motion] {\n${reduced.join("\n")}\n  --md-sys-motion-effects-duration: 0ms;\n}`,
+    `:root[data-reduce-motion] {\n${reduced.join("\n")}\n}`,
   ].join("\n\n");
 }
 

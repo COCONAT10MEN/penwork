@@ -94,9 +94,12 @@ export function Tooltip({ text, placement = "top", describes = true, children }:
     }
   }, [open, placement, text]);
 
+  // The description must exist while the tooltip is hidden too (e.g. why an item is disabled),
+  // so screen readers get an always-present hidden copy; the visible bubble is aria-hidden.
+  const descId = `${id}-desc`;
   const child =
     isValidElement(children) && describes
-      ? cloneElement(children, { "aria-describedby": id })
+      ? cloneElement(children, { "aria-describedby": descId })
       : children;
 
   return (
@@ -111,6 +114,11 @@ export function Tooltip({ text, placement = "top", describes = true, children }:
         onBlur={hide}
       >
         {child}
+        {describes && (
+          <span id={descId} className="pw-visually-hidden">
+            {text}
+          </span>
+        )}
       </span>
       {target &&
         createPortal(
@@ -118,6 +126,7 @@ export function Tooltip({ text, placement = "top", describes = true, children }:
             ref={tip}
             id={id}
             role="tooltip"
+            aria-hidden="true"
             className={styles.tooltip}
             style={coords ?? { visibility: "hidden", left: 0, top: 0 }}
           >

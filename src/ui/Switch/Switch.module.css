@@ -38,13 +38,20 @@
       var(--md-sys-motion-effects-fast-easing),
     border-color var(--md-sys-motion-effects-fast-duration) var(--md-sys-motion-effects-fast-easing);
 }
+/* The visible track is 52×32; this makes the clickable area 60×48 (minimum target size). */
+.track::after {
+  content: "";
+  position: absolute;
+  inset: -10px -6px;
+}
 .track[data-checked] {
   border-color: var(--md-sys-color-primary);
   background: var(--md-sys-color-primary);
 }
 
 /* Handle: 16px off, 24px on, 28px while pressed. A hover/press halo comes from .pw-state. */
-.handle {
+/* Two classes so this beats .pw-state (position: relative) whatever order the CSS loads in. */
+.track > .handle {
   position: absolute;
   top: 50%;
   left: 6px;
@@ -84,7 +91,7 @@
 .track:active:not(:disabled) .handle {
   width: 28px;
   height: 28px;
-  left: 2px;
+  left: 0;
 }
 .track[data-checked]:active:not(:disabled) .handle {
   left: 20px;

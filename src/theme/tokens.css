@@ -174,12 +174,3 @@
 .pw-theme-dark {
   --md-sys-elevation-floating: 0 4px 14px rgb(0 0 0 / 0.4);
 }
-:root .pw-theme-light {
-  --md-sys-elevation-floating: 0 4px 14px rgb(0 0 0 / 0.14);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  :root {
-    --md-sys-motion-effects-duration: 0ms;
-  }
-}

@@ -35,6 +35,10 @@
 .segment:active:not(:disabled) {
   border-radius: var(--md-sys-shape-corner-extra-small);
 }
+/* Each segment is its own layer (.pw-state); lift the focused one so its ring isn't covered. */
+.segment:focus-visible {
+  z-index: 1;
+}
 
 .small .segment {
   min-height: 40px;

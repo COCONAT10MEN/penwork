@@ -111,8 +111,6 @@ export function themeCss(colors: { light: ColorRoles; dark: ColorRoles }): strin
     block(':root, .pw-theme-light, :root[data-theme="light"]', colors.light, "light"),
     `@media (prefers-color-scheme: dark) {\n${block(':root:not([data-theme="light"])', colors.dark, "dark")}\n}`,
     block(':root[data-theme="dark"], .pw-theme-dark', colors.dark, "dark"),
-    // Panels nested inside the opposite root scheme must win over the media query above.
-    block(":root .pw-theme-light", colors.light, "light"),
   ].join("\n\n");
 }
 

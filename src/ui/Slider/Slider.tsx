@@ -43,19 +43,29 @@ export function Slider({
           </output>
         )}
       </div>
-      <input
-        id={id}
-        type="range"
-        className={styles.input}
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        disabled={disabled}
-        aria-valuetext={format(value)}
+      {/* The visible track is drawn with spans; the real (invisible) range input sits on top. */}
+      <div
+        className={styles.track}
+        data-disabled={disabled || undefined}
         style={{ "--pw-pct": pct } as CSSProperties}
-        onChange={(e) => onChange(Number(e.target.value))}
-      />
+      >
+        <span className={styles.active} />
+        <span className={styles.inactive} />
+        <span className={styles.stop} />
+        <span className={styles.handle} />
+        <input
+          id={id}
+          type="range"
+          className={styles.input}
+          min={min}
+          max={max}
+          step={step}
+          value={value}
+          disabled={disabled}
+          aria-valuetext={format(value)}
+          onChange={(e) => onChange(Number(e.target.value))}
+        />
+      </div>
     </div>
   );
 }

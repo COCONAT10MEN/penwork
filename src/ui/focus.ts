@@ -1,10 +1,13 @@
 import type { KeyboardEvent } from "react";
 
-const ITEM = '[role="menuitem"]:not([aria-disabled="true"])';
+// Disabled items stay reachable (but inert), as in the WAI-ARIA menu pattern, so keyboard
+// users can hear why they are disabled.
+const ITEM = '[role="menuitem"]';
+const ENABLED_ITEM = '[role="menuitem"]:not([aria-disabled="true"])';
 
 /**
  * Arrow/Home/End navigation between menu items inside `container`. Returns true when the key
- * was handled. Disabled items are skipped by the arrows (they stay readable by screen readers).
+ * was handled.
  */
 export function handleMenuKeys(event: KeyboardEvent, container: HTMLElement | null): boolean {
   if (!container) return false;
@@ -34,15 +37,20 @@ export function handleMenuKeys(event: KeyboardEvent, container: HTMLElement | nu
 }
 
 export function focusFirstItem(container: HTMLElement | null): void {
-  container?.querySelector<HTMLElement>(ITEM)?.focus();
+  (
+    container?.querySelector<HTMLElement>(ENABLED_ITEM) ??
+    container?.querySelector<HTMLElement>(ITEM)
+  )?.focus();
 }
 
 /**
- * Popups render in a portal; put them inside the nearest forced-theme panel (Gallery) so they
- * keep that panel's light/dark colors.
+ * Where a popup (menu, tooltip) is rendered. Inside an open modal <dialog> it must stay in the
+ * dialog, because everything outside is inert and below it. Otherwise use the nearest
+ * forced-theme panel (Gallery) so it keeps that panel's light/dark colors.
  */
 export function portalTarget(anchor: Element | null): HTMLElement {
   return (
-    (anchor?.closest(".pw-theme-light, .pw-theme-dark") as HTMLElement | null) ?? document.body
+    (anchor?.closest("dialog[open], .pw-theme-light, .pw-theme-dark") as HTMLElement | null) ??
+    document.body
   );
 }

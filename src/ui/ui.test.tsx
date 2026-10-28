@@ -31,22 +31,29 @@ describe("IconButton", () => {
 });
 
 describe("ButtonGroup", () => {
-  it("reports the clicked option and marks the selected one", () => {
+  const options = [
+    { value: "grid", label: "Grid" },
+    { value: "list", label: "List" },
+  ];
+
+  it("single-select is a radio group with arrow keys and one Tab stop", () => {
     const onChange = vi.fn();
-    render(
-      <ButtonGroup
-        label="View"
-        value="grid"
-        onChange={onChange}
-        options={[
-          { value: "grid", label: "Grid" },
-          { value: "list", label: "List" },
-        ]}
-      />,
-    );
+    render(<ButtonGroup label="View" value="grid" onChange={onChange} options={options} />);
+    expect(screen.getByRole("radiogroup", { name: "View" })).toBeTruthy();
+    const grid = screen.getByRole("radio", { name: "Grid" });
+    expect(grid.getAttribute("aria-checked")).toBe("true");
+    expect(grid.tabIndex).toBe(0);
+    expect(screen.getByRole("radio", { name: "List" }).tabIndex).toBe(-1);
+    fireEvent.keyDown(grid, { key: "ArrowRight" });
+    expect(onChange).toHaveBeenCalledWith("list");
+  });
+
+  it("multi-select is toggle buttons", () => {
+    const onChange = vi.fn();
+    render(<ButtonGroup label="View" value={["grid"]} onChange={onChange} options={options} />);
     expect(screen.getByRole("button", { name: "Grid" }).getAttribute("aria-pressed")).toBe("true");
     fireEvent.click(screen.getByRole("button", { name: "List" }));
-    expect(onChange).toHaveBeenCalledWith("list");
+    expect(onChange).toHaveBeenCalledWith(["grid", "list"]);
   });
 });
 
@@ -140,7 +147,7 @@ describe("Menu", () => {
     );
   }
 
-  it("focuses the first item, skips disabled ones with the arrows, closes on Escape", async () => {
+  it("focuses the first item, reaches disabled ones without running them, closes on Escape", async () => {
     const onSelect = vi.fn();
     render(<Harness onSelect={onSelect} />);
     const menu = await screen.findByRole("menu", { name: "More options" });
@@ -148,9 +155,13 @@ describe("Menu", () => {
     act(() => {
       fireEvent.keyDown(menu, { key: "ArrowDown" });
     });
-    expect(document.activeElement?.textContent).toBe("Remove");
+    expect(document.activeElement?.textContent).toBe("Rename");
     fireEvent.click(screen.getByRole("menuitem", { name: "Rename" }));
     expect(onSelect).not.toHaveBeenCalled();
+    act(() => {
+      fireEvent.keyDown(menu, { key: "ArrowDown" });
+    });
+    expect(document.activeElement?.textContent).toBe("Remove");
     fireEvent.keyDown(menu, { key: "Escape" });
     expect(document.activeElement?.textContent).toBe("More");
   });

@@ -34,7 +34,7 @@
   width: auto;
   padding: 0 20px 0 16px;
 }
-.fab:active {
+.fab:active:not(:disabled) {
   border-radius: var(--md-sys-shape-corner-medium);
 }
 

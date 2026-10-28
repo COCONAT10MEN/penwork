@@ -34,6 +34,7 @@ export function FabMenu({ label, icon = "add", items }: FabMenuProps) {
   const toggle = useRef<HTMLButtonElement>(null);
   const menuId = useId();
   const spring = useSpring("spatialDefault");
+  const fade = useSpring("effectsFast");
   const reduce = useReduceMotion();
 
   useEffect(() => {
@@ -73,8 +74,12 @@ export function FabMenu({ label, icon = "add", items }: FabMenuProps) {
             role="menu"
             aria-label={label}
             className={styles.list}
-            onKeyDown={(e) => handleMenuKeys(e, list.current)}
-            exit={{ opacity: 0, transition: { duration: 0.1 } }}
+            onKeyDown={(e) => {
+              if (handleMenuKeys(e, list.current)) return;
+              // Like a menu: Tab leaves it and closes it instead of walking through the items.
+              if (e.key === "Tab") close(false);
+            }}
+            exit={{ opacity: 0, transition: fade }}
           >
             {items.map((item, i) => {
               // Bottom item appears first, so the stack grows out of the FAB.
@@ -84,6 +89,7 @@ export function FabMenu({ label, icon = "add", items }: FabMenuProps) {
                   key={item.label}
                   type="button"
                   role="menuitem"
+                  tabIndex={-1}
                   aria-disabled={item.disabled || undefined}
                   className={cx("pw-state", styles.item)}
                   initial={reduce ? { opacity: 0 } : { opacity: 0, y: 16, scale: 0.85 }}
@@ -114,7 +120,7 @@ export function FabMenu({ label, icon = "add", items }: FabMenuProps) {
           </motion.div>
         )}
       </AnimatePresence>
-      <Tooltip text={label} describes={false} placement="left">
+      <Tooltip text={open ? "Close" : label} describes={false} placement="left">
         <button
           ref={toggle}
           type="button"

@@ -22,48 +22,92 @@
 }
 
 /*
-  The track is drawn as the input's background: active part, a 6px gap each side of the
-  handle, then the inactive part. --pw-pct is set from React.
+  M3 Expressive slider: a 16px track split around a 4×44 bar handle with a 6px gap each side,
+  8px outer corners, 2px inner corners, and a stop dot at the end. --pw-pct comes from React.
 */
-.input {
+.track {
   --pw-handle-x: calc(2px + (100% - 4px) * var(--pw-pct) / 100);
   --pw-active: var(--md-sys-color-primary);
-  --pw-inactive: var(--md-sys-color-secondary-container);
-  appearance: none;
-  width: 100%;
+  --pw-inactive: var(--md-sys-color-primary-container);
+  --pw-outer: var(--md-sys-shape-corner-small);
+  --pw-inner: calc(var(--md-sys-shape-corner-extra-small) / 2);
+  position: relative;
   height: 44px;
-  margin: 0;
-  background:
-    linear-gradient(var(--pw-active), var(--pw-active)) left center /
-      max(0px, calc(var(--pw-handle-x) - 8px)) 16px no-repeat,
-    linear-gradient(var(--pw-inactive), var(--pw-inactive)) right center /
-      max(0px, calc(100% - var(--pw-handle-x) - 8px)) 16px no-repeat;
-  /* Rounded outer ends of the track. */
-  border-radius: var(--md-sys-shape-corner-small);
-  cursor: pointer;
-}
-.input:focus-visible {
-  outline: none;
 }
 
-.input::-webkit-slider-thumb {
-  appearance: none;
+.active,
+.inactive {
+  position: absolute;
+  top: 14px;
+  height: 16px;
+}
+.active {
+  left: 0;
+  width: max(0px, calc(var(--pw-handle-x) - 8px));
+  border-radius: var(--pw-outer) var(--pw-inner) var(--pw-inner) var(--pw-outer);
+  background: var(--pw-active);
+}
+.inactive {
+  left: calc(var(--pw-handle-x) + 8px);
+  right: 0;
+  border-radius: var(--pw-inner) var(--pw-outer) var(--pw-outer) var(--pw-inner);
+  background: var(--pw-inactive);
+}
+.stop {
+  position: absolute;
+  top: 20px;
+  right: 6px;
+  width: 4px;
+  height: 4px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--pw-active);
+}
+
+.handle {
+  position: absolute;
+  top: 0;
+  left: calc(var(--pw-handle-x) - 2px);
   width: 4px;
   height: 44px;
   border-radius: var(--md-sys-shape-corner-full);
   background: var(--pw-active);
-  transition: width var(--md-sys-motion-spatial-fast-duration)
-    var(--md-sys-motion-spatial-fast-easing);
+  pointer-events: none;
+  transition:
+    width var(--md-sys-motion-spatial-fast-duration) var(--md-sys-motion-spatial-fast-easing),
+    left var(--md-sys-motion-spatial-fast-duration) var(--md-sys-motion-spatial-fast-easing);
 }
-.input:active::-webkit-slider-thumb {
+.track:active:not([data-disabled]) .handle {
+  left: calc(var(--pw-handle-x) - 1px);
   width: 2px;
 }
-.input:focus-visible::-webkit-slider-thumb {
+.track:has(.input:focus-visible) .handle {
   outline: var(--md-sys-focus-ring-width) solid var(--md-sys-focus-ring-color);
   outline-offset: var(--md-sys-focus-ring-offset);
 }
 
+/* Invisible native input on top: handles mouse, keyboard and screen readers. */
+.input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  appearance: none;
+  background: transparent;
+  opacity: 0;
+  cursor: pointer;
+}
+/* Same thumb width as the drawn handle, so the pointer maps to the same positions. */
+.input::-webkit-slider-thumb {
+  appearance: none;
+  width: 4px;
+  height: 44px;
+}
 .input:disabled {
+  cursor: default;
+}
+
+.track[data-disabled] {
   --pw-active: color-mix(
     in srgb,
     var(--md-sys-color-on-surface) calc(var(--md-sys-state-disabled-content-opacity) * 100%),
@@ -74,5 +118,4 @@
     var(--md-sys-color-on-surface) calc(var(--md-sys-state-disabled-container-opacity) * 100%),
     transparent
   );
-  cursor: default;
 }

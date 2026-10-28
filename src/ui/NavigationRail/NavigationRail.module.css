@@ -86,7 +86,7 @@
   background: var(--md-sys-color-error);
   color: var(--md-sys-color-on-error);
   font-size: var(--md-sys-typescale-label-small-size);
-  line-height: 16px;
+  line-height: var(--md-sys-typescale-label-small-line-height);
   font-weight: var(--md-sys-typescale-label-small-weight);
   text-align: center;
 }

@@ -19,6 +19,9 @@ export interface DialogProps {
  */
 export function Dialog({ open, onClose, headline, icon, children, actions }: DialogProps) {
   const ref = useRef<HTMLDialogElement>(null);
+  // Only a press that both starts and ends on the scrim closes it, so selecting text inside
+  // and releasing outside doesn't.
+  const pressedOnScrim = useRef(false);
   const titleId = useId();
   const bodyId = useId();
 
@@ -40,7 +43,13 @@ export function Dialog({ open, onClose, headline, icon, children, actions }: Dia
         onClose();
       }}
       // A click on the dialog element itself (not its content) is a click on the scrim.
-      onClick={(e) => e.target === ref.current && onClose()}
+      onPointerDown={(e) => {
+        pressedOnScrim.current = e.target === ref.current;
+      }}
+      onClick={(e) => {
+        if (pressedOnScrim.current && e.target === ref.current) onClose();
+        pressedOnScrim.current = false;
+      }}
     >
       <div className={styles.content}>
         {icon && <Icon name={icon} className={styles.icon} />}

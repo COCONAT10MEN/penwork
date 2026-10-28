@@ -32,5 +32,11 @@ export default defineConfig(() => ({
 
   test: {
     include: ["src/**/*.test.{ts,tsx}"],
+    server: {
+      deps: {
+        // Its ESM build has extension-less imports that Node can't resolve; let Vite bundle it.
+        inline: ["@material/material-color-utilities"],
+      },
+    },
   },
 }));

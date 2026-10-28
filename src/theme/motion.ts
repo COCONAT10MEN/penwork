@@ -51,3 +51,67 @@ export function useSpring(name: SpringName): Transition {
 export function useReduceMotion(): boolean {
   return useReducedMotionConfig() ?? false;
 }
+
+/** Position of a unit spring released from 0 toward 1 (mass 1) at time t seconds. */
+export function springPosition(ratio: number, stiffness: number, t: number): number {
+  const w = Math.sqrt(stiffness);
+  if (ratio >= 1) return 1 - Math.exp(-w * t) * (1 + w * t); // critically damped
+  const wd = w * Math.sqrt(1 - ratio * ratio);
+  return 1 - Math.exp(-ratio * w * t) * (Math.cos(wd * t) + ((ratio * w) / wd) * Math.sin(wd * t));
+}
+
+/**
+ * The same spring as a CSS easing, so CSS-only components (shape morph, switch handle, rail
+ * width) move exactly like the motion/react ones. Settles when within 0.1% of the target.
+ */
+export function springEasing(spec: { ratio: number; stiffness: number }): {
+  durationMs: number;
+  easing: string;
+} {
+  const step = 1 / 600;
+  let settled = 0;
+  for (let t = 0; t < 3; t += step) {
+    if (Math.abs(1 - springPosition(spec.ratio, spec.stiffness, t)) > 0.001) settled = t;
+  }
+  const duration = settled + step;
+  const samples = 40;
+  const points: string[] = [];
+  for (let i = 0; i <= samples; i++) {
+    const x =
+      i === samples ? 1 : springPosition(spec.ratio, spec.stiffness, (duration * i) / samples);
+    points.push(String(Math.round(x * 1000) / 1000));
+  }
+  return { durationMs: Math.round(duration * 1000), easing: `linear(${points.join(", ")})` };
+}
+
+function kebab(name: string): string {
+  return name.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`);
+}
+
+/**
+ * CSS variables --md-sys-motion-<spring>-duration / -easing for every preset. Spatial durations
+ * drop to 0 with reduced motion (OS setting, or data-reduce-motion on <html> from Settings).
+ */
+export function motionCss(): string {
+  const vars: string[] = [];
+  const reduced: string[] = [];
+  for (const [name, spec] of Object.entries(SPRING_SPECS)) {
+    const { durationMs, easing } = springEasing(spec);
+    const key = `--md-sys-motion-${kebab(name)}`;
+    vars.push(`  ${key}-duration: ${durationMs}ms;`, `  ${key}-easing: ${easing};`);
+    if (isSpatial(name as SpringName)) reduced.push(`  ${key}-duration: 0ms;`);
+  }
+  return [
+    `:root {\n${vars.join("\n")}\n}`,
+    `@media (prefers-reduced-motion: reduce) {\n:root {\n${reduced.join("\n")}\n}\n}`,
+    `:root[data-reduce-motion] {\n${reduced.join("\n")}\n  --md-sys-motion-effects-duration: 0ms;\n}`,
+  ].join("\n\n");
+}
+
+export function applyMotionTokens(doc: Document = document): void {
+  const style = doc.createElement("style");
+  style.id = "pw-motion";
+  style.textContent = motionCss();
+  doc.getElementById("pw-motion")?.remove();
+  doc.head.appendChild(style);
+}

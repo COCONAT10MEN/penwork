@@ -1,7 +1,6 @@
-/* App-wide base styles. Values come from tokens.css only. */
+/* App-wide base styles. Values come from tokens.css only. color-scheme is set by theme.ts. */
 
 :root {
-  color-scheme: light dark;
   font-family: var(--md-ref-typeface-plain);
   font-optical-sizing: auto;
   font-size: var(--md-sys-typescale-body-large-size);
@@ -9,14 +8,6 @@
   color: var(--md-sys-color-on-surface);
   background: var(--md-sys-color-surface);
   -webkit-font-smoothing: antialiased;
-}
-
-:root[data-theme="light"] {
-  color-scheme: light;
-}
-
-:root[data-theme="dark"] {
-  color-scheme: dark;
 }
 
 *,
@@ -32,11 +23,83 @@ body,
   margin: 0;
 }
 
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+/* Keyboard focus ring everywhere; mouse clicks don't show it (:focus-visible). */
+:focus-visible {
+  outline: var(--md-sys-focus-ring-width) solid var(--md-sys-focus-ring-color);
+  outline-offset: var(--md-sys-focus-ring-offset);
+}
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/*
+  State layer: a tint of the content color on top of the element (hover 8%, focus 10%,
+  pressed 10%, dragged 16%). Add .pw-state to anything interactive. Components can set
+  --pw-state-color when the layer should not be the text color.
+*/
+.pw-state {
+  position: relative;
+  isolation: isolate;
+}
+.pw-state::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--pw-state-color, currentColor);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--md-sys-motion-effects-duration) var(--md-sys-motion-effects-easing);
+}
+.pw-state:hover::before {
+  opacity: var(--md-sys-state-hover-opacity);
+}
+.pw-state:focus-visible::before {
+  opacity: var(--md-sys-state-focus-opacity);
+}
+.pw-state:active::before {
+  opacity: var(--md-sys-state-pressed-opacity);
+}
+.pw-state[data-dragging]::before {
+  opacity: var(--md-sys-state-dragged-opacity);
+}
+.pw-state:is(:disabled, [aria-disabled="true"])::before {
+  opacity: 0;
+}
+
+/* Disabled: content 38%, container 12% (components use --pw-disabled-container where needed). */
+.pw-state:is(:disabled, [aria-disabled="true"]) {
+  cursor: default;
+}
+
+/* Screen-reader-only text (labels that are visible as icons only). */
+.pw-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* DESIGN.md icon defaults: weight 400, grade 0, optical size 24, outlined until selected. */
 .material-symbols-rounded {
   font-variation-settings:
-    "FILL" 0,
+    "FILL" var(--pw-icon-fill, 0),
     "wght" 400,
     "GRAD" 0,
     "opsz" 24;
+  user-select: none;
 }

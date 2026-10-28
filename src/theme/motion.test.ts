@@ -1,5 +1,58 @@
 import { describe, expect, it } from "vitest";
-import { REDUCED_MOTION_FADE, SPRING_SPECS, springs, transitionFor } from "./motion";
+import {
+  REDUCED_MOTION_FADE,
+  SPRING_SPECS,
+  motionCss,
+  springEasing,
+  springPosition,
+  springs,
+  transitionFor,
+} from "./motion";
+
+function easingPoints(easing: string): number[] {
+  return easing
+    .replace(/^linear\(|\)$/g, "")
+    .split(", ")
+    .map(Number);
+}
+
+describe("springEasing", () => {
+  it("starts at 0 and ends exactly at 1", () => {
+    const pts = easingPoints(springEasing(SPRING_SPECS.spatialFast).easing);
+    expect(pts[0]).toBe(0);
+    expect(pts.at(-1)).toBe(1);
+  });
+
+  it("overshoots for spatial springs and never for effects springs", () => {
+    expect(
+      Math.max(...easingPoints(springEasing(SPRING_SPECS.spatialFast).easing)),
+    ).toBeGreaterThan(1);
+    expect(
+      Math.max(...easingPoints(springEasing(SPRING_SPECS.effectsDefault).easing)),
+    ).toBeLessThanOrEqual(1);
+  });
+
+  it("settles in a sensible time", () => {
+    const { durationMs } = springEasing(SPRING_SPECS.spatialDefault);
+    expect(durationMs).toBeGreaterThan(200);
+    expect(durationMs).toBeLessThan(1000);
+  });
+
+  it("springPosition reaches the target", () => {
+    expect(springPosition(0.8, 380, 2)).toBeCloseTo(1, 3);
+    expect(springPosition(1, 1600, 0)).toBe(0);
+  });
+});
+
+describe("motionCss", () => {
+  it("emits duration and easing for every preset, and zeroes spatial ones when reduced", () => {
+    const css = motionCss();
+    expect(css).toContain("--md-sys-motion-spatial-fast-easing: linear(");
+    expect(css).toContain("--md-sys-motion-effects-slow-duration:");
+    expect(css).toContain("prefers-reduced-motion: reduce");
+    expect(css).toContain(":root[data-reduce-motion]");
+  });
+});
 
 // The "→ motion damping" column of the motion table in docs/DESIGN.md.
 const DESIGN_DAMPING = {

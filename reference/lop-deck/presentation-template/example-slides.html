@@ -1,0 +1,163 @@
+<!-- ============ 1 · COVER (hero) ============ -->
+<section class="slide hero" data-title="Newton's Second Law" data-bg="1300,-320,1;-260,620,1;1560,760,1;120,-300,.9">
+  <!-- optional photo: <img class="bg" src="data:image/jpeg;base64,..." alt=""> (keep it dark / low contrast) -->
+  <div class="kick">Physics · Unit 3 · Dynamics</div>
+  <div class="mid">
+    <div class="sdot big" data-m="sdot"><b class="sv">SESSION</b><b class="sn">1</b></div>
+    <h1 class="snm big" data-m="snm">Newton’s Second Law</h1>
+  </div>
+  <div class="toc">
+    <div class="c"><i>1</i>Force &amp; acceleration</div>
+    <div class="c"><i>2</i>The formula</div>
+    <div class="c"><i>3</i>Try it yourself</div>
+    <div class="c"><i>4</i>Solved example</div>
+  </div>
+</section>
+
+<!-- ============ 2 · TWO COLUMNS: step cards + diagram ============ -->
+<section class="slide" data-title="Force &amp; acceleration" data-bg="900,-420,1.2;1500,500,.9;-120,820,1.2;1650,-120,.7">
+  <div class="spill"><span class="sdot" data-m="sdot"><b class="sv">SESSION</b><b class="sn">1</b></span><span class="snm" data-m="snm">Newton’s Second Law</span></div>
+  <div class="body">
+    <div class="sec"><div class="eb">Part 01</div><h2>Force and acceleration</h2></div>
+    <div class="main">
+      <div class="cols" style="--c:820px">
+        <div>
+          <!-- each .st is one click (step). Cards appear one by one. -->
+          <div class="st"><div class="card soft" style="margin-bottom:14px">
+            <h3><span class="tri">▶</span>Definition</h3>
+            <div style="font-size:29px">The <b>net force</b> on an object equals its <b>mass</b> times its <b>acceleration</b>.</div>
+          </div></div>
+          <div class="st"><div class="card soft" style="margin-bottom:14px">
+            <h3><span class="tri">▶</span>What it means</h3>
+            <ul class="dots" style="font-size:28px">
+              <li class="st">Bigger force → <b>bigger</b> acceleration</li>
+              <li class="st">Bigger mass → <b>smaller</b> acceleration</li>
+              <li class="st">Acceleration points <b class="or">along the net force</b></li>
+            </ul>
+          </div></div>
+          <div class="st"><div class="card key"><div class="ctr" style="font-size:32px">One idea per slide, one thing per click.</div></div></div>
+        </div>
+        <div>
+          <!-- data-m="…" gives the box a name: if the next slide has a box with the same name it glides there -->
+          <div class="svgbox" data-m="diagram" style="height:520px;padding:14px">
+            <svg viewBox="0 0 700 420" width="100%" height="100%">
+              <line x1="40" y1="330" x2="660" y2="330" stroke="#12303d" stroke-width="5" stroke-linecap="round"/>
+              <g class="part" data-part="m"><rect x="270" y="190" width="160" height="140" rx="14" fill="#e3f3f8" stroke="#0e6f8e" stroke-width="5"/>
+                <text x="350" y="278" text-anchor="middle" font-size="46" font-weight="800" fill="#12303d" font-family="Georgia,serif" font-style="italic">m</text></g>
+              <g class="part" data-part="F"><line x1="70" y1="260" x2="250" y2="260" stroke="#c0562f" stroke-width="9" stroke-linecap="round"/><polygon points="268,260 240,242 240,278" fill="#c0562f"/>
+                <text x="150" y="238" text-anchor="middle" font-size="40" font-weight="800" fill="#c0562f" font-family="Georgia,serif" font-style="italic">F</text></g>
+              <g class="part" data-part="a"><line x1="450" y1="150" x2="610" y2="150" stroke="#1a4fb4" stroke-width="9" stroke-linecap="round"/><polygon points="628,150 600,132 600,168" fill="#1a4fb4"/>
+                <text x="540" y="128" text-anchor="middle" font-size="40" font-weight="800" fill="#1a4fb4" font-family="Georgia,serif" font-style="italic">a</text></g>
+            </svg>
+          </div>
+          <div class="cap" style="margin-top:12px">A block pushed by a force</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 3 · FORMULA slide (math + a step that highlights diagram parts) ============ -->
+<section class="slide" data-title="The formula" data-bg="-300,-200,1.1;1180,640,1.1;700,880,.8;1750,120,1">
+  <div class="spill"><span class="sdot" data-m="sdot"><b class="sv">SESSION</b><b class="sn">1</b></span><span class="snm" data-m="snm">Newton’s Second Law</span></div>
+  <div class="body">
+    <div class="sec"><div class="eb">Part 02</div><h2>The formula</h2></div>
+    <div class="main">
+      <div class="cols" style="--c:780px">
+        <div>
+          <!-- data-hl="F" highlights the diagram part data-part="F" while this step is showing -->
+          <div class="st" data-hl="F"><div class="card soft" style="margin-bottom:14px">
+            <h3><span class="tri">▶</span>Start from the law</h3>
+            <div class="ctr" style="margin-top:6px"><span class="fbox or"><span class="tex">\Sigma F = m a</span></span></div>
+          </div></div>
+          <!-- data-st="=" : appears together with the previous step instead of on its own click -->
+          <div class="st" data-hl="a"><div style="font-size:31px;margin:14px 0">Solve for the acceleration:</div></div>
+          <div class="st" data-st="=" data-hl="a"><div class="ctr"><span class="fbox big"><span class="tex">a = \frac{F}{m}</span></span></div></div>
+          <div class="st" data-hl="m"><div class="card note"><div style="font-size:28px">Units: <span class="tex">1\ \u{N} = 1\ \u{kg\cdot m/s^2}</span></div></div></div>
+        </div>
+        <div>
+          <div class="svgbox" data-m="diagram" style="height:470px;padding:14px">
+            <svg viewBox="0 0 700 420" width="100%" height="100%">
+              <line x1="40" y1="330" x2="660" y2="330" stroke="#12303d" stroke-width="5" stroke-linecap="round"/>
+              <g class="part" data-part="m"><rect x="270" y="190" width="160" height="140" rx="14" fill="#e3f3f8" stroke="#0e6f8e" stroke-width="5"/>
+                <text x="350" y="278" text-anchor="middle" font-size="46" font-weight="800" fill="#12303d" font-family="Georgia,serif" font-style="italic">m</text></g>
+              <g class="part" data-part="F"><line x1="70" y1="260" x2="250" y2="260" stroke="#c0562f" stroke-width="9" stroke-linecap="round"/><polygon points="268,260 240,242 240,278" fill="#c0562f"/>
+                <text x="150" y="238" text-anchor="middle" font-size="40" font-weight="800" fill="#c0562f" font-family="Georgia,serif" font-style="italic">F</text></g>
+              <g class="part" data-part="a"><line x1="450" y1="150" x2="610" y2="150" stroke="#1a4fb4" stroke-width="9" stroke-linecap="round"/><polygon points="628,150 600,132 600,168" fill="#1a4fb4"/>
+                <text x="540" y="128" text-anchor="middle" font-size="40" font-weight="800" fill="#1a4fb4" font-family="Georgia,serif" font-style="italic">a</text></g>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 4 · TABLE ============ -->
+<section class="slide" data-title="Quantities and units" data-bg="1480,160,1;-180,260,.8;1000,-480,1;500,780,1.2">
+  <div class="spill"><span class="sdot" data-m="sdot"><b class="sv">SESSION</b><b class="sn">1</b></span><span class="snm" data-m="snm">Newton’s Second Law</span></div>
+  <div class="body">
+    <div class="sec"><div class="eb">Part 02</div><h2>Quantities and units</h2></div>
+    <div class="main">
+      <div class="st"><table class="tbl">
+        <tr><th>Quantity</th><th>Symbol</th><th>Unit</th><th>Type</th></tr>
+        <tr><td>Force</td><td><span class="tex">F</span></td><td>newton (N)</td><td>vector</td></tr>
+        <tr><td>Mass</td><td><span class="tex">m</span></td><td>kilogram (kg)</td><td>scalar</td></tr>
+        <tr><td>Acceleration</td><td><span class="tex">a</span></td><td><span class="tex">\u{m/s^2}</span></td><td>vector</td></tr>
+      </table></div>
+      <div class="st" style="margin-top:26px"><div class="card note"><div style="font-size:28px">Tables, cards and diagrams can each be their own click — or all appear at once if you leave out the <b>st</b> class.</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 5 · INTERACTIVE widget (data-w="demo", code in the script: W.demo) ============ -->
+<section class="slide" data-title="Try it yourself" data-bg="200,700,1;1400,-200,1.1;1700,820,.8;-300,-100,1">
+  <div class="spill"><span class="sdot" data-m="sdot"><b class="sv">SESSION</b><b class="sn">1</b></span><span class="snm" data-m="snm">Newton’s Second Law</span></div>
+  <div class="body">
+    <div class="sec"><div class="eb">Part 03</div><h2>Try it yourself</h2></div>
+    <div class="main"><div class="cols" style="--c:1fr">
+      <div data-w="demo"></div>
+      <div><div class="card note"><div style="font-size:29px">Drag the sliders and watch <b>a</b> change. Interactive widgets are small JavaScript functions registered in <b>W</b>.</div></div></div>
+    </div></div>
+  </div>
+</section>
+
+<!-- ============ 6 · WORKED EXAMPLE ============ -->
+<section class="slide" data-title="Solved example" data-bg="1100,560,1.3;-100,-120,1;1600,-250,.9;800,-300,.8">
+  <div class="spill"><span class="sdot" data-m="sdot"><b class="sv">SESSION</b><b class="sn">1</b></span><span class="snm" data-m="snm">Newton’s Second Law</span></div>
+  <div class="body">
+    <div class="sec"><div class="eb">Part 04</div><h2>Solved example</h2></div>
+    <div class="main">
+      <div class="st"><div class="ex"><div class="n">1</div><div><span class="pill">Solved Ex</span> <span class="q">A net force of <b>12 N</b> acts on a <b>3 kg</b> trolley. Find its acceleration.</span></div></div></div>
+      <div class="st"><div class="ans"><h4>Answer</h4>
+        <p><span class="tex">a = \frac{F}{m} = \frac{12}{3} = 4\ \u{m/s^2}</span></p>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 7 · QUIZ (JSON: q = question, o = options, a = index of the right option, e = explanation) ============ -->
+<section class="slide" data-title="Quick check" data-bg="900,-420,1.2;1500,500,.9;-120,820,1.2;1650,-120,.7">
+  <div class="spill"><span class="sdot" data-m="sdot"><b class="sv">SESSION</b><b class="sn">1</b></span><span class="snm" data-m="snm">Newton’s Second Law</span></div>
+  <div class="body">
+    <div class="sec"><div class="eb">Quick check</div><h2>Quick check</h2></div>
+    <div class="main"><div class="quiz card" style="padding:26px 36px"><div class="qbox"></div><script type="application/json">[
+      {"q":"If the net force doubles and the mass stays the same, the acceleration…","o":["doubles","halves","stays the same","quadruples"],"a":0,
+       "e":"<span class=\"tex\">a = \\frac{F}{m}</span> — so <b>a</b> is proportional to <b>F</b>."},
+      {"q":"A 2 kg object accelerates at 5 m/s². The net force is…","o":["2.5 N","7 N","10 N","0.4 N"],"a":2,
+       "e":"<span class=\"tex\">F = m a = 2 \\times 5 = 10\\ \\u{N}</span>"}
+    ]</script></div></div>
+  </div>
+</section>
+
+<!-- ============ 8 · RECAP ============ -->
+<section class="slide" data-title="Recap" data-bg="1100,560,1.3;-100,-120,1;1600,-250,.9;800,-300,.8">
+  <div class="spill"><span class="sdot" data-m="sdot"><b class="sv">SESSION</b><b class="sn">1</b></span><span class="snm" data-m="snm">Newton’s Second Law</span></div>
+  <div class="body">
+    <div class="sec"><div class="eb">Recap</div><h2>Formula recap</h2></div>
+    <div class="main"><div class="rc">
+      <div class="card"><div class="t">Second law</div><div class="f"><span class="tex">\Sigma F = m a</span></div><div class="n">net force = mass × acceleration</div></div>
+      <div class="card"><div class="t">Acceleration</div><div class="f"><span class="tex">a = \frac{F}{m}</span></div><div class="n">same direction as the net force</div></div>
+    </div></div>
+  </div>
+</section>

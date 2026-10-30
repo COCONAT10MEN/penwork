@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- Static mockup from the Penwork design canvas (v2 Glass Expressive). Visual reference only; colours come from src/theme tokens. Fonts load from Google here only because this is a reference file. -->
+<meta charset="utf-8">
+<title>Penwork Edit</title>
+</head>
+<body>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,400..900&amp;family=Inter:wght@500;600;700;800&amp;display=swap">
+<style>
+body{margin:0;background:#E7EEF1}
+a{color:#00687A}a:hover{color:#004E5C}
+button,input,textarea{font-family:inherit}
+</style>
+<div style="position: relative; min-height: 768px; overflow: hidden; background: #E7EEF1; font-family: 'Roboto Flex', system-ui, sans-serif; color: #171D1E; display: flex; flex-direction: column; gap: 12px; padding: 12px; box-sizing: border-box">
+
+  <div aria-hidden="true" style="position: absolute; left: -200px; top: 180px; width: 620px; height: 620px; border-radius: 50%; background: radial-gradient(circle, rgba(42, 161, 191, 0.32), rgba(42, 161, 191, 0) 68%)"></div>
+  <div aria-hidden="true" style="position: absolute; right: -160px; top: -180px; width: 600px; height: 600px; border-radius: 50%; background: radial-gradient(circle, rgba(150, 120, 230, 0.26), rgba(150, 120, 230, 0) 68%)"></div>
+  <div aria-hidden="true" style="position: absolute; right: 20%; bottom: -280px; width: 640px; height: 640px; border-radius: 50%; background: radial-gradient(circle, rgba(240, 122, 42, 0.2), rgba(240, 122, 42, 0) 66%)"></div>
+
+  <header style="position: relative; z-index: 2; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-height: 64px; padding: 8px 10px; box-sizing: border-box; border-radius: 999px; background: linear-gradient(150deg, rgba(255, 255, 255, 0.7), rgba(239, 244, 247, 0.58)); backdrop-filter: blur(24px) saturate(1.8); border: 1px solid rgba(255, 255, 255, 0.8); box-shadow: 0 16px 36px -18px rgba(16, 40, 48, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.95)">
+    <button type="button" aria-label="Back to home" style="width: 48px; height: 48px; border: 0; border-radius: 50%; background: transparent; color: #3F484B; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"></path></svg></button>
+    <div style="display: flex; flex-direction: column; min-width: 0">
+      <div style="font-size: 17px; font-weight: 800">Session 1 · Newton's Second Law</div>
+      <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #3F484B"><span style="width: 8px; height: 8px; border-radius: 50%; background: #2E8B57"></span>All changes saved</div>
+    </div>
+    <div style="flex: 1"></div>
+    <div role="group" aria-label="History" style="display: flex; gap: 2px">
+      <button type="button" aria-label="Undo" style="width: 44px; height: 44px; border: 0; border-radius: 14px; background: transparent; color: #171D1E; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14L4 9l5-5"></path><path d="M4 9h10a6 6 0 0 1 0 12h-3"></path></svg></button>
+      <button type="button" aria-label="Redo" disabled style="width: 44px; height: 44px; border: 0; border-radius: 14px; background: transparent; color: rgba(23, 29, 30, 0.38); display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 14l5-5-5-5"></path><path d="M20 9H10a6 6 0 0 0 0 12h3"></path></svg></button>
+    </div>
+    <div role="group" aria-label="Mode" style="display: flex; padding: 4px; border-radius: 999px; background: rgba(23, 29, 30, 0.06)">
+      <button type="button" aria-pressed="true" style="display: flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 16px; border: 0; border-radius: 999px; background: #00687A; color: #FFFFFF; font-size: 14px; font-weight: 800"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l3-1 11-11-2-2L5 17z"></path></svg>Edit</button>
+      <button type="button" aria-pressed="false" style="min-height: 40px; padding: 0 16px; border: 0; border-radius: 14px; background: transparent; color: #3F484B; font-size: 14px; font-weight: 700">Steps</button>
+      <button type="button" aria-pressed="false" style="min-height: 40px; padding: 0 16px; border: 0; border-radius: 14px; background: transparent; color: #3F484B; font-size: 14px; font-weight: 700">Notes</button>
+    </div>
+    <button type="button" style="display: flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 18px; border-radius: 999px; border: 1px solid rgba(0, 104, 122, 0.35); background: rgba(255, 255, 255, 0.5); color: #004E5C; font-size: 14px; font-weight: 800"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.9 4.6L18 9l-4.1 1.4L12 15l-1.9-4.6L6 9l4.1-1.4z"></path><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"></path></svg>Ask AI</button>
+    <button type="button" style="display: flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 22px 0 18px; border: 0; border-radius: 999px; background: #00687A; color: #FFFFFF; font-size: 15px; font-weight: 800; box-shadow: 0 8px 18px -8px rgba(0, 104, 122, 0.6)"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4l13 8-13 8z"></path></svg>Present</button>
+  </header>
+
+  <div style="position: relative; z-index: 1; flex: 1; display: flex; flex-wrap: wrap; align-items: stretch; gap: 12px; min-height: 0">
+
+    <aside aria-label="Slides" style="flex: 0 1 196px; padding: 14px 12px; box-sizing: border-box; border-radius: 28px; background: linear-gradient(150deg, rgba(255, 255, 255, 0.62), rgba(239, 244, 247, 0.5)); backdrop-filter: blur(24px) saturate(1.8); border: 1px solid rgba(255, 255, 255, 0.8); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95); display: flex; flex-direction: column; gap: 10px; overflow: hidden">
+      <a href="#s1" style="display: flex; gap: 8px; text-decoration: none; color: #3F484B; font-size: 12px; font-weight: 700"><span style="width: 14px; padding-top: 4px; text-align: right">1</span><span style="flex: 1; aspect-ratio: 16 / 9; border-radius: 12px; background: radial-gradient(circle at 80% 30%, #0E4655 0, #071116 70%); display: flex; align-items: center; gap: 5px; padding: 0 8px; box-sizing: border-box"><span style="width: 16px; height: 16px; border-radius: 50%; border: 1px solid #5FD0EA; background: #136B80"></span><span style="height: 5px; width: 60%; border-radius: 2px; background: #FFFFFF"></span></span></a>
+      <a href="#s2" aria-current="true" style="display: flex; gap: 8px; text-decoration: none; color: #00687A; font-size: 12px; font-weight: 900"><span style="width: 14px; padding-top: 4px; text-align: right">2</span><span style="flex: 1; aspect-ratio: 16 / 9; border-radius: 16px; outline: 3px solid #00687A; outline-offset: 2px; background: #F4F8FA; padding: 7px; box-sizing: border-box; display: flex; flex-direction: column; gap: 4px"><span style="height: 4px; width: 55%; background: #0F2430; border-radius: 2px"></span><span style="flex: 1; display: flex; gap: 4px"><span style="flex: 1.2; display: flex; flex-direction: column; gap: 3px"><span style="flex: 1; border-radius: 3px; background: #E3F3F7"></span><span style="flex: 1; border-radius: 3px; background: #FFF1E6; border: 1px solid #F3A46A"></span></span><span style="flex: 1; border-radius: 3px; background: #FFFFFF"></span></span></span></a>
+      <a href="#s3" style="display: flex; gap: 8px; text-decoration: none; color: #3F484B; font-size: 12px; font-weight: 700"><span style="width: 14px; padding-top: 4px; text-align: right">3</span><span style="flex: 1; aspect-ratio: 16 / 9; border-radius: 12px; background: #F4F8FA; padding: 7px; box-sizing: border-box; display: flex; flex-direction: column; gap: 4px"><span style="height: 4px; width: 40%; background: #0F2430; border-radius: 2px"></span><span style="flex: 1; display: flex; align-items: center; justify-content: center"><span style="width: 46%; height: 60%; border-radius: 3px; background: #FFFFFF; border: 1px solid #F07A2A"></span></span></span></a>
+      <a href="#s4" style="position: relative; display: flex; gap: 8px; text-decoration: none; color: #3F484B; font-size: 12px; font-weight: 700"><span style="width: 14px; padding-top: 4px; text-align: right">4</span><span style="flex: 1; aspect-ratio: 16 / 9; border-radius: 12px; background: #F4F8FA; padding: 7px; box-sizing: border-box; display: flex; flex-direction: column; gap: 3px"><span style="height: 4px; width: 50%; background: #0F2430; border-radius: 2px"></span><span style="height: 9px; background: #0F2430; border-radius: 2px"></span><span style="height: 7px; background: #FFFFFF"></span><span style="height: 7px; background: #FFFFFF"></span></span><span style="position: absolute; right: 6px; bottom: 6px; display: flex; align-items: center; gap: 3px; padding: 2px 7px; border-radius: 8px; background: #FFDBC8; color: #7A2E0B; font-size: 11px; font-weight: 800"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 8v5M12 17h.01"></path></svg>Too tall</span></a>
+      <a href="#s5" style="position: relative; display: flex; gap: 8px; text-decoration: none; color: #3F484B; font-size: 12px; font-weight: 700"><span style="width: 14px; padding-top: 4px; text-align: right">5</span><span style="flex: 1; aspect-ratio: 16 / 9; border-radius: 12px; background: #F4F8FA; opacity: 0.45"></span><span style="position: absolute; right: 6px; bottom: 6px; display: flex; align-items: center; gap: 3px; padding: 2px 7px; border-radius: 8px; background: #DEE3E6; color: #3F484B; font-size: 11px; font-weight: 800">Hidden</span></a>
+      <div style="flex: 1"></div>
+      <button type="button" style="display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 48px; border: 0; border-radius: 16px; background: #CDE7ED; color: #051F23; font-size: 14px; font-weight: 800"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Add slide</button>
+    </aside>
+
+    <main style="flex: 999 1 460px; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 8px 0">
+      <div style="position: relative; width: 100%; max-width: 760px; aspect-ratio: 16 / 9; border-radius: 10px; background: #F4F8FA; box-shadow: 0 24px 50px -24px rgba(16, 40, 48, 0.45), 0 0 0 1px rgba(16, 40, 48, 0.06); padding: 26px 34px 22px; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px; font-family: Inter, sans-serif; color: #0F2430">
+        <div style="position: absolute; right: 26px; top: 18px; display: flex; align-items: center; gap: 7px"><span style="width: 24px; height: 24px; border-radius: 50%; background: radial-gradient(circle at 35% 28%, #4FC3DD 0, #136B80 60%, #08282F 100%); color: #FFFFFF; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center">1</span><span style="font-size: 10px; font-weight: 700; color: #0F2430">Newton's Second Law</span></div>
+        <div style="display: flex; flex-direction: column; gap: 2px">
+          <div style="display: flex; align-items: center; gap: 8px; font-size: 10px; font-weight: 800; letter-spacing: 0.14em; color: #2A9DB8">PART 01 <span style="width: 22px; height: 1.5px; background: #F07A2A"></span></div>
+          <div style="font-size: 26px; font-weight: 800; letter-spacing: -0.01em">Force and acceleration</div>
+        </div>
+        <div style="flex: 1; display: flex; gap: 22px; padding-top: 6px">
+          <div style="flex: 1.15; display: flex; flex-direction: column; gap: 12px">
+            <div style="position: relative; border-radius: 10px; background: linear-gradient(180deg, #EAF7FA, #DDF1F6); padding: 10px 12px; box-shadow: 0 6px 14px -10px rgba(15, 36, 48, 0.4)">
+              <span style="position: absolute; left: -11px; top: -9px; width: 20px; height: 20px; border-radius: 50%; background: #00687A; color: #FFFFFF; font-family: 'Roboto Flex', sans-serif; font-size: 11px; font-weight: 900; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 2px #F4F8FA">1</span>
+              <div style="font-size: 12px; font-weight: 800; margin-bottom: 4px"><span style="color: #F07A2A">▶</span> Definition</div>
+              <div style="font-size: 11.5px; line-height: 1.45">The <b>net force</b> on an object equals its <b>mass</b> times its <b>acceleration</b>.</div>
+            </div>
+            <div style="position: relative; border-radius: 10px; background: #FFFFFF; border: 1.5px solid #F3A46A; padding: 10px 12px; outline: 2.5px solid #00687A; outline-offset: 4px">
+              <span style="position: absolute; left: -11px; top: -9px; width: 20px; height: 20px; border-radius: 50%; background: #00687A; color: #FFFFFF; font-family: 'Roboto Flex', sans-serif; font-size: 11px; font-weight: 900; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 2px #F4F8FA">2</span>
+              <span style="position: absolute; right: -6px; top: -26px; padding: 3px 9px; border-radius: 8px; background: #00687A; color: #FFFFFF; font-family: 'Roboto Flex', sans-serif; font-size: 11px; font-weight: 800">Card · Key</span>
+              <div style="font-size: 12px; font-weight: 800; margin-bottom: 4px"><span style="color: #F07A2A">▶</span> What it means</div>
+              <div style="display: flex; flex-direction: column; gap: 3px; font-size: 11.5px; line-height: 1.4">
+                <div><span style="color: #2A9DB8">●</span> Bigger force → <b>bigger</b> acceleration</div>
+                <div style="background: rgba(0, 104, 122, 0.1); border-radius: 4px; box-shadow: 0 0 0 1.5px rgba(0, 104, 122, 0.5)"><span style="color: #2A9DB8">●</span> Bigger mass → <b style="color: #E0661A">smaller</b> acceleration<span style="display: inline-block; width: 1.5px; height: 13px; background: #00687A; vertical-align: -2px; margin-left: 1px"></span></div>
+                <div><span style="color: #2A9DB8">●</span> Acceleration points <b>along the net force</b></div>
+              </div>
+            </div>
+          </div>
+          <div style="flex: 1; display: flex; flex-direction: column; gap: 6px">
+            <div style="flex: 1; border-radius: 10px; background: #FFFFFF; box-shadow: 0 6px 14px -10px rgba(15, 36, 48, 0.4); display: flex; align-items: center; justify-content: center; padding: 10px">
+              <svg width="100%" viewBox="0 0 300 160" role="img" aria-label="A block pushed by a force F accelerates with a"><path d="M10 120h280" stroke="#0F2430" stroke-width="3"></path><rect x="125" y="72" width="64" height="48" rx="3" fill="#E3F3F7" stroke="#2A9DB8" stroke-width="3"></rect><text x="157" y="103" text-anchor="middle" font-family="Times New Roman, serif" font-style="italic" font-size="20" fill="#0F2430">m</text><path d="M28 96h88" stroke="#E0661A" stroke-width="4"></path><path d="M106 88l12 8-12 8" fill="none" stroke="#E0661A" stroke-width="4" stroke-linejoin="round"></path><text x="62" y="84" font-family="Times New Roman, serif" font-style="italic" font-size="20" fill="#E0661A">F</text><path d="M200 52h76" stroke="#1F6FD1" stroke-width="3.5"></path><path d="M266 45l11 7-11 7" fill="none" stroke="#1F6FD1" stroke-width="3.5" stroke-linejoin="round"></path><text x="236" y="40" font-family="Times New Roman, serif" font-style="italic" font-size="20" fill="#1F6FD1">a</text></svg>
+            </div>
+            <div style="font-size: 10px; color: #4C6470; text-align: center">A block pushed by a force</div>
+          </div>
+        </div>
+
+        <div role="toolbar" aria-label="Text formatting" style="position: absolute; left: 30px; top: 108px; display: flex; align-items: center; gap: 2px; padding: 5px; border-radius: 999px; background: linear-gradient(150deg, rgba(28, 36, 38, 0.82), rgba(14, 20, 22, 0.9)); backdrop-filter: blur(20px) saturate(1.7); border: 1px solid rgba(255, 255, 255, 0.18); box-shadow: 0 14px 30px -12px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.24); font-family: 'Roboto Flex', sans-serif">
+          <button type="button" aria-label="Bold" aria-pressed="true" style="width: 38px; height: 38px; border: 0; border-radius: 50%; background: #82D3E6; color: #00363F; font-size: 15px; font-weight: 900">B</button>
+          <button type="button" aria-label="Italic" style="width: 38px; height: 38px; border: 0; border-radius: 12px; background: transparent; color: #DEE3E5; font-size: 15px; font-style: italic; font-weight: 700">I</button>
+          <button type="button" aria-label="Orange emphasis, on" style="width: 38px; height: 38px; border: 0; border-radius: 12px; background: transparent; display: flex; align-items: center; justify-content: center"><span style="width: 18px; height: 18px; border-radius: 50%; background: #F07A2A; box-shadow: 0 0 0 2px rgba(14, 20, 22, 0.9), 0 0 0 4px #FFFFFF"></span></button>
+          <button type="button" aria-label="Teal emphasis" style="width: 38px; height: 38px; border: 0; border-radius: 12px; background: transparent; display: flex; align-items: center; justify-content: center"><span style="width: 18px; height: 18px; border-radius: 50%; background: #2AA1BF"></span></button>
+          <button type="button" aria-label="Muted text" style="width: 38px; height: 38px; border: 0; border-radius: 12px; background: transparent; display: flex; align-items: center; justify-content: center"><span style="width: 18px; height: 18px; border-radius: 50%; background: #8A9AA2"></span></button>
+          <span style="width: 1px; height: 22px; background: rgba(255, 255, 255, 0.22); margin: 0 4px"></span>
+          <button type="button" style="height: 38px; padding: 0 12px; border: 0; border-radius: 12px; background: transparent; color: #DEE3E5; font-size: 13px; font-weight: 800; font-family: 'Times New Roman', serif; font-style: italic">ƒx</button>
+          <button type="button" style="display: flex; align-items: center; gap: 4px; height: 38px; padding: 0 10px 0 12px; border: 0; border-radius: 12px; background: transparent; color: #DEE3E5; font-size: 13px; font-weight: 700">Step 2<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 14px; padding: 8px 16px; border-radius: 999px; background: linear-gradient(150deg, rgba(255, 255, 255, 0.66), rgba(239, 244, 247, 0.52)); backdrop-filter: blur(20px) saturate(1.7); border: 1px solid rgba(255, 255, 255, 0.8); font-size: 13px; color: #3F484B">
+        <span><b style="color: #171D1E">Slide 2</b> of 8</span><span>4 steps</span><span>Double-click text to edit · Esc to finish</span>
+      </div>
+    </main>
+
+    <aside aria-label="Inspector" style="flex: 0 1 300px; padding: 16px; box-sizing: border-box; border-radius: 28px; background: linear-gradient(150deg, rgba(255, 255, 255, 0.82), rgba(239, 244, 247, 0.74)); backdrop-filter: blur(28px) saturate(1.8); border: 1px solid rgba(255, 255, 255, 0.85); box-shadow: 0 18px 40px -20px rgba(16, 40, 48, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.95); display: flex; flex-direction: column; gap: 14px; overflow: hidden">
+      <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; color: #3F484B">Slide 2 <span aria-hidden="true">›</span> Columns <span aria-hidden="true">›</span> <span style="color: #00687A; font-weight: 900">Card</span></div>
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <div style="font-size: 13px; font-weight: 800">Card style</div>
+        <div role="group" aria-label="Card style" style="display: flex; padding: 3px; border-radius: 999px; background: rgba(23, 29, 30, 0.06)">
+          <button type="button" style="flex: 1; min-height: 36px; border: 0; border-radius: 12px; background: transparent; color: #3F484B; font-size: 12px; font-weight: 700">Plain</button>
+          <button type="button" style="flex: 1; min-height: 36px; border: 0; border-radius: 12px; background: transparent; color: #3F484B; font-size: 12px; font-weight: 700">Soft</button>
+          <button type="button" aria-pressed="true" style="flex: 1; min-height: 36px; border: 0; border-radius: 999px; background: #00687A; color: #FFFFFF; font-size: 12px; font-weight: 900">Key</button>
+          <button type="button" style="flex: 1; min-height: 36px; border: 0; border-radius: 12px; background: transparent; color: #3F484B; font-size: 12px; font-weight: 700">Note</button>
+          <button type="button" style="flex: 1; min-height: 36px; border: 0; border-radius: 12px; background: transparent; color: #3F484B; font-size: 12px; font-weight: 700">Tips</button>
+        </div>
+      </div>
+      <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 800">
+        Heading
+        <input type="text" value="What it means" style="min-height: 44px; padding: 0 14px; border: 1px solid rgba(63, 72, 75, 0.3); border-radius: 14px; background: rgba(255, 255, 255, 0.75); font-size: 14px; color: #171D1E; box-sizing: border-box">
+      </label>
+      <div style="height: 1px; background: rgba(63, 72, 75, 0.14)"></div>
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <label style="display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; font-weight: 800">
+          Appears on click
+          <span style="flex: none; width: 52px; height: 32px; border-radius: 16px; background: #00687A; display: flex; align-items: center; justify-content: flex-end; padding: 0 4px; box-sizing: border-box"><span style="width: 24px; height: 24px; border-radius: 50%; background: #FFFFFF"></span></span>
+          <input type="checkbox" checked style="position: absolute; opacity: 0; width: 1px; height: 1px">
+        </label>
+        <div style="font-size: 12px; font-weight: 700; color: #3F484B">How it appears</div>
+        <div role="group" aria-label="Animation" style="display: flex; flex-wrap: wrap; gap: 6px">
+          <button type="button" style="min-height: 34px; padding: 0 12px; border: 1px solid rgba(63, 72, 75, 0.35); border-radius: 8px; background: transparent; color: #3F484B; font-size: 12px; font-weight: 700">Fade</button>
+          <button type="button" aria-pressed="true" style="display: flex; align-items: center; gap: 4px; min-height: 34px; padding: 0 12px 0 8px; border: 0; border-radius: 8px; background: #CDE7ED; color: #051F23; font-size: 12px; font-weight: 800"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l4 4 10-10"></path></svg>From left</button>
+          <button type="button" style="min-height: 34px; padding: 0 12px; border: 1px solid rgba(63, 72, 75, 0.35); border-radius: 8px; background: transparent; color: #3F484B; font-size: 12px; font-weight: 700">From right</button>
+          <button type="button" style="min-height: 34px; padding: 0 12px; border: 1px solid rgba(63, 72, 75, 0.35); border-radius: 8px; background: transparent; color: #3F484B; font-size: 12px; font-weight: 700">Zoom</button>
+        </div>
+        <label style="display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; font-weight: 700; color: #3F484B">
+          Together with step 1
+          <span style="flex: none; width: 52px; height: 32px; border-radius: 16px; border: 2px solid #6F797B; background: #DEE3E6; display: flex; align-items: center; padding: 0 6px; box-sizing: border-box"><span style="width: 16px; height: 16px; border-radius: 50%; background: #6F797B"></span></span>
+          <input type="checkbox" style="position: absolute; opacity: 0; width: 1px; height: 1px">
+        </label>
+      </div>
+      <div style="flex: 1"></div>
+      <div style="display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 20px; background: rgba(0, 104, 122, 0.08)">
+        <div style="font-size: 12px; font-weight: 800; color: #004E5C">Bigger change? Ask AI</div>
+        <div style="display: flex; gap: 6px">
+          <button type="button" style="flex: 1; min-height: 40px; border: 0; border-radius: 12px; background: #FFFFFF; color: #004E5C; font-size: 12px; font-weight: 800">Copy slide for AI</button>
+          <button type="button" style="flex: 1; min-height: 40px; border: 0; border-radius: 12px; background: #FFFFFF; color: #004E5C; font-size: 12px; font-weight: 800">Paste reply</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+</body>
+</html>

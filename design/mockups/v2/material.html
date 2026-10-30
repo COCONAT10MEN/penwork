@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- Static mockup from the Penwork design canvas (v2 Glass Expressive). Visual reference only; colours come from src/theme tokens. Fonts load from Google here only because this is a reference file. -->
+<meta charset="utf-8">
+<title>Glass Expressive material</title>
+</head>
+<body>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,400..900&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#82D3E6}a:hover{color:#A6EEFF}
+</style>
+<div style="position: relative; width: 1366px; height: 768px; overflow: hidden; box-sizing: border-box; padding: 36px 44px; background: #0B1214; font-family: 'Roboto Flex', system-ui, sans-serif; color: #DEE3E5; display: flex; flex-direction: column; gap: 22px">
+  <div aria-hidden="true" style="position: absolute; left: 60px; top: 150px; width: 420px; height: 420px; border-radius: 50%; background: radial-gradient(circle, rgba(42, 161, 191, 0.75), rgba(42, 161, 191, 0) 66%)"></div>
+  <div aria-hidden="true" style="position: absolute; left: 300px; top: 300px; width: 380px; height: 380px; border-radius: 50%; background: radial-gradient(circle, rgba(240, 122, 42, 0.6), rgba(240, 122, 42, 0) 66%)"></div>
+  <div aria-hidden="true" style="position: absolute; right: 120px; top: 60px; width: 460px; height: 460px; border-radius: 50%; background: radial-gradient(circle, rgba(124, 92, 214, 0.55), rgba(124, 92, 214, 0) 66%)"></div>
+
+  <div style="position: relative; display: flex; align-items: baseline; justify-content: space-between; gap: 24px">
+    <h1 style="margin: 0; font-size: 40px; font-weight: 850; letter-spacing: -0.02em; color: #F2F7F8">Glass Expressive</h1>
+    <p style="margin: 0; font-size: 15px; color: #BFC8CB">Material 3 Expressive structure · tinted liquid-glass surfaces · solid accents</p>
+  </div>
+
+  <div style="position: relative; flex: 1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px">
+    <div style="display: flex; flex-direction: column; gap: 16px">
+      <h2 style="margin: 0; font-size: 13px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #82D3E6">Three glass strengths</h2>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px">
+        <div style="position: relative; height: 170px; border-radius: 28px; padding: 16px; box-sizing: border-box; background: linear-gradient(150deg, rgba(37, 43, 45, 0.42), rgba(14, 20, 22, 0.52)); backdrop-filter: blur(16px) saturate(1.6); border: 1px solid rgba(255, 255, 255, 0.18); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28); display: flex; flex-direction: column; justify-content: space-between; overflow: hidden">
+          <div aria-hidden="true" style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0) 48%)"></div>
+          <b style="position: relative; font-size: 18px; color: #FFFFFF">Thin</b>
+          <span style="position: relative; font-size: 12px; line-height: 1.45; color: #E6EEF0">Chips and status over slides. Short labels only.<br>Blur 16 · fill 50%</span>
+        </div>
+        <div style="position: relative; height: 170px; border-radius: 28px; padding: 16px; box-sizing: border-box; background: linear-gradient(150deg, rgba(37, 43, 45, 0.64), rgba(14, 20, 22, 0.74)); backdrop-filter: blur(24px) saturate(1.7); border: 1px solid rgba(255, 255, 255, 0.18); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3); display: flex; flex-direction: column; justify-content: space-between; overflow: hidden">
+          <div aria-hidden="true" style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0) 48%)"></div>
+          <b style="position: relative; font-size: 18px; color: #FFFFFF">Regular</b>
+          <span style="position: relative; font-size: 12px; line-height: 1.45; color: #DEE3E5">The dock, top bar, side panels and cards.<br>Blur 24 · fill 70%</span>
+        </div>
+        <div style="position: relative; height: 170px; border-radius: 28px; padding: 16px; box-sizing: border-box; background: linear-gradient(150deg, rgba(30, 38, 40, 0.86), rgba(12, 18, 20, 0.93)); backdrop-filter: blur(32px) saturate(1.8); border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3); display: flex; flex-direction: column; justify-content: space-between; overflow: hidden">
+          <div aria-hidden="true" style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0) 48%)"></div>
+          <b style="position: relative; font-size: 18px; color: #FFFFFF">Thick</b>
+          <span style="position: relative; font-size: 12px; line-height: 1.45; color: #DEE3E5">Popovers, menus, the inspector: anything with lots of text.<br>Blur 32 · fill 88%</span>
+        </div>
+      </div>
+
+      <h2 style="margin: 6px 0 0; font-size: 13px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #82D3E6">Anatomy of one glass surface</h2>
+      <div style="display: flex; gap: 18px; align-items: center">
+        <div style="position: relative; flex: none; width: 250px; height: 120px; border-radius: 32px; background: linear-gradient(150deg, rgba(0, 78, 90, 0.6), rgba(14, 20, 22, 0.7)); backdrop-filter: blur(24px) saturate(1.8); border: 1px solid rgba(255, 255, 255, 0.24); box-shadow: 0 22px 44px -16px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.4); overflow: hidden">
+          <div aria-hidden="true" style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0) 48%)"></div>
+          <span style="position: absolute; left: 14px; top: 8px; width: 22px; height: 22px; border-radius: 50%; background: #FFFFFF; color: #00363F; font-size: 12px; font-weight: 900; display: flex; align-items: center; justify-content: center">4</span>
+          <span style="position: absolute; left: 50%; top: -2px; width: 22px; height: 22px; border-radius: 50%; background: #FFFFFF; color: #00363F; font-size: 12px; font-weight: 900; display: flex; align-items: center; justify-content: center">3</span>
+          <span style="position: absolute; left: 44%; top: 46px; width: 22px; height: 22px; border-radius: 50%; background: #FFFFFF; color: #00363F; font-size: 12px; font-weight: 900; display: flex; align-items: center; justify-content: center">1</span>
+          <span style="position: absolute; right: 22px; bottom: 16px; width: 22px; height: 22px; border-radius: 50%; background: #FFFFFF; color: #00363F; font-size: 12px; font-weight: 900; display: flex; align-items: center; justify-content: center">2</span>
+        </div>
+        <ol style="margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 5px; font-size: 13px; line-height: 1.35; color: #DEE3E5">
+          <li><b>Tinted fill.</b> Surface-container colour with a little primary mixed in.</li>
+          <li><b>Backdrop blur + saturate.</b> The colours behind glow through.</li>
+          <li><b>Rim light.</b> 1px edge plus a bright top line.</li>
+          <li><b>Specular sheen.</b> Soft white on the top half.</li>
+          <li><b>Soft shadow.</b> Only on floating things.</li>
+        </ol>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 16px">
+      <h2 style="margin: 0; font-size: 13px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #82D3E6">The frame is glass, the jewel is solid</h2>
+      <div style="display: flex; align-items: center; gap: 4px; align-self: flex-start; padding: 6px 10px 6px 6px; border-radius: 999px; background: linear-gradient(150deg, rgba(30, 38, 40, 0.72), rgba(12, 18, 20, 0.82)); backdrop-filter: blur(24px) saturate(1.8); border: 1px solid rgba(255, 255, 255, 0.22); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.34)">
+        <span style="width: 52px; height: 52px; border-radius: 50%; background: #82D3E6"></span>
+        <span style="width: 48px; height: 48px; border-radius: 16px; background: rgba(255, 255, 255, 0.06)"></span>
+        <span style="width: 52px; height: 52px; border-radius: 50%; background: #FFD8E8"></span>
+        <span style="width: 48px; height: 48px; border-radius: 16px; background: rgba(255, 255, 255, 0.06)"></span>
+        <span style="width: 48px; height: 48px; border-radius: 16px; background: rgba(255, 255, 255, 0.06)"></span>
+      </div>
+      <p style="margin: 0; font-size: 13px; line-height: 1.5; color: #BFC8CB">Containers are glass. Anything <b style="color: #F2F7F8">selected or primary</b> is a solid Material colour, and it <b style="color: #F2F7F8">morphs</b> from a rounded square to a circle. That keeps it readable on any slide.</p>
+
+      <h2 style="margin: 6px 0 0; font-size: 13px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #82D3E6">Motion</h2>
+      <ul style="margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; line-height: 1.4; color: #DEE3E5">
+        <li>The logo and toolbar are <b>one body</b>. The capsule grows out of the logo with no seam and <b>no bounce</b>.</li>
+        <li>Selection slides between tools as one shape (shared-layout spring).</li>
+        <li>Popovers grow from the button they belong to and never cover the dock.</li>
+        <li>Small buttons may overshoot slightly (expressive). The dock and panels never do.</li>
+      </ul>
+
+      <h2 style="margin: 6px 0 0; font-size: 13px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #82D3E6">Fallbacks</h2>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+        <div style="padding: 12px 14px; border-radius: 20px; background: #1B2123; font-size: 12.5px; line-height: 1.45; color: #DEE3E5"><b style="color: #F2F7F8">Reduce transparency</b><br>Every glass surface becomes a solid tonal surface with the same shape.</div>
+        <div style="padding: 12px 14px; border-radius: 20px; background: #1B2123; font-size: 12.5px; line-height: 1.45; color: #DEE3E5"><b style="color: #F2F7F8">Slow GPU</b><br>At most ~6 blurred layers at once. Popovers can switch to solid if WebView2 misdraws them.</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

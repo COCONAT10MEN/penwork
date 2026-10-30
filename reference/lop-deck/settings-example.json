@@ -1,0 +1,53 @@
+{
+  "v": 1,
+  "ui": {
+    "order": [
+      "ptr",
+      "pen",
+      "hl",
+      "laser",
+      "eraser",
+      "undo",
+      "redo",
+      "clear",
+      "hide",
+      "wb",
+      "grid",
+      "full"
+    ],
+    "hidden": [],
+    "tool": "pen",
+    "open": false,
+    "sink": true,
+    "sinkDelay": 4,
+    "tablet": "on",
+    "vert": false,
+    "pos": "bc",
+    "tapAgain": true,
+    "dbl": true,
+    "rclick": true
+  },
+  "tools": {
+    "pen": {
+      "c": "#e5352b",
+      "w": 8,
+      "press": true,
+      "cust": []
+    },
+    "hl": {
+      "c": "#ffe14a",
+      "w": 38,
+      "op": 0.42,
+      "cust": []
+    },
+    "laser": {
+      "c": "#ff2b2b",
+      "w": 18,
+      "life": 1500,
+      "cust": []
+    },
+    "eraser": {
+      "w": 50
+    }
+  }
+}

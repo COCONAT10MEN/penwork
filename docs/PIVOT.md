@@ -103,3 +103,4 @@ colour from a seed) and the **tinted liquid-glass** look of the owner's toolbar.
 8. **Look and speed:** blobs are still by default, Mica is out of M1, popovers start solid, Home follows the mockup
    (a "New deck" card, no FAB). When in doubt, follow the design mockup.
 9. **AI kit:** must explain exactly how `.pwpptx` relates to plain HTML, so an AI knows what to write.
+10. **Ink strokes use `perfect-freehand`** instead of the template's own stroke drawing. Highlighter multiply compositing stays.

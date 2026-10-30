@@ -5,7 +5,8 @@
 When the code and a doc disagree about behaviour, the code wins. Anything found later that isn't listed here
 gets added here. Tick a box only after checking it in the running app.
 
-The look changes to Glass Expressive. The behaviour, settings and defaults below do not.
+The look changes to Glass Expressive. The behaviour, settings and defaults below do not. One chosen change: ink strokes use
+`perfect-freehand` instead of the template's own stroke drawing.
 
 Milestone: slide engine items land in **M3**, dock, ink and whiteboard in **M5**.
 
@@ -41,7 +42,7 @@ Milestone: slide engine items land in **M3**, dock, ink and whiteboard in **M5**
 ## 3. Input devices: stylus, touch, mouse (M5)
 
 - [ ] Pen always draws, even when no tool is armed. Finger navigates. Mouse draws only while a tool is armed
-- [ ] Pen pressure: width = `w × (0.4 + 1.2 × pressure)`, on/off per pen setting; non-pen input uses 0.5
+- [ ] Pen pressure changes stroke width, on/off per pen setting; non-pen input uses 0.5. Strokes are drawn with `perfect-freehand` (owner's decision), keeping the same size settings
 - [ ] Stylus barrel button or eraser end erases, for that stroke only, then returns to the tool
 - [ ] Right mouse button erases while a tool is armed
 - [ ] Palm rejection: touches within 1.2 s of pen activity, or with a contact over 90×90, are ignored

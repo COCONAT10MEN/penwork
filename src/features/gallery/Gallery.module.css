@@ -71,7 +71,9 @@
   height: 100vh;
   margin: -24px -24px calc(-100vh - 8px);
 }
-.panel > :not(.ambient) {
+/* Only the page content: pop-ups rendered into this panel must stay position: fixed. */
+.panel > h2,
+.panel > .section {
   position: relative;
 }
 .panel > h2 {

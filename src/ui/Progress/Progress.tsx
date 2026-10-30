@@ -116,6 +116,7 @@ export function LoadingIndicator({ label, size = 48 }: { label: string; size?: n
           transition={{ duration: 6, ease: "linear", repeat: Infinity }}
         >
           <motion.path
+            d={MORPH[0]}
             animate={{ d: [...MORPH, MORPH[0] as string] }}
             transition={{ duration: 5, ease: "easeInOut", repeat: Infinity }}
           />

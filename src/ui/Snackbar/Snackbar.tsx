@@ -10,7 +10,9 @@ import {
   type ReactNode,
 } from "react";
 import { useReduceMotion, useSpring } from "../../theme/motion";
+import { cx } from "../cx";
 import { IconButton } from "../IconButton/IconButton";
+import { surfaceClass, type SurfaceMaterial } from "../Surface/Surface";
 import styles from "./Snackbar.module.css";
 
 export interface SnackbarOptions {
@@ -19,6 +21,7 @@ export interface SnackbarOptions {
   onAction?: () => void;
   /** Milliseconds; default 5 s, or 10 s when there is an action. 0 = stay until closed. */
   duration?: number;
+  material?: SurfaceMaterial;
 }
 
 interface Shown extends SnackbarOptions {
@@ -39,7 +42,7 @@ export function useSnackbar(): (options: SnackbarOptions) => void {
 export function SnackbarProvider({ children }: { children: ReactNode }) {
   const [queue, setQueue] = useState<Shown[]>([]);
   const nextId = useRef(1);
-  const spring = useSpring("spatialDefault");
+  const spring = useSpring("spatialCalm");
   const fade = useSpring("effectsFast");
   const reduce = useReduceMotion();
   // While the mouse is over it or focus is inside it, the timer waits (so Undo stays reachable).
@@ -74,7 +77,16 @@ export function SnackbarProvider({ children }: { children: ReactNode }) {
           {current && (
             <motion.div
               key={current.id}
-              className={styles.snackbar}
+              className={cx(
+                styles.snackbar,
+                (current.material ?? "tonal") === "tonal" ? styles.tonal : styles.glass,
+                surfaceClass({
+                  material: current.material ?? "tonal",
+                  strength: "thick",
+                  floating: true,
+                  solid: true,
+                }),
+              )}
               initial={reduce ? { opacity: 0 } : { opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0, transition: spring }}
               exit={{ opacity: 0, transition: fade }}

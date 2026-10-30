@@ -19,6 +19,13 @@ export { SearchBar, type SearchBarProps } from "./SearchBar/SearchBar";
 export { SegmentedButton, type SegmentedButtonProps } from "./SegmentedButton/SegmentedButton";
 export { Slider, type SliderProps } from "./Slider/Slider";
 export { SnackbarProvider, useSnackbar, type SnackbarOptions } from "./Snackbar/Snackbar";
+export {
+  Surface,
+  surfaceClass,
+  type SurfaceMaterial,
+  type SurfaceProps,
+  type SurfaceStrength,
+} from "./Surface/Surface";
 export { Switch, type SwitchProps } from "./Switch/Switch";
 export { Tooltip, type TooltipProps } from "./Tooltip/Tooltip";
 export { TopAppBar, type TopAppBarProps } from "./TopAppBar/TopAppBar";

@@ -1,6 +1,8 @@
 import { forwardRef, useId, useRef, type ReactNode } from "react";
+import { cx } from "../cx";
 import { Icon } from "../Icon";
 import { IconButton } from "../IconButton/IconButton";
+import { surfaceClass, type SurfaceMaterial } from "../Surface/Surface";
 import styles from "./SearchBar.module.css";
 
 export interface SearchBarProps {
@@ -12,11 +14,13 @@ export interface SearchBarProps {
   onSubmit?: (value: string) => void;
   /** Extra buttons at the end, e.g. an avatar or filter button. */
   trailing?: ReactNode;
+  /** "glass" for floating chrome; "tonal" (default) is the solid look. */
+  material?: SurfaceMaterial;
 }
 
 /** M3 search bar: a 56px pill on surface-container-high. Escape clears it. */
 export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(function SearchBar(
-  { value, onChange, label, placeholder, onSubmit, trailing },
+  { value, onChange, label, placeholder, onSubmit, trailing, material = "tonal" },
   ref,
 ) {
   const id = useId();
@@ -24,7 +28,7 @@ export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(function S
   return (
     <form
       role="search"
-      className={styles.bar}
+      className={cx(styles.bar, material === "tonal" && styles.tonal, surfaceClass({ material }))}
       onSubmit={(e) => {
         e.preventDefault();
         onSubmit?.(value);

@@ -56,6 +56,16 @@
   /* Penwork-specific: DESIGN.md gives cards 24px, which isn't a step in M3's scale. */
   --pw-shape-card: 24px;
 
+  /* ---------- Glass (fills, rim and shadow are generated per theme in theme.ts) ---------- */
+  --pw-glass-thin-blur: 16px;
+  --pw-glass-regular-blur: 24px;
+  --pw-glass-thick-blur: 32px;
+  --pw-glass-saturate: 1.7;
+
+  /* ---------- Logo ---------- */
+  /* Behind the logo, closed. Black unless the user changes it; not part of the SVG. */
+  --pw-logo-background: #000000;
+
   /* ---------- Typeface ---------- */
   /* "… Variable" are the family names of the bundled Fontsource packages (see src/theme/fonts.ts) */
   --md-ref-typeface-plain: "Roboto Flex Variable", "Roboto Flex", system-ui, sans-serif;

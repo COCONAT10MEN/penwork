@@ -6,8 +6,10 @@
   margin: 0;
   padding: 0 8px 0 16px;
   border-radius: var(--md-sys-shape-corner-full);
-  background: var(--md-sys-color-surface-container-high);
   color: var(--md-sys-color-on-surface-variant);
+}
+.tonal {
+  background: var(--md-sys-color-surface-container-high);
 }
 /* The whole pill shows the keyboard focus ring, not just the text field inside it. */
 .bar:has(.input:focus-visible) {

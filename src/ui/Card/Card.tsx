@@ -1,5 +1,6 @@
 import type { HTMLAttributes, ReactNode } from "react";
 import { cx } from "../cx";
+import { surfaceClass, type SurfaceMaterial } from "../Surface/Surface";
 import styles from "./Card.module.css";
 
 export type CardColor = "surface" | "highest" | "primary" | "secondary" | "tertiary";
@@ -10,6 +11,8 @@ interface BaseCardProps extends Omit<HTMLAttributes<HTMLDivElement>, "color" | "
   /** "card" = 24px corners; "hero" = 28px (Continue / pinned cards). */
   shape?: "card" | "hero";
   outlined?: boolean;
+  /** "glass" ignores `color`: glass cards take the tint of the theme. */
+  material?: SurfaceMaterial;
   children: ReactNode;
 }
 
@@ -25,6 +28,7 @@ export function Card({
   color = "surface",
   shape = "card",
   outlined = false,
+  material = "tonal",
   onClick,
   actionLabel,
   className,
@@ -35,9 +39,10 @@ export function Card({
     <div
       className={cx(
         styles.card,
-        styles[color],
+        material === "tonal" && styles[color],
         styles[shape],
-        outlined && styles.outlined,
+        material === "tonal" && outlined && styles.outlined,
+        surfaceClass({ material }),
         onClick && cx("pw-state", styles.interactive),
         className,
       )}

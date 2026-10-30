@@ -33,7 +33,7 @@ export function FabMenu({ label, icon = "add", items }: FabMenuProps) {
   const list = useRef<HTMLDivElement>(null);
   const toggle = useRef<HTMLButtonElement>(null);
   const menuId = useId();
-  const spring = useSpring("spatialDefault");
+  const spring = useSpring("spatialCalm");
   const fade = useSpring("effectsFast");
   const reduce = useReduceMotion();
 

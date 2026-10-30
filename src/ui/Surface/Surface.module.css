@@ -1,0 +1,67 @@
+.tonal {
+  background: var(--md-sys-color-surface-container);
+  color: var(--md-sys-color-on-surface);
+}
+
+/* :where keeps this at zero specificity, so a component that is position: fixed stays fixed. */
+:where(.glass) {
+  position: relative;
+}
+.glass {
+  isolation: isolate;
+  background: var(--pw-surface-fill);
+  backdrop-filter: blur(var(--pw-surface-blur)) saturate(var(--pw-glass-saturate));
+  border: var(--pw-glass-rim);
+  box-shadow: var(--pw-glass-rim-top);
+  color: var(--md-sys-color-on-surface);
+}
+/* The specular sheen on the top half, under the content. */
+.glass::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--pw-glass-sheen);
+  pointer-events: none;
+}
+
+.thin {
+  --pw-surface-fill: var(--pw-glass-thin-fill);
+  --pw-surface-blur: var(--pw-glass-thin-blur);
+}
+.regular {
+  --pw-surface-fill: var(--pw-glass-regular-fill);
+  --pw-surface-blur: var(--pw-glass-regular-blur);
+}
+.thick {
+  --pw-surface-fill: var(--pw-glass-thick-fill);
+  --pw-surface-blur: var(--pw-glass-thick-blur);
+}
+
+.floating {
+  box-shadow: var(--pw-glass-rim-top), var(--pw-glass-shadow);
+}
+
+.glass.solid {
+  --pw-surface-fill: var(--pw-glass-solid-fill);
+  backdrop-filter: none;
+}
+
+/* Reduced transparency: the same shapes as solid tonal surfaces. */
+:global(:root[data-transparency="reduced"]) .glass {
+  background: var(--md-sys-color-surface-container-high);
+  backdrop-filter: none;
+}
+:global(:root[data-transparency="reduced"]) .glass::after {
+  content: none;
+}
+@media (prefers-reduced-transparency: reduce) {
+  :global(:root:not([data-transparency="glass"])) .glass {
+    background: var(--md-sys-color-surface-container-high);
+    backdrop-filter: none;
+  }
+  :global(:root:not([data-transparency="glass"])) .glass::after {
+    content: none;
+  }
+}

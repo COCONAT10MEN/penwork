@@ -17,12 +17,21 @@
   max-width: 600px;
   padding: 4px 4px 4px 16px;
   border-radius: var(--md-sys-shape-corner-extra-small);
+  pointer-events: auto;
+}
+.tonal {
   background: var(--md-sys-color-inverse-surface);
   color: var(--md-sys-color-inverse-on-surface);
   box-shadow: var(--md-sys-elevation-floating);
-  pointer-events: auto;
   /* The usual secondary ring is nearly invisible on inverse-surface. */
   --md-sys-focus-ring-color: var(--md-sys-color-inverse-primary);
+  --pw-snack-action: var(--md-sys-color-inverse-primary);
+  --pw-snack-close: var(--md-sys-color-inverse-on-surface);
+}
+.glass {
+  border-radius: var(--md-sys-shape-corner-large);
+  --pw-snack-action: var(--md-sys-color-primary);
+  --pw-snack-close: var(--md-sys-color-on-surface-variant);
 }
 
 .message {
@@ -39,12 +48,12 @@
   border: 0;
   border-radius: var(--md-sys-shape-corner-full);
   background: transparent;
-  color: var(--md-sys-color-inverse-primary);
+  color: var(--pw-snack-action);
   cursor: pointer;
   font-size: var(--md-sys-typescale-label-large-size);
   font-weight: var(--md-sys-typescale-label-large-weight-emphasized);
 }
 
 .close.close {
-  color: var(--md-sys-color-inverse-on-surface);
+  color: var(--pw-snack-close);
 }

@@ -7,8 +7,10 @@
   max-width: 320px;
   padding: 4px;
   border-radius: var(--md-sys-shape-corner-large);
-  background: var(--md-sys-color-surface-container);
   color: var(--md-sys-color-on-surface);
+}
+.tonal {
+  background: var(--md-sys-color-surface-container);
   box-shadow: var(--md-sys-elevation-floating);
 }
 

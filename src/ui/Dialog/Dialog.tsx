@@ -1,5 +1,7 @@
 import { useEffect, useId, useRef, type ReactNode } from "react";
+import { cx } from "../cx";
 import { Icon } from "../Icon";
+import { surfaceClass, type SurfaceMaterial } from "../Surface/Surface";
 import styles from "./Dialog.module.css";
 
 export interface DialogProps {
@@ -11,13 +13,23 @@ export interface DialogProps {
   children: ReactNode;
   /** Buttons along the bottom, usually text buttons with the main action last. */
   actions?: ReactNode;
+  /** Dialogs need full attention, so glass ones are opaque too. */
+  material?: SurfaceMaterial;
 }
 
 /**
  * M3 basic dialog on the native <dialog> element: the browser traps focus, makes the rest of
  * the page inert, handles Escape and returns focus to the opener.
  */
-export function Dialog({ open, onClose, headline, icon, children, actions }: DialogProps) {
+export function Dialog({
+  open,
+  onClose,
+  headline,
+  icon,
+  children,
+  actions,
+  material = "tonal",
+}: DialogProps) {
   const ref = useRef<HTMLDialogElement>(null);
   // Only a press that both starts and ends on the scrim closes it, so selecting text inside
   // and releasing outside doesn't.
@@ -35,7 +47,11 @@ export function Dialog({ open, onClose, headline, icon, children, actions }: Dia
   return (
     <dialog
       ref={ref}
-      className={styles.dialog}
+      className={cx(
+        styles.dialog,
+        material === "tonal" && styles.tonal,
+        surfaceClass({ material, strength: "thick", floating: true, solid: true }),
+      )}
       aria-labelledby={titleId}
       aria-describedby={bodyId}
       onCancel={(e) => {

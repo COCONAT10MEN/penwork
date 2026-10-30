@@ -55,11 +55,11 @@
   box-shadow: var(--md-sys-elevation-floating);
   cursor: pointer;
   transition:
-    width var(--md-sys-motion-spatial-default-duration) var(--md-sys-motion-spatial-default-easing),
-    height var(--md-sys-motion-spatial-default-duration) var(--md-sys-motion-spatial-default-easing),
-    margin var(--md-sys-motion-spatial-default-duration) var(--md-sys-motion-spatial-default-easing),
-    border-radius var(--md-sys-motion-spatial-default-duration)
-      var(--md-sys-motion-spatial-default-easing);
+    width var(--md-sys-motion-spatial-calm-duration) var(--md-sys-motion-spatial-calm-easing),
+    height var(--md-sys-motion-spatial-calm-duration) var(--md-sys-motion-spatial-calm-easing),
+    margin var(--md-sys-motion-spatial-calm-duration) var(--md-sys-motion-spatial-calm-easing),
+    border-radius var(--md-sys-motion-spatial-calm-duration)
+      var(--md-sys-motion-spatial-calm-easing);
 }
 .fab[data-open] {
   width: 56px;

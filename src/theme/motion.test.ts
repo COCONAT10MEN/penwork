@@ -58,6 +58,7 @@ describe("motionCss", () => {
 const DESIGN_DAMPING = {
   spatialFast: 34,
   spatialDefault: 31,
+  spatialCalm: 39,
   spatialSlow: 23,
   effectsFast: 123,
   effectsDefault: 80,

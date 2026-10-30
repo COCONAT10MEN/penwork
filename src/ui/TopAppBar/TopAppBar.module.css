@@ -4,8 +4,14 @@
   gap: 4px;
   min-height: 64px;
   padding: 0 8px 0 4px;
-  background: var(--md-sys-color-surface);
   color: var(--md-sys-color-on-surface);
+}
+.tonal {
+  background: var(--md-sys-color-surface);
+}
+/* Floating glass bar, as in the Edit mockup. */
+.glass {
+  border-radius: var(--md-sys-shape-corner-extra-large);
 }
 
 .leading {

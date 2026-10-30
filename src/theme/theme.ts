@@ -7,6 +7,7 @@ import {
   argbFromHex,
   hexFromArgb,
 } from "@material/material-color-utilities";
+import { mixHex, rgba } from "../lib/color";
 
 export const DEFAULT_SEED = "#3F5BD4"; // Ink blue
 export type SchemeVariant = "tonalSpot" | "vibrant" | "expressive";
@@ -94,11 +95,37 @@ export function generateColors(
   };
 }
 
+/**
+ * Glass values for one scheme. They are generated here, not in tokens.css, so that a forced
+ * panel (.pw-theme-dark inside a light app) gets its own glass and not the root's.
+ */
+export function glassVars(colors: ColorRoles, scheme: "light" | "dark"): Record<string, string> {
+  const primary = colors.primary ?? DEFAULT_SEED;
+  // "Tinted liquid": surface colors with a little primary mixed in.
+  const from = mixHex(colors["surface-container-high"] ?? primary, primary, 0.1);
+  const to = mixHex(colors.surface ?? primary, primary, 0.1);
+  const fill = (a: number, b: number) =>
+    `linear-gradient(150deg, ${rgba(from, a)}, ${rgba(to, b)})`;
+  const dark = scheme === "dark";
+  return {
+    "thin-fill": fill(0.42, 0.52),
+    "regular-fill": fill(0.64, 0.74),
+    "thick-fill": fill(0.86, 0.93),
+    // For surfaces with no blur (popovers, menus): the same look, fully opaque.
+    "solid-fill": `linear-gradient(150deg, ${from}, ${to})`,
+    rim: `1px solid rgb(255 255 255 / ${dark ? 0.18 : 0.8})`,
+    "rim-top": `inset 0 1px 0 rgb(255 255 255 / ${dark ? 0.3 : 0.95})`,
+    sheen: "linear-gradient(180deg, rgb(255 255 255 / 0.12), rgb(255 255 255 / 0) 48%)",
+    shadow: dark ? "0 18px 40px -14px rgb(0 0 0 / 0.6)" : "0 16px 36px -18px rgb(16 40 48 / 0.32)",
+  };
+}
+
 function block(selector: string, colors: ColorRoles, scheme: "light" | "dark"): string {
-  const vars = Object.entries(colors)
-    .map(([name, hex]) => `  --md-sys-color-${name}: ${hex};`)
-    .join("\n");
-  return `${selector} {\n  color-scheme: ${scheme};\n${vars}\n}`;
+  const color = Object.entries(colors).map(([name, hex]) => `  --md-sys-color-${name}: ${hex};`);
+  const glass = Object.entries(glassVars(colors, scheme)).map(
+    ([name, value]) => `  --pw-glass-${name}: ${value};`,
+  );
+  return `${selector} {\n  color-scheme: ${scheme};\n${[...color, ...glass].join("\n")}\n}`;
 }
 
 /**
@@ -129,6 +156,17 @@ export function applyTheme(
     doc.head.appendChild(style);
   }
   style.textContent = themeCss(generateColors(seedHex, variant));
+}
+
+export type Transparency = "auto" | "glass" | "reduced";
+
+/**
+ * Glass or solid surfaces. "auto" is glass unless Windows' "Transparency effects" is off;
+ * "glass" and "reduced" ignore Windows. Surface.module.css does the rest.
+ */
+export function setTransparency(mode: Transparency, doc: Document = document): void {
+  if (mode === "auto") delete doc.documentElement.dataset.transparency;
+  else doc.documentElement.dataset.transparency = mode;
 }
 
 /** "system" removes the override so the OS light/dark setting decides. */

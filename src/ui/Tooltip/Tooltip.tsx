@@ -10,7 +10,9 @@ import {
   type ReactElement,
 } from "react";
 import { createPortal } from "react-dom";
+import { cx } from "../cx";
 import { portalTarget } from "../focus";
+import { surfaceClass, type SurfaceMaterial } from "../Surface/Surface";
 import styles from "./Tooltip.module.css";
 
 export type TooltipPlacement = "top" | "bottom" | "left" | "right";
@@ -23,6 +25,7 @@ export interface TooltipProps {
    * the control's own aria-label (icon buttons), or screen readers read it twice.
    */
   describes?: boolean;
+  material?: SurfaceMaterial;
   /** A single focusable element. For a disabled control use aria-disabled, not `disabled`. */
   children: ReactElement<{ "aria-describedby"?: string }>;
 }
@@ -48,7 +51,13 @@ function position(anchor: DOMRect, tip: DOMRect, placement: TooltipPlacement) {
 }
 
 /** Plain M3 tooltip: shows after a short hover, or right away on keyboard focus. */
-export function Tooltip({ text, placement = "top", describes = true, children }: TooltipProps) {
+export function Tooltip({
+  text,
+  placement = "top",
+  describes = true,
+  material = "tonal",
+  children,
+}: TooltipProps) {
   const id = useId();
   const wrapper = useRef<HTMLSpanElement>(null);
   const tip = useRef<HTMLDivElement>(null);
@@ -127,7 +136,11 @@ export function Tooltip({ text, placement = "top", describes = true, children }:
             id={id}
             role="tooltip"
             aria-hidden="true"
-            className={styles.tooltip}
+            className={cx(
+              styles.tooltip,
+              material === "tonal" && styles.tonal,
+              surfaceClass({ material, strength: "thick", solid: true }),
+            )}
             style={coords ?? { visibility: "hidden", left: 0, top: 0 }}
           >
             {text}

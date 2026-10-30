@@ -5,9 +5,14 @@
   height: 100%;
   padding: 20px 12px;
   overflow: hidden auto;
+  transition: width var(--md-sys-motion-spatial-calm-duration)
+    var(--md-sys-motion-spatial-calm-easing);
+}
+.tonal {
   background: var(--md-sys-color-surface-container-low);
-  transition: width var(--md-sys-motion-spatial-default-duration)
-    var(--md-sys-motion-spatial-default-easing);
+}
+.glassRail {
+  border-radius: var(--md-sys-shape-corner-extra-large);
 }
 .expanded {
   width: 232px;

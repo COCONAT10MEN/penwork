@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { contrastRatio } from "../lib/contrast";
-import { DEFAULT_SEED, ROLE_NAMES, generateColors, themeCss, type SchemeVariant } from "./theme";
+import {
+  DEFAULT_SEED,
+  ROLE_NAMES,
+  generateColors,
+  glassVars,
+  themeCss,
+  type SchemeVariant,
+} from "./theme";
 
 const TEXT_PAIRS: [string, string][] = [
   ["on-primary", "primary"],
@@ -59,6 +66,27 @@ describe("generateColors", () => {
       }
     });
   }
+});
+
+describe("glassVars", () => {
+  it("gives light and dark their own rims and shadows", () => {
+    const { light, dark } = generateColors(DEFAULT_SEED);
+    expect(glassVars(light, "light").rim).not.toBe(glassVars(dark, "dark").rim);
+    expect(glassVars(light, "light").shadow).not.toBe(glassVars(dark, "dark").shadow);
+  });
+
+  it("makes fills stronger from thin to thick, and solid fully opaque", () => {
+    const g = glassVars(generateColors(DEFAULT_SEED).dark, "dark");
+    expect(g["thin-fill"]).toContain("/ 0.42");
+    expect(g["regular-fill"]).toContain("/ 0.64");
+    expect(g["thick-fill"]).toContain("/ 0.86");
+    expect(g["solid-fill"]).not.toContain("/");
+  });
+
+  it("is emitted for every scheme, so forced panels get their own glass", () => {
+    const css = themeCss(generateColors(DEFAULT_SEED));
+    expect(css.match(/--pw-glass-regular-fill:/g)).toHaveLength(3);
+  });
 });
 
 describe("themeCss", () => {

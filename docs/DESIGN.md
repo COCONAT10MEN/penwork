@@ -65,7 +65,8 @@ m3.material.io if something feels off. Motion's `damping` = ratio × 2 × √sti
 | Preset | Use for | Ratio | Stiffness | → motion `damping` |
 |---|---|---|---|---|
 | spatial-fast | buttons, toggles, shape morph | 0.6 | 800 | ≈ 34 |
-| spatial-default | toolbars, FAB menu, popovers, sheets | 0.8 | 380 | ≈ 31 |
+| spatial-default | morphs that may overshoot a little | 0.8 | 380 | ≈ 31 |
+| spatial-calm | dock, toolbars, FAB menu, popovers, menus, sheets (never bounce) | 1.0 | 380 | ≈ 39 |
 | spatial-slow | full-screen transitions | 0.8 | 200 | ≈ 23 |
 | effects-fast | color/opacity on press | 1.0 | 3800 | ≈ 123 |
 | effects-default | fades | 1.0 | 1600 | ≈ 80 |

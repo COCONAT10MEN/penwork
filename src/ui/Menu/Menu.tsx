@@ -5,6 +5,7 @@ import { useReduceMotion, useSpring } from "../../theme/motion";
 import { cx } from "../cx";
 import { focusFirstItem, handleMenuKeys, portalTarget } from "../focus";
 import { Icon } from "../Icon";
+import { surfaceClass, type SurfaceMaterial } from "../Surface/Surface";
 import styles from "./Menu.module.css";
 
 export type MenuEntry =
@@ -25,15 +26,17 @@ export interface MenuProps {
   anchor: HTMLElement | null;
   label: string;
   items: MenuEntry[];
+  /** Glass menus have no blur (DESIGN-GLASS §7): an opaque fill with the rim and sheen. */
+  material?: SurfaceMaterial;
 }
 
 const GAP = 4;
 
 /** M3 menu in a portal. Arrow keys, Home/End, Enter; Escape, Tab or a click outside closes. */
-export function Menu({ open, onClose, anchor, label, items }: MenuProps) {
+export function Menu({ open, onClose, anchor, label, items, material = "tonal" }: MenuProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState<{ left: number; top: number; up: boolean } | null>(null);
-  const spring = useSpring("spatialDefault");
+  const spring = useSpring("spatialCalm");
   const fade = useSpring("effectsFast");
   const reduce = useReduceMotion();
 
@@ -70,7 +73,11 @@ export function Menu({ open, onClose, anchor, label, items }: MenuProps) {
           ref={ref}
           role="menu"
           aria-label={label}
-          className={styles.menu}
+          className={cx(
+            styles.menu,
+            material === "tonal" && styles.tonal,
+            surfaceClass({ material, strength: "thick", floating: true, solid: true }),
+          )}
           // Until measured it sits off-screen, not visibility:hidden, so the first item can take focus.
           style={
             pos

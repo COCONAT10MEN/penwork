@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import { cx } from "../cx";
+import { surfaceClass, type SurfaceMaterial } from "../Surface/Surface";
 import styles from "./TopAppBar.module.css";
 
 export interface TopAppBarProps {
@@ -8,12 +10,26 @@ export interface TopAppBarProps {
   leading?: ReactNode;
   /** Buttons at the end. */
   actions?: ReactNode;
+  /** "glass" for floating chrome; "tonal" (default) is the solid look. */
+  material?: SurfaceMaterial;
 }
 
 /** M3 small top app bar (64px) with an optional subtitle, as in the PDF viewer mockup. */
-export function TopAppBar({ title, subtitle, leading, actions }: TopAppBarProps) {
+export function TopAppBar({
+  title,
+  subtitle,
+  leading,
+  actions,
+  material = "tonal",
+}: TopAppBarProps) {
   return (
-    <header className={styles.bar}>
+    <header
+      className={cx(
+        styles.bar,
+        material === "tonal" ? styles.tonal : styles.glass,
+        surfaceClass({ material, floating: true }),
+      )}
+    >
       {leading && <div className={styles.leading}>{leading}</div>}
       <div className={styles.titles}>
         <h1 className={styles.title}>{title}</h1>

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { cx } from "../cx";
+import { surfaceClass, type SurfaceMaterial } from "../Surface/Surface";
 import { Icon } from "../Icon";
 import { Tooltip } from "../Tooltip/Tooltip";
 import styles from "./NavigationRail.module.css";
@@ -24,6 +25,8 @@ export interface NavigationRailProps {
   header?: ReactNode;
   /** Bottom slot (settings, storage). */
   footer?: ReactNode;
+  /** "glass" for floating chrome; "tonal" (default) is the solid look. */
+  material?: SurfaceMaterial;
 }
 
 /** M3 Expressive navigation rail. The active destination gets a secondary-container pill. */
@@ -35,11 +38,17 @@ export function NavigationRail({
   expanded,
   header,
   footer,
+  material = "tonal",
 }: NavigationRailProps) {
   return (
     <nav
       aria-label={label}
-      className={cx(styles.rail, expanded ? styles.expanded : styles.collapsed)}
+      className={cx(
+        styles.rail,
+        expanded ? styles.expanded : styles.collapsed,
+        material === "tonal" ? styles.tonal : styles.glassRail,
+        surfaceClass({ material }),
+      )}
     >
       {header && <div className={styles.header}>{header}</div>}
       <ul className={styles.items}>

@@ -14,15 +14,15 @@
       {
         "label": "main",
         "title": "Penwork",
-        "width": 1280,
-        "height": 800,
+        "width": 1200,
+        "height": 650,
         "minWidth": 960,
-        "minHeight": 640,
-        "center": true
+        "minHeight": 600,
+        "visible": false
       }
     ],
     "security": {
-      "csp": "default-src 'self'; img-src 'self' asset: http://asset.localhost blob: data:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src ipc: http://ipc.localhost"
+      "csp": "default-src 'self'; img-src 'self' asset: http://asset.localhost blob: data:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src ipc: http://ipc.localhost; frame-src http://penwork-deck.localhost penwork-deck:"
     }
   },
   "bundle": {
@@ -34,6 +34,17 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
+    ],
+    "fileAssociations": [
+      {
+        "ext": [
+          "pwpptx"
+        ],
+        "name": "Penwork deck",
+        "description": "Penwork presentation",
+        "role": "Editor",
+        "mimeType": "application/vnd.penwork.deck"
+      }
     ]
   }
 }

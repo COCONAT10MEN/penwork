@@ -117,7 +117,7 @@ export function glassBase(colors: ColorRoles): { from: string; to: string } {
 
 export function glassOnVariant(colors: ColorRoles): string {
   const strong = colors["on-surface"] ?? DEFAULT_SEED;
-  return mixHex(strong, colors["on-surface-variant"] ?? strong, 0.25);
+  return mixHex(strong, colors["on-surface-variant"] ?? strong, 0.15);
 }
 
 /**

@@ -1,0 +1,102 @@
+/** library.json (docs/ARCHITECTURE-DECKS.md §7). Removing an entry never touches the deck file. */
+
+export interface LibraryDeck {
+  id: string;
+  path: string;
+  kind: "pwpptx" | "html";
+  title: string;
+  slides: number;
+  favorite: boolean;
+  lastOpened: string;
+  lastSlide: number;
+  lastStep: number;
+  thumb: string | null;
+  missing: boolean;
+}
+
+export interface Library {
+  version: 1;
+  decks: LibraryDeck[];
+}
+
+export const EMPTY_LIBRARY: Library = { version: 1, decks: [] };
+
+function readDeck(value: unknown): LibraryDeck | null {
+  if (typeof value !== "object" || value === null) return null;
+  const d = value as Record<string, unknown>;
+  if (typeof d.id !== "string" || typeof d.path !== "string" || !d.path) return null;
+  const count = (v: unknown) => (Number.isInteger(v) && (v as number) >= 0 ? (v as number) : 0);
+  return {
+    id: d.id,
+    path: d.path,
+    kind: d.kind === "html" ? "html" : "pwpptx",
+    title: typeof d.title === "string" && d.title ? d.title : d.path,
+    slides: count(d.slides),
+    favorite: d.favorite === true,
+    lastOpened: typeof d.lastOpened === "string" ? d.lastOpened : new Date(0).toISOString(),
+    lastSlide: count(d.lastSlide),
+    lastStep: count(d.lastStep),
+    thumb: typeof d.thumb === "string" ? d.thumb : null,
+    missing: d.missing === true,
+  };
+}
+
+/** A damaged library file must never stop the app starting: bad rows are dropped. */
+export function parseLibrary(text: string | null): Library {
+  if (!text) return EMPTY_LIBRARY;
+  try {
+    const data = JSON.parse(text) as { decks?: unknown };
+    if (!Array.isArray(data.decks)) return EMPTY_LIBRARY;
+    const decks = data.decks.map(readDeck).filter((d): d is LibraryDeck => d !== null);
+    return { version: 1, decks };
+  } catch {
+    return EMPTY_LIBRARY;
+  }
+}
+
+/** Newest first. Windows paths ignore case, so the same file isn't listed twice. */
+export function recordOpen(
+  library: Library,
+  entry: Pick<LibraryDeck, "path" | "kind" | "title" | "slides">,
+  now: string,
+  newId: () => string,
+): Library {
+  const key = entry.path.toLowerCase();
+  const existing = library.decks.find((d) => d.path.toLowerCase() === key);
+  const updated: LibraryDeck = {
+    id: existing?.id ?? newId(),
+    favorite: existing?.favorite ?? false,
+    lastSlide: existing?.lastSlide ?? 0,
+    lastStep: existing?.lastStep ?? 0,
+    thumb: existing?.thumb ?? null,
+    ...entry,
+    lastOpened: now,
+    missing: false,
+  };
+  return {
+    ...library,
+    decks: [updated, ...library.decks.filter((d) => d !== existing)],
+  };
+}
+
+export function removeDeck(library: Library, id: string): Library {
+  return { ...library, decks: library.decks.filter((d) => d.id !== id) };
+}
+
+export function markMissing(library: Library, path: string): Library {
+  const key = path.toLowerCase();
+  return {
+    ...library,
+    decks: library.decks.map((d) => (d.path.toLowerCase() === key ? { ...d, missing: true } : d)),
+  };
+}
+
+export function setLastSlide(library: Library, path: string, slide: number): Library {
+  const key = path.toLowerCase();
+  return {
+    ...library,
+    decks: library.decks.map((d) =>
+      d.path.toLowerCase() === key ? { ...d, lastSlide: slide } : d,
+    ),
+  };
+}

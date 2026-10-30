@@ -41,11 +41,11 @@ Tick boxes only when finished and verified in the running app.
 - [x] Measure the FloatingToolbar opening and idle GPU load on the laptop, and report both
 
 ## M2: Home & opening a deck (quality first)
-- [ ] **First: prove the runtime.** Sandboxed iframe on the private app address shows slide 1 of the demo with its images, and deck
+- [x] **First: prove the runtime.** Sandboxed iframe on the private app address shows slide 1 of the demo with its images, and deck
       code can't reach Tauri commands (tested in the real app). Everything below that shows a slide depends on this
 - [ ] Home like `design/mockups/v2/home.html`: rail, search, "Good evening", Continue card, drop zone, recent decks, "New deck" card
 - [ ] First launch window fits 1366×768 (≈90% work area, centred); remember size/position/maximised
-- [ ] `.pwpptx` reader/writer + manifest schema validation + tests (`docs/DECK-FORMAT.md`)
+- [x] `.pwpptx` reader/writer + manifest schema validation + tests (`docs/DECK-FORMAT.md`)
 - [ ] Sanitiser (DOMPurify + our rules) with tests, and a "Cleaned up while opening" note
 - [ ] Importers: Life of Physics `.html`, slides-only `.html`, clipboard "Paste from AI" (new deck)
 - [ ] Open by button, drag-and-drop, double-click in Explorer (file association `.pwpptx`), Open with (`.html` → import), single instance

@@ -1,0 +1,183 @@
+.home {
+  position: relative;
+  display: flex;
+  height: 100%;
+  color: var(--md-sys-color-on-surface);
+}
+
+.rail {
+  position: relative;
+  flex: none;
+  margin: 12px 0 12px 12px;
+}
+.logo {
+  display: grid;
+  place-items: center;
+  color: var(--md-sys-color-primary);
+}
+
+.main {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 16px 24px 24px;
+  overflow: auto;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.search {
+  flex: 1;
+  max-width: 560px;
+}
+.top > :last-child {
+  margin-inline-start: auto;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.greeting {
+  margin: 0;
+  font-size: var(--md-sys-typescale-display-small-size);
+  line-height: var(--md-sys-typescale-display-small-line-height);
+  font-weight: var(--md-sys-typescale-display-small-weight-emphasized);
+}
+.sub {
+  margin: 0;
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: var(--md-sys-typescale-body-medium-size);
+  line-height: var(--md-sys-typescale-body-medium-line-height);
+}
+
+.hero {
+  display: flex;
+  gap: 16px;
+  min-height: 200px;
+}
+
+.continue {
+  flex: 2 1 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+}
+.continue > button:last-child {
+  margin-top: auto;
+}
+.overline {
+  color: var(--md-sys-color-primary);
+  font-size: var(--md-sys-typescale-label-medium-size);
+  line-height: var(--md-sys-typescale-label-medium-line-height);
+  font-weight: var(--md-sys-typescale-label-medium-weight-emphasized);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.continueTitle {
+  font-size: var(--md-sys-typescale-headline-medium-size);
+  line-height: var(--md-sys-typescale-headline-medium-line-height);
+  font-weight: var(--md-sys-typescale-headline-medium-weight-emphasized);
+}
+
+.drop {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 220px;
+  padding: 16px;
+  border: 2px dashed var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-corner-extra-large);
+  text-align: center;
+  transition:
+    background-color var(--md-sys-motion-effects-default-duration)
+      var(--md-sys-motion-effects-default-easing),
+    border-color var(--md-sys-motion-effects-default-duration)
+      var(--md-sys-motion-effects-default-easing);
+}
+.drop[data-dragging] {
+  border-color: var(--md-sys-color-primary);
+  background: color-mix(in srgb, var(--md-sys-color-primary) 14%, transparent);
+}
+.dropIcon {
+  color: var(--md-sys-color-primary);
+}
+.dropTitle {
+  font-size: var(--md-sys-typescale-title-medium-size);
+  line-height: var(--md-sys-typescale-title-medium-line-height);
+  font-weight: var(--md-sys-typescale-title-medium-weight-emphasized);
+}
+.dropHint {
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: var(--md-sys-typescale-body-small-size);
+  line-height: var(--md-sys-typescale-body-small-line-height);
+}
+
+.heading {
+  margin: 0 0 12px;
+  font-size: var(--md-sys-typescale-title-medium-size);
+  line-height: var(--md-sys-typescale-title-medium-line-height);
+  font-weight: var(--md-sys-typescale-title-medium-weight-emphasized);
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.deck {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px;
+}
+/* A shaped placeholder until thumbnails arrive; also what a broken deck will show. */
+.thumb {
+  display: grid;
+  place-items: center;
+  height: 112px;
+  border-radius: var(--md-sys-shape-corner-large-increased);
+  background: var(--md-sys-color-surface-container-high);
+  fill: var(--md-sys-color-outline-variant);
+}
+.deckRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+.deckText {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding-inline-start: 4px;
+}
+.deckTitle,
+.deckMeta {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.deckTitle {
+  font-size: var(--md-sys-typescale-title-small-size);
+  line-height: var(--md-sys-typescale-title-small-line-height);
+  font-weight: var(--md-sys-typescale-title-small-weight-emphasized);
+}
+.deckMeta {
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: var(--md-sys-typescale-body-small-size);
+  line-height: var(--md-sys-typescale-body-small-line-height);
+}

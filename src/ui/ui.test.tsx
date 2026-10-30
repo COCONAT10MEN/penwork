@@ -110,7 +110,7 @@ describe("NavigationRail", () => {
     render(
       <NavigationRail
         label="Main"
-        expanded={false}
+        layout="icons"
         value="pdfs"
         onChange={() => {}}
         items={[

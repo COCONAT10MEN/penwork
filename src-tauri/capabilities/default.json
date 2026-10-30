@@ -8,6 +8,14 @@
   "permissions": [
     "core:default",
     "dialog:allow-open",
-    "dialog:allow-message"
-  ]
+    "dialog:allow-message",
+    "allow-get-accent-color",
+    "allow-take-pending-open",
+    "allow-read-app-file",
+    "allow-write-app-file",
+    "allow-open-deck",
+    "allow-set-deck-slides",
+    "allow-close-deck"
+  ],
+  "local": true
 }

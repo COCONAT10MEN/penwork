@@ -27,12 +27,12 @@ export function ShowcaseRail() {
   const material = useGalleryMaterial();
   const [page, setPage] = useState("library");
   return (
-    <Section title="Navigation rail (wide · narrow)">
+    <Section title="Navigation rail (wide · icons · slim)">
       <div className={styles.railBox}>
         <NavigationRail
           label="Main (wide example)"
           material={material}
-          expanded
+          layout="wide"
           items={RAIL_ITEMS}
           value={page}
           onChange={setPage}
@@ -42,11 +42,19 @@ export function ShowcaseRail() {
         <NavigationRail
           label="Main (narrow example)"
           material={material}
-          expanded={false}
+          layout="icons"
           items={RAIL_ITEMS}
           value={page}
           onChange={setPage}
           footer={<IconButton icon="settings" label="Settings" tooltipPlacement="right" />}
+        />
+        <NavigationRail
+          label="Main (slim example)"
+          material={material}
+          layout="stacked"
+          items={RAIL_ITEMS}
+          value={page}
+          onChange={setPage}
         />
       </div>
     </Section>

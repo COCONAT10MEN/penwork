@@ -12,6 +12,11 @@ Licenses below were checked against the installed packages (`package.json` / `LI
 | Tauri (`tauri`, `tauri-build`, `@tauri-apps/api`) | Tauri Programme within The Commons Conservancy | MIT / Apache-2.0 | Native app shell |
 | React (`react`, `react-dom`) | Meta and contributors | MIT | UI |
 | serde, serde_json | Erick Tryzelaar, David Tolnay | MIT / Apache-2.0 | Rust data serialization |
+| Zustand | Poimandres (Paul Henschel) | MIT | App state |
+| DOMPurify | Cure53 and contributors | MPL-2.0 or Apache-2.0 | Cleaning deck HTML |
+| Tauri plugins (dialog, single-instance, window-state) | Tauri Programme within The Commons Conservancy | MIT / Apache-2.0 | File dialog, one running window, remembered window size |
+| zip | zip-rs contributors | MIT | Reading and writing .pwpptx files |
+| thiserror, uuid | David Tolnay; uuid-rs contributors | MIT / Apache-2.0 | Rust errors and ids |
 | Roboto Flex (`@fontsource-variable/roboto-flex`) | The Roboto Flex Project Authors (Google); packaged by Fontsource | SIL OFL 1.1 | UI font |
 | Caveat (`@fontsource-variable/caveat`) | The Caveat Project Authors (Impallari Type); packaged by Fontsource | SIL OFL 1.1 | Handwriting-style sample text |
 | Material Symbols Rounded (`material-symbols`) | Google; packaged by marella/material-symbols | Apache-2.0 | Icons |
@@ -47,13 +52,10 @@ them unmodified. They come with every Tauri app. Run `cargo metadata` in `src-ta
 
 | Project | Author | License | Used for |
 |---|---|---|---|
-| DOMPurify | Cure53 and contributors | MPL-2.0 or Apache-2.0 | Cleaning deck HTML |
 | Playwright (dev only) | Microsoft | Apache-2.0 | Slide parity screenshots |
 | pdf.js (`pdfjs-dist`), paused | Mozilla | Apache-2.0 | Rendering PDFs, text layer, search |
 | pdf-lib, paused | Andrew Dillon | MIT | Writing annotations into PDFs |
-| Zustand | Poimandres | MIT | App state |
 | perfect-freehand | Steve Ruiz | MIT | Smooth ink strokes |
-| fflate | Arjun Barrett | MIT | `.pwpptx` zip files |
 
 The slide engine in `reference/lop-deck/` is the owner's own work.
 

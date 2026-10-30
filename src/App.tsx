@@ -1,7 +1,10 @@
 import { MotionConfig } from "motion/react";
 import { lazy, Suspense, useEffect, useState } from "react";
-import { Button, SnackbarProvider } from "./ui";
-import "./App.css";
+import { useApp } from "./appStore";
+import { PlaceholderViewer } from "./features/deck/PlaceholderViewer";
+import { useFileOpening } from "./features/deck/useFileOpening";
+import { Home } from "./features/library/Home";
+import { SnackbarProvider } from "./ui";
 
 // Dev builds only: the import is behind import.meta.env.DEV, so release builds drop the Gallery.
 const Gallery = import.meta.env.DEV ? lazy(() => import("./features/gallery/Gallery")) : null;
@@ -22,32 +25,37 @@ function useGalleryToggle(): [boolean, (open: boolean) => void] {
   return [open, setOpen];
 }
 
-// Placeholder until the Library screen (M2).
-function App() {
+function Screens() {
+  const dragging = useFileOpening();
   const [galleryOpen, setGalleryOpen] = useGalleryToggle();
+  const deck = useApp((s) => s.deck);
+  const startSlide = useApp((s) => s.startSlide);
+  const loadLibrary = useApp((s) => s.loadLibrary);
 
+  useEffect(() => {
+    void loadLibrary();
+  }, [loadLibrary]);
+
+  if (Gallery && galleryOpen) {
+    return (
+      <Suspense fallback={null}>
+        <Gallery onClose={() => setGalleryOpen(false)} />
+      </Suspense>
+    );
+  }
+  return deck ? (
+    <PlaceholderViewer key={deck.token} deck={deck} start={startSlide} />
+  ) : (
+    <Home dragging={dragging} />
+  );
+}
+
+function App() {
   return (
     // Motion ignores the OS setting unless told otherwise. Settings will switch this to "always".
     <MotionConfig reducedMotion="user">
       <SnackbarProvider>
-        {Gallery && galleryOpen ? (
-          <Suspense fallback={null}>
-            <Gallery onClose={() => setGalleryOpen(false)} />
-          </Suspense>
-        ) : (
-          <main className="app">
-            <span className="material-symbols-rounded app__icon" aria-hidden="true">
-              edit_note
-            </span>
-            <h1 className="app__title">Penwork</h1>
-            <p className="app__tagline">Your PDFs and notes, in one place</p>
-            {Gallery && (
-              <Button variant="tonal" icon="palette" onClick={() => setGalleryOpen(true)}>
-                Component gallery (Ctrl+Shift+G)
-              </Button>
-            )}
-          </main>
-        )}
+        <Screens />
       </SnackbarProvider>
     </MotionConfig>
   );

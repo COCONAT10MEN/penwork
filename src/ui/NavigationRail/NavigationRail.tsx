@@ -19,8 +19,11 @@ export interface NavigationRailProps {
   items: RailItem[];
   value: string;
   onChange: (id: string) => void;
-  /** Wide: icon + label in a pill. Narrow: icons only, labels as tooltips. */
-  expanded: boolean;
+  /**
+   * "stacked": a slim rail with a small label under each icon, as in the Home mockup.
+   * "wide": icon and label in a pill. "icons": icons only, labels as tooltips.
+   */
+  layout: "stacked" | "wide" | "icons";
   /** Top slot (logo, FAB). */
   header?: ReactNode;
   /** Bottom slot (settings, storage). */
@@ -35,7 +38,7 @@ export function NavigationRail({
   items,
   value,
   onChange,
-  expanded,
+  layout,
   header,
   footer,
   material = "tonal",
@@ -45,7 +48,7 @@ export function NavigationRail({
       aria-label={label}
       className={cx(
         styles.rail,
-        expanded ? styles.expanded : styles.collapsed,
+        styles[layout],
         material === "tonal" ? styles.tonal : styles.glassRail,
         surfaceClass({ material }),
       )}
@@ -59,7 +62,7 @@ export function NavigationRail({
               type="button"
               aria-current={active ? "page" : undefined}
               aria-label={
-                expanded
+                layout !== "icons"
                   ? undefined
                   : item.badge
                     ? `${item.label}, ${item.badge} items`
@@ -77,13 +80,13 @@ export function NavigationRail({
                   </span>
                 )}
               </span>
-              {expanded && <span className={styles.label}>{item.label}</span>}
+              {layout !== "icons" && <span className={styles.label}>{item.label}</span>}
               {!!item.badge && <span className="pw-visually-hidden">, {item.badge} items</span>}
             </button>
           );
           return (
             <li key={item.id}>
-              {expanded ? (
+              {layout !== "icons" ? (
                 button
               ) : (
                 <Tooltip text={item.label} placement="right" describes={false}>

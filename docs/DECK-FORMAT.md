@@ -1,5 +1,7 @@
 # `.pwpptx`: Penwork deck format, version 1
 
+Read and written in Rust with the `zip` crate, which streams large decks.
+
 A `.pwpptx` file is a **ZIP archive** (same idea as `.docx`/`.epub`). Inside it, the slides are HTML that uses
 the Life of Physics slide vocabulary (`reference/lop-deck/presentation-template/AI-GUIDE.md` §2–§8), which AI already
 writes well. The app supplies the engine, the toolbar and the settings. **A deck contains only content.**

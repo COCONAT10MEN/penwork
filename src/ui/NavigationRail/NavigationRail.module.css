@@ -14,10 +14,11 @@
 .glassRail {
   border-radius: var(--md-sys-shape-corner-extra-large);
 }
-.expanded {
+.wide {
   width: 232px;
 }
-.collapsed {
+.icons,
+.stacked {
   width: 96px;
   align-items: center;
 }
@@ -34,7 +35,7 @@
   padding: 0;
   list-style: none;
 }
-.collapsed .items {
+.icons .items {
   gap: 12px;
 }
 
@@ -52,11 +53,45 @@
   cursor: pointer;
   text-align: start;
 }
-.collapsed .item {
+.icons .item {
   justify-content: center;
   width: 56px;
   min-height: 40px;
   padding: 0;
+}
+/* Stacked: the pill sits behind the icon only, with the label under it. */
+.stacked .item {
+  flex-direction: column;
+  gap: 4px;
+  width: 72px;
+  min-height: 56px;
+  padding: 4px 0;
+  border-radius: var(--md-sys-shape-corner-large);
+}
+.stacked .item[data-active] {
+  background: transparent;
+  color: var(--md-sys-color-on-surface);
+}
+.stacked .iconWrap {
+  place-items: center;
+  width: 56px;
+  height: 32px;
+  border-radius: var(--md-sys-shape-corner-large);
+}
+.stacked .item[data-active] .iconWrap {
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+.stacked .label {
+  max-width: 100%;
+  font-size: var(--md-sys-typescale-label-medium-size);
+  line-height: var(--md-sys-typescale-label-medium-line-height);
+  letter-spacing: 0;
+}
+.stacked .footer {
+  width: 100%;
+  display: grid;
+  place-items: center;
 }
 .item[data-active] {
   background: var(--md-sys-color-secondary-container);

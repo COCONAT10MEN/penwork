@@ -21,24 +21,24 @@ Tick boxes only when finished and verified in the running app.
 - [x] Seed from the Windows accent color (Rust command), fallback to Ink blue `#3F5BD4`
 - [x] Typography, shape, elevation and state-layer tokens (`docs/DESIGN.md`)
 - [x] Motion presets (springs) + reduced-motion fallback
-- [ ] Components in `src/ui/`: Button (filled, tonal, outlined, text; small/medium/large), IconButton (standard, filled, tonal, toggle),
+- [x] Components in `src/ui/`: Button (filled, tonal, outlined, text; small/medium/large), IconButton (standard, filled, tonal, toggle),
       ButtonGroup (connected, shape morph on select), SplitButton, FAB, FAB menu, Chip (filter/assist), SearchBar,
       NavigationRail, TopAppBar, Card, List + ListItem, Menu, Dialog, SideSheet, Snackbar, Tooltip, Slider, Switch,
       SegmentedButton, FloatingToolbar, LinearProgress (wavy + flat), CircularProgress (wavy), LoadingIndicator (shape morph)
-- [ ] A hidden "Gallery" screen (dev builds only) showing every component in light and dark
-- [ ] Keyboard focus ring and hover/pressed state layers on everything interactive
+- [x] A hidden "Gallery" screen (dev builds only) showing every component in light and dark
+- [x] Keyboard focus ring and hover/pressed state layers on everything interactive
 
 ### M1 additions: Glass Expressive
-- [ ] `Surface` primitive: `material="glass" | "tonal"`, `strength="thin|regular|thick"` (`docs/DESIGN-GLASS.md`)
-- [ ] Glass tokens generated per theme (light + dark), Transparency setting (Glass / Reduced) wired up
-- [ ] No-bounce spring preset (ratio 1.0) for dock, panels, popovers and menus
-- [ ] Existing components take `material`: Card, Menu, Dialog, NavigationRail, TopAppBar, SearchBar, Snackbar, Tooltip
-- [ ] Remaining components: SideSheet, SplitButton, FloatingToolbar (generic capsule container), LinearProgress (wavy + flat),
+- [x] `Surface` primitive: `material="glass" | "tonal"`, `strength="thin|regular|thick"` (`docs/DESIGN-GLASS.md`)
+- [x] Glass tokens generated per theme (light + dark), Transparency setting (Glass / Reduced) wired up
+- [x] No-bounce spring preset (ratio 1.0) for dock, panels, popovers and menus
+- [x] Existing components take `material`: Card, Menu, Dialog, NavigationRail, TopAppBar, SearchBar, Snackbar, Tooltip
+- [x] Remaining components: SideSheet, SplitButton, FloatingToolbar (generic capsule container), LinearProgress (wavy + flat),
       CircularProgress (wavy), LoadingIndicator, **ColorPicker** (SV square, hue, hex, live preview), **TextField**, **Breadcrumb**
-- [ ] Expressive shapes in `src/ui/shapes.ts` (cookie, clover) + the cookie app logo
-- [ ] Ambient background (still blobs by default; `docs/DESIGN-GLASS.md` §3)
-- [ ] Gallery shows every component in glass and tonal, light and dark, over the ambient background
-- [ ] Measure the FloatingToolbar opening and idle GPU load on the laptop, and report both
+- [x] Expressive shapes in `src/ui/shapes.ts` (cookie, clover) + the cookie app logo
+- [x] Ambient background (still blobs by default; `docs/DESIGN-GLASS.md` §3)
+- [x] Gallery shows every component in glass and tonal, light and dark, over the ambient background
+- [x] Measure the FloatingToolbar opening and idle GPU load on the laptop, and report both
 
 ## M2: Home & opening a deck (quality first)
 - [ ] **First: prove the runtime.** Sandboxed iframe on the private app address shows slide 1 of the demo with its images, and deck

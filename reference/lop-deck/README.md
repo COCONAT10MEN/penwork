@@ -1,5 +1,9 @@
 # Penwork handoff — annotation toolbar
 
+> **Note (2026-10-30):** parts of this were written before the pivot. Penwork now loads and presents decks, and uses the glass look.
+> `docs/PIVOT.md` wins wherever this disagrees, and `docs/TEMPLATE-PARITY.md` lists every feature to keep. Kept here as written.
+> Files it calls `reference/...` now sit directly in this folder (`reference/lop-deck/`).
+
 Give this whole folder (or zip) to the AI that builds Penwork, then tell it:
 
 > Read HANDOFF.md first (section 11 has the exact prompt). Don't start coding until I approve its proposal.

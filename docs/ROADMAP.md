@@ -1,7 +1,8 @@
-# Roadmap — Windows v1 (notes + PDFs, mouse input)
+# Roadmap: Penwork presentations (Windows)
 
-Work top to bottom. Tick boxes as items are finished and verified in the running app.
-Each milestone should end with a working, committed app.
+Penwork is a presentation app first (`docs/PIVOT.md`). Work top to bottom.
+Each milestone ends with a working, committed app, `/check` green, the ui-reviewer agent run, and click-by-click test steps.
+Tick boxes only when finished and verified in the running app.
 
 ## M0 — Project scaffold & tooling
 - [x] Scaffold Tauri 2 + React + TypeScript + Vite into this repo root (keep existing docs, `.claude/`, `CLAUDE.md`, `design/`)
@@ -27,7 +28,89 @@ Each milestone should end with a working, committed app.
 - [ ] A hidden "Gallery" screen (dev builds only) showing every component in light and dark
 - [ ] Keyboard focus ring and hover/pressed state layers on everything interactive
 
-## M2 — App shell & Library
+### M1 additions: Glass Expressive
+- [ ] `Surface` primitive: `material="glass" | "tonal"`, `strength="thin|regular|thick"` (`docs/DESIGN-GLASS.md`)
+- [ ] Glass tokens generated per theme (light + dark), Transparency setting (Glass / Reduced) wired up
+- [ ] No-bounce spring preset (ratio 1.0) for dock, panels, popovers and menus
+- [ ] Existing components take `material`: Card, Menu, Dialog, NavigationRail, TopAppBar, SearchBar, Snackbar, Tooltip
+- [ ] Remaining components: SideSheet, SplitButton, FloatingToolbar (generic capsule container), LinearProgress (wavy + flat),
+      CircularProgress (wavy), LoadingIndicator, **ColorPicker** (SV square, hue, hex, live preview), **TextField**, **Breadcrumb**
+- [ ] Expressive shapes in `src/ui/shapes.ts` (cookie, clover) + the cookie app logo
+- [ ] Ambient background (still blobs by default; `docs/DESIGN-GLASS.md` §3)
+- [ ] Gallery shows every component in glass and tonal, light and dark, over the ambient background
+- [ ] Measure the FloatingToolbar opening and idle GPU load on the laptop, and report both
+
+## M2: Home & opening a deck (quality first)
+- [ ] **First: prove the runtime.** Sandboxed iframe on the private app address shows slide 1 of the demo with its images, and deck
+      code can't reach Tauri commands (tested in the real app). Everything below that shows a slide depends on this
+- [ ] Home like `design/mockups/v2/home.html`: rail, search, "Good evening", Continue card, drop zone, recent decks, "New deck" card
+- [ ] First launch window fits 1366×768 (≈90% work area, centred); remember size/position/maximised
+- [ ] `.pwpptx` reader/writer + manifest schema validation + tests (`docs/DECK-FORMAT.md`)
+- [ ] Sanitiser (DOMPurify + our rules) with tests, and a "Cleaned up while opening" note
+- [ ] Importers: Life of Physics `.html`, slides-only `.html`, clipboard "Paste from AI" (new deck)
+- [ ] Open by button, drag-and-drop, double-click in Explorer (file association `.pwpptx`), Open with (`.html` → import), single instance
+- [ ] Library storage (recents, favourites, last slide), thumbnails cached, search + filter chips, remove from recents
+- [ ] Startup feels instant: measure cold start to Home and "open deck to first slide" on the laptop, report both
+- [ ] Settings screen (glass): theme, app colour (sync with logo / match deck / custom), custom logo (SVG, `docs/DESIGN-GLASS.md` §8),
+      logo background, transparency, reduce motion
+- [ ] Test decks in `test-files/`: the demo deck (.pwpptx), the original demo `.html`, a slides-only file, a broken zip, a deck with a widget
+
+## M3: Slide runtime & Present
+- [ ] Runtime ported from `reference/lop-deck/deck-template.html` into `src/runtime/` (engine only, no dock/ink)
+- [ ] Typed bridge, including forwarded keys and pointer events (`docs/ARCHITECTURE-DECKS.md`)
+- [ ] **Parity test**: 8 demo slides match the original template (Playwright screenshots)
+- [ ] `docs/TEMPLATE-PARITY.md` §1 and §2 all ticked: slide engine and navigation input, including clicker use
+- [ ] Present mode: fullscreen, steps, Morph, quiz, widgets, maths
+- [ ] Hidden slides skipped; last slide → back to cover (template behaviour) or stop (setting)
+- [ ] Minimal dock shell: logo → capsule (one body, no bounce), buttons: grid, edit, full screen, settings (tools come in M5)
+- [ ] Overview grid: `docs/TEMPLATE-PARITY.md` §8
+- [ ] Remember last slide per deck; "Continue" on Home opens there
+
+## M4: Mini edits (`docs/EDITING.md`)
+- [ ] Edit mode layout like `design/mockups/v2/edit.html`: top bar, sorter, stage, inspector
+- [ ] Selection model (hover, click, deeper/up, Tab), breadcrumb, type tag, step numbers
+- [ ] Inline text editing + context toolbar (bold, italic, orange, teal, muted, clear, insert formula)
+- [ ] Inspector for every component in `EDITING.md` (slide, title, card, list, formula with live preview, table, columns,
+      diagram, image, worked example, quiz, recap, cover)
+- [ ] Steps: appears on click, animation, together with previous, highlight part. Steps sub-mode
+- [ ] Sorter: add from layout gallery, duplicate, delete, hide, reorder, multi-select, copy/paste between decks
+- [ ] Deck settings: brand values propagate to every slide, accent colours, language/direction
+- [ ] Undo/redo (command stack), Ctrl+S atomic save, recovery autosave + recover on launch, unsaved dot
+- [ ] Deck doctor (overflow + bad formula) chips and inspector warnings
+- [ ] Ask AI: Copy slide/deck for AI, Paste reply with preview (replace / insert)
+- [ ] **Authoring kit** in `authoring/` (`AI-GUIDE.md`, `pwpptx.py`, example, `PROMPT.md`) + Settings → "Get the AI kit".
+      It explains exactly how `.pwpptx` relates to plain HTML
+
+## M5: Dock, ink & whiteboard (everything in the template)
+- [ ] `docs/TEMPLATE-PARITY.md` §3–§7 and §9–§11 all ticked. **Not a single feature may be missing**
+- [ ] Input devices: stylus (pressure, barrel button, eraser end), touch, palm rejection, tablet mode, tool-shaped cursors
+- [ ] Dock, every tool and its settings, ColorPicker, ink with undo/redo and animations
+- [ ] Whiteboard with all backgrounds
+- [ ] Toolbar settings, including Export/Import compatible with files from the template, validated on load
+- [ ] Ink kept in the deck by default, setting to keep it on this device only; ink drawn on overview thumbnails
+- [ ] Every popover tested in the real WebView2 window (handoff §8 blanking bug)
+- [ ] Tested with a real stylus and touch, if the owner has the hardware; otherwise say so plainly
+
+## M6: Presentation complete
+- [ ] Presenter view on a second monitor (current, next, notes, timer, step dots)
+- [ ] Export PDF (one page per slide fully revealed, or per step) and print
+- [ ] Export a standalone `.html` (the old template engine + this deck) for sharing with students
+- [ ] Blackout (B / . while presenting; B keeps opening the picker on the whiteboard), `?` shortcut sheet, clicker edge cases
+- [ ] Layout gallery and "New deck" templates polished; deck themes (accent presets)
+
+## M7: Polish & release
+- [ ] Performance pass on the laptop (60 fps dock/Home, memory with 3 decks open)
+- [ ] Accessibility pass (keyboard-only, labels, contrast on glass)
+- [ ] App icon, `.pwpptx` file icon, installer (NSIS) via `npm run tauri build`
+- [ ] Error handling: corrupt decks, missing assets, full disk, newer format version
+- [ ] README with screenshots
+- [ ] (Optional) Mica on Windows 11, only if it proves worthwhile
+
+## Paused (PDFs & notebooks, not v1)
+Kept unchanged for later, unticked. Also paused: Linux, Android, the whiteboard as its own document type,
+handwriting search, OCR, sync. Stylus extras beyond the template (tilt, pen-only mode) come later too.
+
+### Old M2 — App shell & Library
 - [ ] Layout: navigation rail (Library, PDFs, Notebooks, Favorites, Trash) + content, like `design/mockups/library-desktop.html`
 - [ ] Open PDFs: button, drag-and-drop onto the window, "Open with" from Explorer (file association for `.pdf`), single instance
 - [ ] Library: recent files, thumbnails, search, filter chips, favorites, remove from list
@@ -36,7 +119,7 @@ Each milestone should end with a working, committed app.
 - [ ] Settings: theme (system/light/dark), seed color picker, reduce motion, default zoom
 - [ ] Remember window size/position
 
-## M3 — PDF viewer (everything a proper viewer has)
+### Old M3 — PDF viewer (everything a proper viewer has)
 - [ ] Render with pdf.js in a worker; continuous vertical scroll; only visible pages ± 2 rendered
 - [ ] Crisp at any zoom (re-render on zoom settle; use devicePixelRatio)
 - [ ] Zoom: Ctrl + wheel, Ctrl +/−, touchpad pinch, fit width, fit page, actual size; zoom around the cursor
@@ -52,7 +135,7 @@ Each milestone should end with a working, committed app.
 - [ ] Tabs or quick switching between several open PDFs
 - [ ] Smooth with a 500-page PDF (test file noted in the PR)
 
-## M4 — Annotations (mouse)
+### Old M4 — Annotations (mouse)
 - [ ] Annotation model in PDF coordinates (`docs/ARCHITECTURE.md`) + undo/redo (Ctrl+Z / Ctrl+Y)
 - [ ] Floating toolbar like `design/mockups/pdf-desktop.html`
 - [ ] Highlight / underline / strikethrough from selected text; also free-box highlight for scanned PDFs
@@ -65,7 +148,7 @@ Each milestone should end with a working, committed app.
 - [ ] Annotations side sheet: list, filter (all/marks/ink/comments), click to jump
 - [ ] Autosave annotations to the sidecar store; restore when the file is reopened
 
-## M5 — Saving & PDF compatibility
+### Old M5 — Saving & PDF compatibility
 - [ ] Save a copy / Save (overwrite asks first) writing standard PDF annotations with pdf-lib, including appearance streams
 - [ ] Check saved files open correctly in Edge, Chrome and Adobe Reader (manual test list)
 - [ ] "Flatten" option (burn annotations into the page)
@@ -73,7 +156,7 @@ Each milestone should end with a working, committed app.
 - [ ] Fill PDF forms (AcroForm text fields, checkboxes, radio, dropdown) and save
 - [ ] Export annotations summary (Markdown)
 
-## M6 — Notebooks
+### Old M6 — Notebooks
 - [ ] `.pwk` file format (zip of JSON + assets) with a version number; save/load + tests
 - [ ] Notebook editor like `design/mockups/notebook-desktop.html`: pages side sheet, floating toolbar, pen settings popover
 - [ ] Page templates: blank, lined, dotted, grid, Cornell
@@ -82,16 +165,10 @@ Each milestone should end with a working, committed app.
 - [ ] Export notebook to PDF
 - [ ] Autosave + crash-safe writes (write to temp file, then rename)
 
-## M7 — Polish & release
+### Old M7 — Polish & release
 - [ ] Print (PDF and notebook)
 - [ ] Performance pass; memory check with several large PDFs open
 - [ ] Accessibility pass (keyboard-only walkthrough, screen reader labels, contrast)
 - [ ] App icon (cookie-shape logo) and installer via `npm run tauri build` (NSIS)
 - [ ] Error handling: corrupt PDFs, missing files, full disk
 - [ ] README with screenshots
-
-## Later (not v1)
-- Stylus: pressure, tilt, palm rejection, pen-only mode
-- Linux build (WebKitGTK) — test Pointer Events pressure there early
-- Android build
-- Handwriting search, OCR for scanned PDFs, sync

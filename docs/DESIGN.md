@@ -1,6 +1,9 @@
 # Design spec — Material 3 Expressive
 
-Visual references: `design/mockups/` (open the HTML files in a browser).
+The app now uses **Glass Expressive**: this file gives the structure, and `docs/DESIGN-GLASS.md` adds the glass material and
+wins where the two disagree.
+
+Visual references: `design/mockups/v2/` (open the HTML files in a browser). The older mockups in `design/mockups/` are for the paused PDF and notebook work.
 Starting token values: `design/tokens.css` (hand-matched; M1 replaces them with generated values).
 
 ## Principles
@@ -117,6 +120,7 @@ Not built in v1, but keep components responsive so these work later.
 ## Don'ts
 
 - No hard-coded hex colors in components (content colors like highlighters live in one constants file).
-- No gradients, no glassmorphism, no emoji as icons.
+- No emoji as icons.
+- Gradients and glass only as `docs/DESIGN-GLASS.md` describes.
 - No borders to separate panels — use surface steps.
 - Don't animate layout with CSS transitions where a spring is specified.

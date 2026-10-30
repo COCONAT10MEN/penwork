@@ -1,37 +1,31 @@
-# First prompts to paste into Claude Code
+# Prompts for Claude Code
 
-## Session 1 — scaffold (M0)
-
-```
-/milestone 0
-```
-
-Extra context for M0 if it asks how to scaffold:
-
-```
-Scaffold with create-tauri-app (React + TypeScript template, npm). Run it into a temporary
-folder first (check `npm create tauri-app@latest -- --help` for the non-interactive flags),
-then move the generated files into this repo root WITHOUT overwriting CLAUDE.md, docs/,
-design/, .claude/, README.md, SETUP-WINDOWS.md, KICKOFF.md or THIRD_PARTY.md. Merge .gitignore.
-Then delete the temporary folder.
-```
-
-When it's done you should be able to run `npm run tauri dev` and see an empty Penwork window.
-
-## Session 2 — theme + components (M1)
-
-Type `/clear` first, then:
+## 1. Finish M1 with the glass kit
 
 ```
 /milestone 1
-Start with theme generation and the motion presets, then build the components in this order:
-Button, IconButton, ButtonGroup, FAB + FAB menu, FloatingToolbar, Chip, SearchBar, NavigationRail,
-Card, SideSheet, Slider, Switch, Snackbar + wavy progress. Show each one on the Gallery screen.
+Finish M1 as docs/ROADMAP.md describes it: the Surface primitive and glass tokens first,
+then give the existing components the material prop, then the remaining components
+(ColorPicker, TextField and Breadcrumb included), the cookie logo and the ambient background.
+Match design/mockups/v2/material.html. Show everything in the Gallery over the ambient
+background, in glass and tonal, light and dark. Test the popovers in the real Tauri window,
+not only the browser. Measure frames per second when opening the FloatingToolbar, and GPU
+load at idle, and report both.
 ```
 
-## Session 3 onward
+## 2. Then M2 (Home + opening decks), M3 (Present), M4 (mini edits), M5 (dock, ink, whiteboard)
 
-`/clear`, then `/milestone 2`, `/milestone 3`, …
+```
+/milestone 2
+```
+For each later milestone, just `/milestone <n>`. Say "Part 1 works, continue" between parts.
+If it starts forgetting things, type `/compact`.
+
+## 3. Making decks with Claude chat (once M4's AI kit exists)
+
+In Penwork: Settings → "Get the AI kit". Attach the kit to a Claude chat with your lesson material, then
+paste the prompt from `authoring/PROMPT.md`. Until then, use the old template's prompt
+(`reference/lop-deck/presentation-template/AI-GUIDE.md` §1). Penwork's importer reads those `.html` decks too.
 
 ## Good habits to paste when needed
 

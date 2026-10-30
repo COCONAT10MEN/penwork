@@ -47,10 +47,14 @@ them unmodified. They come with every Tauri app. Run `cargo metadata` in `src-ta
 
 | Project | Author | License | Used for |
 |---|---|---|---|
-| pdf.js (`pdfjs-dist`) | Mozilla | Apache-2.0 | Rendering PDFs, text layer, search |
-| pdf-lib | Andrew Dillon | MIT | Writing annotations into PDFs |
+| DOMPurify | Cure53 and contributors | MPL-2.0 or Apache-2.0 | Cleaning deck HTML |
+| Playwright (dev only) | Microsoft | Apache-2.0 | Slide parity screenshots |
+| pdf.js (`pdfjs-dist`), paused | Mozilla | Apache-2.0 | Rendering PDFs, text layer, search |
+| pdf-lib, paused | Andrew Dillon | MIT | Writing annotations into PDFs |
 | Zustand | Poimandres | MIT | App state |
 | perfect-freehand | Steve Ruiz | MIT | Smooth ink strokes |
-| fflate | Arjun Barrett | MIT | `.pwk` zip files |
+| fflate | Arjun Barrett | MIT | `.pwpptx` zip files |
+
+The slide engine in `reference/lop-deck/` is the owner's own work.
 
 Design language: [Material 3 Expressive](https://m3.material.io) by Google. Penwork is not affiliated with Google.

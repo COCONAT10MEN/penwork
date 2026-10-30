@@ -1,5 +1,9 @@
 # Handoff: the annotation toolbar idea → Penwork
 
+> **Note (2026-10-30):** parts of this were written before the pivot. Penwork now loads and presents decks, and uses the glass look.
+> `docs/PIVOT.md` wins wherever this disagrees, and `docs/TEMPLATE-PARITY.md` lists every feature to keep. Kept here as written.
+> Files it calls `reference/...` now sit directly in this folder (`reference/lop-deck/`).
+
 **Audience:** the AI that is building Penwork (Tauri 2 + React + TypeScript, Material 3 Expressive).
 **Written:** 2026-10-30, by a different AI session that built this toolbar for a classroom-presentation template.
 **Your job:** read this, look at the screenshots, open `reference/deck-template.html` in a browser, then decide

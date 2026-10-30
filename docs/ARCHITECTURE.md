@@ -1,4 +1,6 @@
-# Architecture
+# Architecture (PDFs and notebooks, paused)
+
+**Paused.** The deck app is described in `docs/ARCHITECTURE-DECKS.md`. This file is kept for when PDF and notebook work resumes.
 
 ## Big picture
 

@@ -14,6 +14,10 @@
   border: var(--pw-glass-rim);
   box-shadow: var(--pw-glass-rim-top);
   color: var(--md-sys-color-on-surface);
+  /* The secondary ring is too faint on glass over a busy slide. */
+  --md-sys-focus-ring-color: var(--md-sys-color-on-surface);
+  /* Secondary text inside glass (subtitles, placeholders). */
+  --md-sys-color-on-surface-variant: var(--pw-glass-on-variant);
 }
 /* The specular sheen on the top half, under the content. */
 .glass::after {
@@ -43,6 +47,9 @@
   box-shadow: var(--pw-glass-rim-top), var(--pw-glass-shadow);
 }
 
+.glass.noBlur {
+  backdrop-filter: none;
+}
 .glass.solid {
   --pw-surface-fill: var(--pw-glass-solid-fill);
   backdrop-filter: none;

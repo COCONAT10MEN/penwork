@@ -42,8 +42,8 @@ export function transitionFor(name: SpringName, reduceMotion: boolean): Transiti
 }
 
 /**
- * Hook form of transitionFor. Follows Windows' "Animation effects" setting, and the app's own
- * setting once Settings wraps the app in <MotionConfig reducedMotion="always">.
+ * Hook form of transitionFor. App.tsx sets <MotionConfig reducedMotion="user">, which follows
+ * Windows' "Animation effects"; the Reduce motion setting will switch that to "always".
  */
 export function useSpring(name: SpringName): Transition {
   return transitionFor(name, useReducedMotionConfig() ?? false);

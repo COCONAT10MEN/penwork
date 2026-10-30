@@ -20,17 +20,17 @@
     var(--md-sys-motion-spatial-fast-easing);
 }
 .segment[data-first] {
-  border-start-start-radius: var(--md-sys-shape-corner-full);
-  border-end-start-radius: var(--md-sys-shape-corner-full);
+  border-start-start-radius: var(--pw-end-corner);
+  border-end-start-radius: var(--pw-end-corner);
 }
 .segment[data-last] {
-  border-start-end-radius: var(--md-sys-shape-corner-full);
-  border-end-end-radius: var(--md-sys-shape-corner-full);
+  border-start-end-radius: var(--pw-end-corner);
+  border-end-end-radius: var(--pw-end-corner);
 }
 .segment[data-selected] {
   background: var(--md-sys-color-primary);
   color: var(--md-sys-color-on-primary);
-  border-radius: var(--md-sys-shape-corner-full);
+  border-radius: var(--pw-end-corner);
 }
 .segment:active:not(:disabled) {
   border-radius: var(--md-sys-shape-corner-extra-small);
@@ -40,6 +40,13 @@
   z-index: 1;
 }
 
+/* Half the height, so the morph is visible (see IconButton). */
+.small {
+  --pw-end-corner: var(--md-sys-shape-corner-large-increased);
+}
+.medium {
+  --pw-end-corner: var(--md-sys-shape-corner-extra-large);
+}
 .small .segment {
   min-height: 40px;
   padding: 0 16px;

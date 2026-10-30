@@ -13,6 +13,8 @@ interface BaseCardProps extends Omit<HTMLAttributes<HTMLDivElement>, "color" | "
   outlined?: boolean;
   /** "glass" ignores `color`: glass cards take the tint of the theme. */
   material?: SurfaceMaterial;
+  /** Cards come in grids, so glass cards don't blur unless asked (hero cards may). */
+  blur?: boolean;
   children: ReactNode;
 }
 
@@ -29,6 +31,7 @@ export function Card({
   shape = "card",
   outlined = false,
   material = "tonal",
+  blur = false,
   onClick,
   actionLabel,
   className,
@@ -42,7 +45,7 @@ export function Card({
         material === "tonal" && styles[color],
         styles[shape],
         material === "tonal" && outlined && styles.outlined,
-        surfaceClass({ material }),
+        surfaceClass({ material, blur }),
         onClick && cx("pw-state", styles.interactive),
         className,
       )}

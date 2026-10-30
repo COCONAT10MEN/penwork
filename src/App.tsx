@@ -1,3 +1,4 @@
+import { MotionConfig } from "motion/react";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { Button, SnackbarProvider } from "./ui";
 import "./App.css";
@@ -26,26 +27,29 @@ function App() {
   const [galleryOpen, setGalleryOpen] = useGalleryToggle();
 
   return (
-    <SnackbarProvider>
-      {Gallery && galleryOpen ? (
-        <Suspense fallback={null}>
-          <Gallery onClose={() => setGalleryOpen(false)} />
-        </Suspense>
-      ) : (
-        <main className="app">
-          <span className="material-symbols-rounded app__icon" aria-hidden="true">
-            edit_note
-          </span>
-          <h1 className="app__title">Penwork</h1>
-          <p className="app__tagline">Your PDFs and notes, in one place</p>
-          {Gallery && (
-            <Button variant="tonal" icon="palette" onClick={() => setGalleryOpen(true)}>
-              Component gallery (Ctrl+Shift+G)
-            </Button>
-          )}
-        </main>
-      )}
-    </SnackbarProvider>
+    // Motion ignores the OS setting unless told otherwise. Settings will switch this to "always".
+    <MotionConfig reducedMotion="user">
+      <SnackbarProvider>
+        {Gallery && galleryOpen ? (
+          <Suspense fallback={null}>
+            <Gallery onClose={() => setGalleryOpen(false)} />
+          </Suspense>
+        ) : (
+          <main className="app">
+            <span className="material-symbols-rounded app__icon" aria-hidden="true">
+              edit_note
+            </span>
+            <h1 className="app__title">Penwork</h1>
+            <p className="app__tagline">Your PDFs and notes, in one place</p>
+            {Gallery && (
+              <Button variant="tonal" icon="palette" onClick={() => setGalleryOpen(true)}>
+                Component gallery (Ctrl+Shift+G)
+              </Button>
+            )}
+          </main>
+        )}
+      </SnackbarProvider>
+    </MotionConfig>
   );
 }
 

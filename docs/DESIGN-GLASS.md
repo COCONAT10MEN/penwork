@@ -22,18 +22,19 @@ The selected colour swatch is a solid cookie shape. Primary actions are always s
 ```css
 /* fill: surface-container with a primary tint; two stops give the "tinted liquid" depth */
 --pw-glass-tint:        color-mix(in oklab, var(--md-sys-color-primary) 10%, transparent);
---pw-glass-thin-fill:     linear-gradient(150deg, rgb(from var(--md-sys-color-surface-container-high) r g b / .42), rgb(from var(--md-sys-color-surface) r g b / .52));
---pw-glass-regular-fill:  linear-gradient(150deg, rgb(from var(--md-sys-color-surface-container-high) r g b / .64), rgb(from var(--md-sys-color-surface) r g b / .74));
---pw-glass-thick-fill:    linear-gradient(150deg, rgb(from var(--md-sys-color-surface-container-high) r g b / .86), rgb(from var(--md-sys-color-surface) r g b / .93));
+--pw-glass-thin-fill:     linear-gradient(150deg, rgb(from var(--md-sys-color-surface-container-high) r g b / .78), rgb(from var(--md-sys-color-surface) r g b / .84));
+--pw-glass-regular-fill:  linear-gradient(150deg, rgb(from var(--md-sys-color-surface-container-high) r g b / .82), rgb(from var(--md-sys-color-surface) r g b / .88));
+--pw-glass-thick-fill:    linear-gradient(150deg, rgb(from var(--md-sys-color-surface-container-high) r g b / .93), rgb(from var(--md-sys-color-surface) r g b / .96));
 --pw-glass-thin-blur: 16px;  --pw-glass-regular-blur: 24px;  --pw-glass-thick-blur: 32px;
 --pw-glass-saturate: 1.7;
 --pw-glass-rim:        1px solid rgb(255 255 255 / .18);      /* light theme: .80 */
 --pw-glass-rim-top:    inset 0 1px 0 rgb(255 255 255 / .30);  /* light theme: .95 */
---pw-glass-sheen:      linear-gradient(180deg, rgb(255 255 255 / .12), rgb(255 255 255 / 0) 48%);
+--pw-glass-sheen:      linear-gradient(180deg, rgb(255 255 255 / .05), rgb(255 255 255 / 0) 48%);   /* light theme: .12 */
 --pw-glass-shadow:     0 18px 40px -14px rgb(0 0 0 / .60);     /* light theme: 0 16px 36px -18px rgb(16 40 48 / .32) */
 ```
-(Exact values may be tuned. Check `rgb(from …)` relative colour support in WebView2. If it isn't
-available, compute the rgba strings in `theme.ts` when the theme is generated.)
+(Generated in `theme.ts` per theme, so forced panels get their own glass. The fills are stronger than the first mockups: chrome sits
+over white and black slides, and `theme.test.ts` checks that text reaches 4.5:1 over both, for several seeds. Secondary text inside
+glass uses a stronger color for the same reason.)
 
 A glass surface = fill + `backdrop-filter: blur(var(--blur)) saturate(var(--pw-glass-saturate))` + rim + rim-top +
 a `::before` sheen layer + (floating only) shadow. Build it **once** as a `Surface` primitive in `src/ui/`

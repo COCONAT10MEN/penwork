@@ -21,17 +21,18 @@
 .main {
   gap: 8px;
   padding: 0 14px 0 16px;
-  border-radius: var(--md-sys-shape-corner-full) var(--md-sys-shape-corner-extra-small)
-    var(--md-sys-shape-corner-extra-small) var(--md-sys-shape-corner-full);
+  /* Half the height, so the corners can animate (see IconButton). */
+  border-radius: var(--md-sys-shape-corner-large-increased) var(--md-sys-shape-corner-extra-small)
+    var(--md-sys-shape-corner-extra-small) var(--md-sys-shape-corner-large-increased);
 }
 .arrow {
   width: 40px;
-  border-radius: var(--md-sys-shape-corner-extra-small) var(--md-sys-shape-corner-full)
-    var(--md-sys-shape-corner-full) var(--md-sys-shape-corner-extra-small);
+  border-radius: var(--md-sys-shape-corner-extra-small) var(--md-sys-shape-corner-large-increased)
+    var(--md-sys-shape-corner-large-increased) var(--md-sys-shape-corner-extra-small);
 }
 /* Open: the arrow morphs into its own circle. */
 .arrow[data-open] {
-  border-radius: var(--md-sys-shape-corner-full);
+  border-radius: 50%;
 }
 .main:active {
   border-radius: var(--md-sys-shape-corner-small);

@@ -1,9 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { contrastRatio } from "../lib/contrast";
+import { rgbToHex } from "../lib/color";
+import { contrastRatio, hexToRgb } from "../lib/contrast";
 import {
   DEFAULT_SEED,
   ROLE_NAMES,
+  GLASS_ALPHA,
+  GLASS_SHEEN,
   generateColors,
+  glassBase,
+  glassOnVariant,
   glassVars,
   themeCss,
   type SchemeVariant,
@@ -68,6 +73,50 @@ describe("generateColors", () => {
   }
 });
 
+/** Paints `top` at `alpha` over `under`, as the browser does. */
+function over(under: string, top: string, alpha: number): string {
+  const u = hexToRgb(under);
+  const t = hexToRgb(top);
+  const mix = (i: 0 | 1 | 2) => u[i] + (t[i] - u[i]) * alpha;
+  return rgbToHex(mix(0), mix(1), mix(2));
+}
+
+describe("text on glass, over the worst thing behind it", () => {
+  const seeds = ["#3F5BD4", "#0078D4", "#2E7D32", "#C2410C", "#FBD64A", "#6B7280"];
+  for (const seed of seeds) {
+    it(`reaches 4.5:1 over white and black slides (${seed})`, () => {
+      const { light, dark } = generateColors(seed);
+      for (const [scheme, colors] of [
+        ["light", light],
+        ["dark", dark],
+      ] as const) {
+        const { from, to } = glassBase(colors);
+        const sheen = GLASS_SHEEN[scheme];
+        for (const strength of ["thin", "regular", "thick"] as const) {
+          const [a, b] = GLASS_ALPHA[strength];
+          for (const behind of ["#ffffff", "#000000"]) {
+            for (const [glass, alpha] of [
+              [from, a],
+              [to, b],
+            ] as const) {
+              const painted = over(over(behind, glass, alpha), "#ffffff", sheen);
+              const label = `${seed} ${scheme} ${strength} over ${behind}`;
+              expect(
+                contrastRatio(colors["on-surface"] ?? "", painted),
+                label,
+              ).toBeGreaterThanOrEqual(4.5);
+              if (strength !== "thin") {
+                const variant = contrastRatio(glassOnVariant(colors), painted);
+                expect(variant, `variant: ${label}`).toBeGreaterThanOrEqual(4.5);
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+});
+
 describe("glassVars", () => {
   it("gives light and dark their own rims and shadows", () => {
     const { light, dark } = generateColors(DEFAULT_SEED);
@@ -77,9 +126,9 @@ describe("glassVars", () => {
 
   it("makes fills stronger from thin to thick, and solid fully opaque", () => {
     const g = glassVars(generateColors(DEFAULT_SEED).dark, "dark");
-    expect(g["thin-fill"]).toContain("/ 0.42");
-    expect(g["regular-fill"]).toContain("/ 0.64");
-    expect(g["thick-fill"]).toContain("/ 0.86");
+    expect(g["thin-fill"]).toContain(`/ ${GLASS_ALPHA.thin[0]}`);
+    expect(g["regular-fill"]).toContain(`/ ${GLASS_ALPHA.regular[0]}`);
+    expect(g["thick-fill"]).toContain(`/ ${GLASS_ALPHA.thick[0]}`);
     expect(g["solid-fill"]).not.toContain("/");
   });
 

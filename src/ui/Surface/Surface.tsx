@@ -16,6 +16,11 @@ export interface SurfaceStyle {
    * because of the WebView2 blanking bug (DESIGN-GLASS §7), and for anything that opens often.
    */
   solid?: boolean;
+  /**
+   * Set false for many small surfaces, like a grid of cards: the same translucent fill with no
+   * backdrop blur, which keeps the screen under the ~6 blurred layers limit.
+   */
+  blur?: boolean;
 }
 
 /** The classes for a surface, for components that render their own element (dialog, motion.div). */
@@ -25,9 +30,16 @@ export function surfaceClass({
   strength = "regular",
   floating = false,
   solid = false,
+  blur = true,
 }: SurfaceStyle = {}): string | undefined {
   if (material === "tonal") return undefined;
-  return cx(styles.glass, styles[strength], floating && styles.floating, solid && styles.solid);
+  return cx(
+    styles.glass,
+    styles[strength],
+    floating && styles.floating,
+    solid && styles.solid,
+    !blur && styles.noBlur,
+  );
 }
 
 export interface SurfaceProps extends SurfaceStyle, HTMLAttributes<HTMLDivElement> {}
@@ -38,7 +50,7 @@ export interface SurfaceProps extends SurfaceStyle, HTMLAttributes<HTMLDivElemen
  * inner one has nothing left to blur.
  */
 export const Surface = forwardRef<HTMLDivElement, SurfaceProps>(function Surface(
-  { material = "glass", strength, floating, solid, className, ...rest },
+  { material = "glass", strength, floating, solid, blur, className, ...rest },
   ref,
 ) {
   return (
@@ -46,7 +58,7 @@ export const Surface = forwardRef<HTMLDivElement, SurfaceProps>(function Surface
       ref={ref}
       className={cx(
         material === "tonal" && styles.tonal,
-        surfaceClass({ material, strength, floating, solid }),
+        surfaceClass({ material, strength, floating, solid, blur }),
         className,
       )}
       {...rest}

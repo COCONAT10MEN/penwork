@@ -4,7 +4,8 @@
   flex: none;
   padding: 0;
   border: 0;
-  border-radius: var(--md-sys-shape-corner-full);
+  /* 50%, not the "full" token: a huge radius would finish the morph in its first frame. */
+  border-radius: 50%;
   background: transparent;
   cursor: pointer;
   transition: border-radius var(--md-sys-motion-spatial-fast-duration)
@@ -24,7 +25,7 @@
   border-radius: var(--md-sys-shape-corner-large);
 }
 .toggle[data-selected] {
-  border-radius: var(--md-sys-shape-corner-full);
+  border-radius: 50%;
 }
 .button:active:not(:disabled) {
   border-radius: var(--md-sys-shape-corner-medium);

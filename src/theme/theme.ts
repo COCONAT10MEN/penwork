@@ -96,26 +96,51 @@ export function generateColors(
 }
 
 /**
+ * Fill opacity at each end of the glass gradient. High on purpose: chrome sits over white and
+ * black slides, and text on it must reach 4.5:1 against either (theme.test.ts checks this).
+ */
+export const GLASS_ALPHA = {
+  thin: [0.78, 0.84],
+  regular: [0.82, 0.88],
+  thick: [0.93, 0.96],
+} as const;
+export const GLASS_SHEEN = { light: 0.12, dark: 0.05 } as const;
+
+/** "Tinted liquid": surface colors with a little primary mixed in. */
+export function glassBase(colors: ColorRoles): { from: string; to: string } {
+  const primary = colors.primary ?? DEFAULT_SEED;
+  return {
+    from: mixHex(colors["surface-container-high"] ?? primary, primary, 0.1),
+    to: mixHex(colors.surface ?? primary, primary, 0.1),
+  };
+}
+
+export function glassOnVariant(colors: ColorRoles): string {
+  const strong = colors["on-surface"] ?? DEFAULT_SEED;
+  return mixHex(strong, colors["on-surface-variant"] ?? strong, 0.25);
+}
+
+/**
  * Glass values for one scheme. They are generated here, not in tokens.css, so that a forced
  * panel (.pw-theme-dark inside a light app) gets its own glass and not the root's.
  */
 export function glassVars(colors: ColorRoles, scheme: "light" | "dark"): Record<string, string> {
-  const primary = colors.primary ?? DEFAULT_SEED;
-  // "Tinted liquid": surface colors with a little primary mixed in.
-  const from = mixHex(colors["surface-container-high"] ?? primary, primary, 0.1);
-  const to = mixHex(colors.surface ?? primary, primary, 0.1);
-  const fill = (a: number, b: number) =>
+  const { from, to } = glassBase(colors);
+  const fill = ([a, b]: readonly [number, number]) =>
     `linear-gradient(150deg, ${rgba(from, a)}, ${rgba(to, b)})`;
   const dark = scheme === "dark";
+  const sheen = dark ? GLASS_SHEEN.dark : GLASS_SHEEN.light;
   return {
-    "thin-fill": fill(0.42, 0.52),
-    "regular-fill": fill(0.64, 0.74),
-    "thick-fill": fill(0.86, 0.93),
+    "thin-fill": fill(GLASS_ALPHA.thin),
+    "regular-fill": fill(GLASS_ALPHA.regular),
+    "thick-fill": fill(GLASS_ALPHA.thick),
     // For surfaces with no blur (popovers, menus): the same look, fully opaque.
     "solid-fill": `linear-gradient(150deg, ${from}, ${to})`,
+    // Secondary text on glass: nearer to on-surface, so it stays readable over any slide.
+    "on-variant": glassOnVariant(colors),
     rim: `1px solid rgb(255 255 255 / ${dark ? 0.18 : 0.8})`,
     "rim-top": `inset 0 1px 0 rgb(255 255 255 / ${dark ? 0.3 : 0.95})`,
-    sheen: "linear-gradient(180deg, rgb(255 255 255 / 0.12), rgb(255 255 255 / 0) 48%)",
+    sheen: `linear-gradient(180deg, rgb(255 255 255 / ${sheen}), rgb(255 255 255 / 0) 48%)`,
     shadow: dark ? "0 18px 40px -14px rgb(0 0 0 / 0.6)" : "0 16px 36px -18px rgb(16 40 48 / 0.32)",
   };
 }
@@ -125,7 +150,9 @@ function block(selector: string, colors: ColorRoles, scheme: "light" | "dark"): 
   const glass = Object.entries(glassVars(colors, scheme)).map(
     ([name, value]) => `  --pw-glass-${name}: ${value};`,
   );
-  return `${selector} {\n  color-scheme: ${scheme};\n${[...color, ...glass].join("\n")}\n}`;
+  // The focus ring is a color, so it needs the same treatment: forced panels get their own.
+  const ring = `  --md-sys-focus-ring-color: ${colors.secondary};`;
+  return `${selector} {\n  color-scheme: ${scheme};\n${[...color, ...glass, ring].join("\n")}\n}`;
 }
 
 /**

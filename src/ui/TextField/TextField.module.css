@@ -26,7 +26,8 @@
 .field:has(.input:focus) {
   box-shadow: inset 0 0 0 2px var(--md-sys-color-primary);
 }
-.field[data-error] {
+.field[data-error],
+.field[data-error]:has(.input:focus) {
   box-shadow: inset 0 0 0 2px var(--md-sys-color-error);
 }
 

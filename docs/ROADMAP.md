@@ -85,6 +85,7 @@ Tick boxes only when finished and verified in the running app.
 - [ ] `docs/TEMPLATE-PARITY.md` §3–§7 and §9–§11 all ticked. **Not a single feature may be missing**
 - [ ] Input devices: stylus (pressure, barrel button, eraser end), touch, palm rejection, tablet mode, tool-shaped cursors
 - [ ] Dock, every tool and its settings, ColorPicker, ink with undo/redo and animations
+- [ ] The selection slides between tools as one shape (DESIGN-GLASS §6), and the toolbar gets arrow keys
 - [ ] Whiteboard with all backgrounds
 - [ ] Toolbar settings, including Export/Import compatible with files from the template, validated on load
 - [ ] Ink kept in the deck by default, setting to keep it on this device only; ink drawn on overview thumbnails

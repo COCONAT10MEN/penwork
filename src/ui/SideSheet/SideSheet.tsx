@@ -1,9 +1,9 @@
 import { AnimatePresence, motion } from "motion/react";
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { useReduceMotion, useSpring } from "../../theme/motion";
 import { cx } from "../cx";
 import { IconButton } from "../IconButton/IconButton";
-import { surfaceClass, type SurfaceMaterial } from "../Surface/Surface";
+import { surfaceClass, type SurfaceMaterial, type SurfaceStrength } from "../Surface/Surface";
 import styles from "./SideSheet.module.css";
 
 export interface SideSheetProps {
@@ -16,6 +16,8 @@ export interface SideSheetProps {
   /** Extra buttons next to the close button. */
   actions?: ReactNode;
   material?: SurfaceMaterial;
+  /** Use "thick" for lots of text, like the inspector. */
+  strength?: SurfaceStrength;
   children: ReactNode;
 }
 
@@ -28,12 +30,24 @@ export function SideSheet({
   width = 320,
   actions,
   material = "tonal",
+  strength = "regular",
   children,
 }: SideSheetProps) {
   const spring = useSpring("spatialCalm");
   const fade = useSpring("effectsFast");
   const reduce = useReduceMotion();
   const offset = side === "right" ? 32 : -32;
+
+  // Closing removes the focused element, so give focus back to whatever opened the sheet.
+  const opener = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    if (open) {
+      opener.current = document.activeElement as HTMLElement | null;
+      return;
+    }
+    if (document.activeElement === document.body) opener.current?.focus();
+  }, [open]);
+
   return (
     <AnimatePresence>
       {open && (
@@ -42,7 +56,7 @@ export function SideSheet({
           className={cx(
             styles.sheet,
             material === "tonal" && styles.tonal,
-            surfaceClass({ material, floating: true }),
+            surfaceClass({ material, strength, floating: true }),
           )}
           style={{ width }}
           initial={reduce ? { opacity: 0 } : { opacity: 0, x: offset }}

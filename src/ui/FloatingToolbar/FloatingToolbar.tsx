@@ -45,9 +45,9 @@ export function FloatingToolbar({
   } as CSSProperties;
   return (
     <div
-      role="toolbar"
+      // Each tool is its own Tab stop for now; role="toolbar" (arrow keys) comes with the dock in M5.
+      role="group"
       aria-label={label}
-      aria-orientation={orientation}
       data-open={open || undefined}
       data-orientation={orientation}
       data-position={position}
@@ -60,7 +60,7 @@ export function FloatingToolbar({
     >
       <button
         type="button"
-        aria-label={open ? `Close ${label.toLowerCase()}` : `Open ${label.toLowerCase()}`}
+        aria-label={`${label} toolbar`}
         aria-expanded={open}
         className={cx("pw-state", styles.logo)}
         onClick={() => onOpenChange(!open)}
@@ -76,5 +76,5 @@ export function FloatingToolbar({
 
 /** A thin line between groups of tools. */
 export function ToolbarDivider() {
-  return <span role="separator" className={styles.divider} />;
+  return <span role="separator" aria-orientation="vertical" className={styles.divider} />;
 }

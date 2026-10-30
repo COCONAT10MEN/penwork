@@ -40,6 +40,13 @@ export function Menu({ open, onClose, anchor, label, items, material = "tonal" }
   const fade = useSpring("effectsFast");
   const reduce = useReduceMotion();
 
+  // Kept in a ref: a parent re-render passes a new onClose, which must not re-run the effect
+  // below and pull focus back to the first item.
+  const closeRef = useRef(onClose);
+  useEffect(() => {
+    closeRef.current = onClose;
+  });
+
   useLayoutEffect(() => {
     if (!open || !anchor || !ref.current) return;
     const a = anchor.getBoundingClientRect();
@@ -55,11 +62,11 @@ export function Menu({ open, onClose, anchor, label, items, material = "tonal" }
     focusFirstItem(ref.current);
     const onPointer = (e: PointerEvent) => {
       const t = e.target as Node;
-      if (!ref.current?.contains(t) && !anchor?.contains(t)) onClose();
+      if (!ref.current?.contains(t) && !anchor?.contains(t)) closeRef.current();
     };
     document.addEventListener("pointerdown", onPointer);
     return () => document.removeEventListener("pointerdown", onPointer);
-  }, [open, anchor, onClose]);
+  }, [open, anchor]);
 
   const close = (refocus: boolean) => {
     onClose();

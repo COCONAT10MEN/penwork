@@ -27,7 +27,7 @@ export function ShowcaseSurfaces() {
       <div className={styles.surfaces}>
         <Surface strength="thin" className={styles.surface}>
           <b>Thin</b>
-          <span>Chips and status</span>
+          <b>Chips and status</b>
         </Surface>
         <Surface strength="regular" floating className={styles.surface}>
           <b>Regular</b>
@@ -208,6 +208,7 @@ export function ShowcaseSplitSheet() {
           onClose={() => setSheet(false)}
           title="Inspector"
           material={material}
+          strength="thick"
         >
           <p className="pw-type-body-medium">
             A panel beside the content. Press Esc inside it to close.

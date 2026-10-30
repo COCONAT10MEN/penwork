@@ -38,16 +38,17 @@ describe("FloatingToolbar", () => {
 
   it("is a named toolbar whose buttons can't be reached while closed", () => {
     render(<Toolbar />);
-    expect(screen.getByRole("toolbar", { name: "Tools" })).toBeTruthy();
-    const logo = screen.getByRole("button", { name: "Open tools" });
+    expect(screen.getByRole("group", { name: "Tools" })).toBeTruthy();
+    const logo = screen.getByRole("button", { name: "Tools toolbar" });
     expect(logo.getAttribute("aria-expanded")).toBe("false");
     expect(screen.getByText("Pen").closest("[inert]")).toBeTruthy();
   });
 
   it("opens from the logo", () => {
     render(<Toolbar />);
-    fireEvent.click(screen.getByRole("button", { name: "Open tools" }));
-    expect(screen.getByRole("button", { name: "Close tools" })).toBeTruthy();
+    const logo = screen.getByRole("button", { name: "Tools toolbar" });
+    fireEvent.click(logo);
+    expect(logo.getAttribute("aria-expanded")).toBe("true");
     expect(screen.getByText("Pen").closest("[inert]")).toBeNull();
   });
 });

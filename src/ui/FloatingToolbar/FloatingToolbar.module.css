@@ -59,10 +59,11 @@
   background: var(--pw-logo-bk);
   color: var(--pw-logo-fg);
   cursor: pointer;
+  /* Same timing as the capsule: one body. */
   transition:
-    background-color var(--md-sys-motion-effects-default-duration)
-      var(--md-sys-motion-effects-default-easing),
-    color var(--md-sys-motion-effects-default-duration) var(--md-sys-motion-effects-default-easing);
+    background-color var(--md-sys-motion-spatial-calm-duration)
+      var(--md-sys-motion-spatial-calm-easing),
+    color var(--md-sys-motion-spatial-calm-duration) var(--md-sys-motion-spatial-calm-easing);
 }
 .capsule[data-open] .logo {
   background: var(--pw-logo-fg);
@@ -95,6 +96,11 @@
   min-width: 0;
   min-height: 0;
   overflow: hidden;
+}
+/* Once open, keep the focus rings of the tools from being cut off. */
+.capsule[data-open] .items {
+  overflow: clip;
+  overflow-clip-margin: 6px;
 }
 .capsule[data-orientation="vertical"] .items {
   flex-direction: column;

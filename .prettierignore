@@ -6,3 +6,4 @@ src-tauri/gen
 # Docs and design references are written by hand; only format code
 *.md
 design
+reference

@@ -1,0 +1,114 @@
+.capsule {
+  --pw-logo-size: 56px;
+  --pw-frame: 0px;
+  /* Set inline when the caller chooses colors; otherwise these fallbacks apply. */
+  --pw-logo-fg: var(--pw-toolbar-logo, var(--md-sys-color-primary));
+  --pw-logo-bk: var(--pw-toolbar-logo-bg, var(--pw-logo-background));
+  display: inline-flex;
+  align-items: center;
+  gap: var(--pw-frame);
+  padding: var(--pw-frame);
+  border-radius: var(--md-sys-shape-corner-full);
+  transition:
+    padding var(--md-sys-motion-spatial-calm-duration) var(--md-sys-motion-spatial-calm-easing),
+    gap var(--md-sys-motion-spatial-calm-duration) var(--md-sys-motion-spatial-calm-easing);
+}
+.tonal {
+  background: var(--md-sys-color-surface-container-high);
+  box-shadow: var(--md-sys-elevation-floating);
+}
+.capsule[data-open] {
+  --pw-frame: 6px;
+}
+.capsule[data-orientation="vertical"] {
+  flex-direction: column;
+}
+
+/* Corner and edge positions. */
+.capsule[data-position] {
+  position: absolute;
+  z-index: 800;
+}
+.capsule[data-position^="t"] {
+  top: 16px;
+}
+.capsule[data-position^="b"] {
+  bottom: 16px;
+}
+.capsule[data-position$="l"] {
+  left: 16px;
+}
+.capsule[data-position$="r"] {
+  right: 16px;
+}
+.capsule[data-position$="c"] {
+  left: 50%;
+  translate: -50% 0;
+}
+
+/* Closed: the logo color on the logo background. Open: the two swap, as in the template. */
+.logo {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--pw-logo-size);
+  height: var(--pw-logo-size);
+  padding: 0;
+  border: 0;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--pw-logo-bk);
+  color: var(--pw-logo-fg);
+  cursor: pointer;
+  transition:
+    background-color var(--md-sys-motion-effects-default-duration)
+      var(--md-sys-motion-effects-default-easing),
+    color var(--md-sys-motion-effects-default-duration) var(--md-sys-motion-effects-default-easing);
+}
+.capsule[data-open] .logo {
+  background: var(--pw-logo-fg);
+  color: var(--pw-logo-bk);
+}
+
+/* Growing the track from 0 to the content's size keeps one continuous shape. */
+.reveal {
+  display: grid;
+  grid-template-columns: 0fr;
+  transition: grid-template-columns var(--md-sys-motion-spatial-calm-duration)
+    var(--md-sys-motion-spatial-calm-easing);
+}
+.capsule[data-open] .reveal {
+  grid-template-columns: 1fr;
+}
+.capsule[data-orientation="vertical"] .reveal {
+  grid-template-columns: none;
+  grid-template-rows: 0fr;
+  transition-property: grid-template-rows;
+}
+.capsule[data-orientation="vertical"][data-open] .reveal {
+  grid-template-rows: 1fr;
+}
+
+.items {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.capsule[data-orientation="vertical"] .items {
+  flex-direction: column;
+}
+
+.divider {
+  flex: none;
+  width: 1px;
+  height: 28px;
+  margin-inline: 4px;
+  background: var(--md-sys-color-outline-variant);
+}
+.capsule[data-orientation="vertical"] .divider {
+  width: 28px;
+  height: 1px;
+  margin: 4px 0;
+}

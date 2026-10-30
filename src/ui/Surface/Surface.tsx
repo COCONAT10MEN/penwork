@@ -19,6 +19,7 @@ export interface SurfaceStyle {
 }
 
 /** The classes for a surface, for components that render their own element (dialog, motion.div). */
+// eslint-disable-next-line react-refresh/only-export-components -- it belongs with Surface
 export function surfaceClass({
   material = "glass",
   strength = "regular",

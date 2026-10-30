@@ -1,0 +1,160 @@
+/* ---------- Linear ---------- */
+.linear {
+  --pw-active-w: calc((100% - 8px) * var(--pw-pct) / 100);
+  position: relative;
+  width: 100%;
+  min-width: 80px;
+  height: 12px;
+}
+
+/* Inactive part: after a 6px gap, with a stop dot at the very end. */
+.rest {
+  position: absolute;
+  top: 4px;
+  left: calc(var(--pw-active-w) + 6px);
+  right: 0;
+  height: 4px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-secondary-container);
+}
+.stop {
+  position: absolute;
+  top: 4px;
+  right: 0;
+  width: 4px;
+  height: 4px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-primary);
+}
+
+.active {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: var(--pw-active-w);
+  overflow: hidden;
+  border-radius: var(--md-sys-shape-corner-full);
+}
+.flat {
+  position: absolute;
+  top: 4px;
+  left: 0;
+  right: 0;
+  height: 4px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-primary);
+}
+.wave {
+  position: absolute;
+  left: 0;
+  top: 0;
+  fill: none;
+  stroke: var(--md-sys-color-primary);
+  stroke-width: 4;
+  stroke-linecap: round;
+  animation: wave 1100ms linear infinite;
+}
+/* One wavelength (32px), so the loop has no visible jump. */
+@keyframes wave {
+  to {
+    translate: -32px 0;
+  }
+}
+
+/* Unknown length: a piece of the bar travels along the full track. */
+.indeterminate .rest {
+  left: 0;
+}
+.indeterminate .stop {
+  display: none;
+}
+.indeterminate .active {
+  width: 34%;
+  animation: travel 1800ms var(--md-sys-motion-effects-default-easing) infinite;
+}
+@keyframes travel {
+  from {
+    left: -34%;
+  }
+  to {
+    left: 100%;
+  }
+}
+.indeterminate {
+  overflow: hidden;
+}
+
+/* ---------- Circular ---------- */
+.circular {
+  display: block;
+  fill: none;
+}
+.circleTrack {
+  stroke: var(--md-sys-color-secondary-container);
+  stroke-width: 4;
+}
+.circleWave {
+  stroke: var(--md-sys-color-primary);
+  stroke-width: 4;
+  stroke-linecap: round;
+  transform-origin: center;
+  transition: stroke-dasharray var(--md-sys-motion-effects-default-duration)
+    var(--md-sys-motion-effects-default-easing);
+}
+.spinning .circleWave {
+  animation: spin 1400ms linear infinite;
+}
+@keyframes spin {
+  to {
+    rotate: 360deg;
+  }
+}
+
+/* ---------- Loading indicator ---------- */
+.loading {
+  display: inline-grid;
+  place-items: center;
+  padding: 10%;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-primary-container);
+  fill: var(--md-sys-color-on-primary-container);
+}
+.loading svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.pulse {
+  animation: pulse 1600ms ease-in-out infinite;
+}
+@keyframes pulse {
+  50% {
+    opacity: 0.55;
+  }
+}
+
+/* Reduced motion: nothing travels. The bar still shows progress; "unknown" shows a calm pulse. */
+@media (prefers-reduced-motion: reduce) {
+  .wave,
+  .circleWave {
+    animation: none;
+  }
+  .indeterminate .active {
+    width: 100%;
+    animation: pulse 1600ms ease-in-out infinite;
+  }
+  .spinning .circleWave {
+    animation: pulse 1600ms ease-in-out infinite;
+  }
+}
+:global(:root[data-reduce-motion]) .wave {
+  animation: none;
+}
+:global(:root[data-reduce-motion]) .indeterminate .active {
+  width: 100%;
+  animation: pulse 1600ms ease-in-out infinite;
+}
+:global(:root[data-reduce-motion]) .spinning .circleWave {
+  animation: pulse 1600ms ease-in-out infinite;
+}

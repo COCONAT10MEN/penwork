@@ -11,6 +11,7 @@ import {
   type RailItem,
   useSnackbar,
 } from "../../ui";
+import { useGalleryMaterial } from "./galleryMaterial";
 import { Section } from "./ShowcaseActions";
 import styles from "./Gallery.module.css";
 
@@ -23,12 +24,14 @@ const RAIL_ITEMS: RailItem[] = [
 ];
 
 export function ShowcaseRail() {
+  const material = useGalleryMaterial();
   const [page, setPage] = useState("library");
   return (
     <Section title="Navigation rail (wide · narrow)">
       <div className={styles.railBox}>
         <NavigationRail
           label="Main (wide example)"
+          material={material}
           expanded
           items={RAIL_ITEMS}
           value={page}
@@ -38,6 +41,7 @@ export function ShowcaseRail() {
         />
         <NavigationRail
           label="Main (narrow example)"
+          material={material}
           expanded={false}
           items={RAIL_ITEMS}
           value={page}
@@ -50,10 +54,12 @@ export function ShowcaseRail() {
 }
 
 export function ShowcaseAppBar() {
+  const material = useGalleryMaterial();
   return (
     <Section title="Top app bar">
-      <Card color="highest">
+      <div>
         <TopAppBar
+          material={material}
           title="Physics — Waves.pdf"
           subtitle="Page 3 of 48 · 2 annotations"
           leading={<IconButton icon="arrow_back" label="Back" />}
@@ -67,19 +73,21 @@ export function ShowcaseAppBar() {
             </>
           }
         />
-      </Card>
+      </div>
     </Section>
   );
 }
 
 export function ShowcaseCards() {
   const snack = useSnackbar();
+  const material = useGalleryMaterial();
   return (
     <Section title="Cards">
       <div className={styles.row}>
         <Card
           color="primary"
           shape="hero"
+          material={material}
           actionLabel="Open Lecture notes — Week 4"
           onClick={() => snack({ message: "Card opened" })}
           style={{ flex: "2 1 260px" }}
@@ -97,7 +105,7 @@ export function ShowcaseCards() {
             </Button>
           </div>
         </Card>
-        <Card color="tertiary" shape="hero" style={{ flex: "1 1 160px" }}>
+        <Card color="tertiary" shape="hero" material={material} style={{ flex: "1 1 160px" }}>
           <div className={styles.heroText}>
             <span className="pw-type-title-medium pw-type--emphasized">Pinned</span>
             <span className={styles.handwriting}>Exam formulas</span>
@@ -105,11 +113,13 @@ export function ShowcaseCards() {
         </Card>
       </div>
       <div className={styles.row}>
-        <Card style={{ flex: 1 }}>Surface container</Card>
-        <Card color="highest" style={{ flex: 1 }}>
+        <Card material={material} style={{ flex: 1 }}>
+          Surface container
+        </Card>
+        <Card color="highest" material={material} style={{ flex: 1 }}>
           Highest
         </Card>
-        <Card outlined style={{ flex: 1 }}>
+        <Card outlined material={material} style={{ flex: 1 }}>
           Outlined
         </Card>
       </div>

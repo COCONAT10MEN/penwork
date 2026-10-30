@@ -4,7 +4,7 @@ import { Icon } from "../Icon";
 import { Tooltip, type TooltipPlacement } from "../Tooltip/Tooltip";
 import styles from "./IconButton.module.css";
 
-export type IconButtonVariant = "standard" | "filled" | "tonal" | "outlined";
+export type IconButtonVariant = "standard" | "filled" | "tonal" | "outlined" | "tool";
 
 export interface IconButtonProps extends Omit<
   ButtonHTMLAttributes<HTMLButtonElement>,

@@ -1,0 +1,79 @@
+.picker {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 248px;
+}
+
+/*
+  These are the colors being picked, not theme colors, so the gradient values are literal.
+  Square: hue from the left, white fading in from the side, black from the bottom.
+*/
+.square {
+  position: relative;
+  height: 148px;
+  border-radius: var(--md-sys-shape-corner-large);
+  background:
+    linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, transparent),
+    hsl(var(--pw-hue) 100% 50%);
+  cursor: crosshair;
+  touch-action: none;
+}
+.square:focus-visible .squareThumb {
+  outline: var(--md-sys-focus-ring-width) solid var(--md-sys-focus-ring-color);
+  outline-offset: var(--md-sys-focus-ring-offset);
+}
+.squareThumb {
+  position: absolute;
+  left: calc(var(--pw-s) * 100%);
+  top: calc((1 - var(--pw-v)) * 100%);
+  width: 20px;
+  height: 20px;
+  margin: -10px;
+  border: 3px solid #fff;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--pw-color);
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.3);
+  pointer-events: none;
+}
+
+.hue {
+  appearance: none;
+  width: 100%;
+  height: 16px;
+  margin: 12px 0;
+  border-radius: var(--md-sys-shape-corner-small);
+  background: linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00);
+  cursor: pointer;
+}
+.hue::-webkit-slider-thumb {
+  appearance: none;
+  width: 8px;
+  height: 36px;
+  border: 2px solid #fff;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: hsl(var(--pw-hue) 100% 50%);
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.3);
+}
+.hue:focus-visible {
+  outline: var(--md-sys-focus-ring-width) solid var(--md-sys-focus-ring-color);
+  outline-offset: var(--md-sys-focus-ring-offset);
+}
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.preview {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  margin-top: 24px;
+  border-radius: var(--md-sys-shape-corner-large);
+  background: var(--pw-color);
+  box-shadow: inset 0 0 0 1px var(--md-sys-color-outline-variant);
+}
+.hex {
+  flex: 1;
+}

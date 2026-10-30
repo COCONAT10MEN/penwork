@@ -1,0 +1,47 @@
+.ambient {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--md-sys-color-surface);
+  pointer-events: none;
+}
+
+.a,
+.b,
+.c {
+  position: absolute;
+  border-radius: var(--md-sys-shape-corner-full);
+}
+.a {
+  left: -8%;
+  top: -18%;
+  width: 56vmin;
+  height: 56vmin;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--md-sys-color-primary) 42%, transparent),
+    transparent 66%
+  );
+}
+.b {
+  right: -6%;
+  top: 12%;
+  width: 62vmin;
+  height: 62vmin;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--md-sys-color-tertiary) 34%, transparent),
+    transparent 66%
+  );
+}
+.c {
+  left: 28%;
+  bottom: -24%;
+  width: 58vmin;
+  height: 58vmin;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--md-sys-color-secondary) 30%, transparent),
+    transparent 66%
+  );
+}

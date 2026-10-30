@@ -30,6 +30,17 @@
   border-radius: var(--md-sys-shape-corner-medium);
 }
 
+/* A tool in a floating toolbar: clear on the glass, a solid circle when selected. */
+.tool {
+  width: 48px;
+  height: 48px;
+  color: var(--md-sys-color-on-surface);
+}
+.tool[data-selected] {
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+}
+
 /* Variants (default / selected) */
 .standard {
   color: var(--md-sys-color-on-surface-variant);

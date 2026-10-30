@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Button, Dialog, IconButton, Menu, Slider, Switch, Tooltip, useSnackbar } from "../../ui";
+import { useGalleryMaterial } from "./galleryMaterial";
 import { Section } from "./ShowcaseActions";
 import styles from "./Gallery.module.css";
 
 export function ShowcaseOverlays() {
+  const material = useGalleryMaterial();
   const [menuOpen, setMenuOpen] = useState(false);
   const [anchor, setAnchor] = useState<HTMLButtonElement | null>(null);
   const [dialog, setDialog] = useState(false);
@@ -23,6 +25,7 @@ export function ShowcaseOverlays() {
           open={menuOpen}
           anchor={anchor}
           label="More options"
+          material={material}
           onClose={() => setMenuOpen(false)}
           items={[
             { label: "Open", icon: "open_in_new", trailing: "Enter", onSelect: () => {} },
@@ -33,21 +36,30 @@ export function ShowcaseOverlays() {
               label: "Remove from library",
               icon: "playlist_remove",
               onSelect: () =>
-                snack({ message: "Removed from library", actionLabel: "Undo", onAction: () => {} }),
+                snack({
+                  message: "Removed from library",
+                  actionLabel: "Undo",
+                  onAction: () => {},
+                  material,
+                }),
             },
           ]}
         />
         <Button variant="tonal" onClick={() => setDialog(true)}>
           Open dialog
         </Button>
-        <Button variant="outlined" onClick={() => snack({ message: "Saved a copy to Documents" })}>
+        <Button
+          variant="outlined"
+          onClick={() => snack({ message: "Saved a copy to Documents", material })}
+        >
           Show snackbar
         </Button>
-        <Tooltip text="Keeps your original PDF untouched">
+        <Tooltip text="Keeps your original file untouched" material={material}>
           <Button variant="text">Hover for tooltip</Button>
         </Tooltip>
       </div>
       <Dialog
+        material={material}
         open={dialog}
         onClose={() => setDialog(false)}
         icon="playlist_remove"

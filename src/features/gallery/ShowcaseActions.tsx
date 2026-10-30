@@ -10,6 +10,7 @@ import {
   SegmentedButton,
   useSnackbar,
 } from "../../ui";
+import { useGalleryMaterial } from "./galleryMaterial";
 import styles from "./Gallery.module.css";
 
 export function Section({ title, children }: { title: string; children: ReactNode }) {
@@ -179,6 +180,7 @@ export function ShowcaseFabs() {
 }
 
 export function ShowcaseChipsSearch() {
+  const material = useGalleryMaterial();
   const [filter, setFilter] = useState("all");
   const [query, setQuery] = useState("");
   return (
@@ -200,7 +202,8 @@ export function ShowcaseChipsSearch() {
         <Chip label="Disabled" icon="block" disabled />
       </div>
       <SearchBar
-        label="Search notes and PDFs"
+        label="Search decks and slides"
+        material={material}
         value={query}
         onChange={setQuery}
         trailing={<IconButton icon="account_circle" label="Account" variant="tonal" />}

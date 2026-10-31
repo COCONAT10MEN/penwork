@@ -4,6 +4,32 @@
   Everything here runs in the sandbox; the app treats whatever it sends as untrusted.
 */
 var W = {};
+/* The template's helpers for widget code, unchanged, and its demo widget. */
+function ns(tag,attrs){var e=document.createElementNS('http://www.w3.org/2000/svg',tag);for(var k in attrs)e.setAttribute(k,attrs[k]);return e;}
+function arrowHead(x,y,dir,s,fill){
+  s=s||14;var p;
+  if(dir==='u')p=[x,y,x-s*.7,y+s*1.5,x+s*.7,y+s*1.5];
+  else if(dir==='d')p=[x,y,x-s*.7,y-s*1.5,x+s*.7,y-s*1.5];
+  else if(dir==='l')p=[x,y,x+s*1.5,y-s*.7,x+s*1.5,y+s*.7];
+  else p=[x,y,x-s*1.5,y-s*.7,x-s*1.5,y+s*.7];
+  return '<polygon points="'+p.join(' ')+'" fill="'+fill+'"/>';
+}
+function mi(t){return '<i style="font-family:var(--math)">'+t+'</i>';}
+W.demo=function(root){
+  root.innerHTML='<div class="svgbox" style="padding:22px 30px">'+
+   '<div style="display:flex;justify-content:space-between;align-items:baseline"><span class="lbl">Force F</span><b class="fv val">12 N</b></div><input type="range" class="sl f" min="1" max="40" step="1" value="12">'+
+   '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:8px"><span class="lbl">Mass m</span><b class="mv val">3 kg</b></div><input type="range" class="sl m" min="1" max="20" step="1" value="3">'+
+   '<div class="ctr" style="margin-top:14px;font-size:44px"><span class="out"></span></div>'+
+   '<div style="height:22px;background:#e2f3f8;border-radius:11px;overflow:hidden;margin-top:12px"><div class="bar" style="height:100%;width:100%;background:#1a4fb4;transform-origin:left;transition:transform .35s"></div></div></div>';
+  var f=root.querySelector('.f'),m=root.querySelector('.m');
+  function upd(){
+    var F=+f.value,M=+m.value,a=F/M;
+    root.querySelector('.fv').textContent=F+' N';root.querySelector('.mv').textContent=M+' kg';
+    root.querySelector('.out').innerHTML=__tex('a = \\frac{'+F+'}{'+M+'} = '+a.toFixed(2)+'\\ \\u{m/s^2}');
+    root.querySelector('.bar').style.transform='scaleX('+Math.min(1,a/40)+')';
+  }
+  f.oninput=m.oninput=upd;upd();
+};
 (function () {
   "use strict";
 var TEXG={theta:'θ',phi:'φ',tau:'τ',mu:'μ',pi:'π',rho:'ρ',alpha:'α',beta:'β',gamma:'γ',delta:'δ',epsilon:'ε',eta:'η',lambda:'λ',nu:'ν',omega:'ω',sigma:'σ',

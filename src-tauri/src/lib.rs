@@ -1,4 +1,5 @@
 mod accent;
+mod capture;
 pub mod deck;
 mod files;
 mod window;
@@ -58,10 +59,20 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             accent::get_accent_color,
+            capture::capture_view,
             take_pending_open,
             files::read_app_file,
             files::write_app_file,
+            files::existing_paths,
+            files::read_logo_file,
+            files::write_thumb,
+            files::read_thumb,
+            files::delete_thumb,
             session::open_deck,
+            session::create_deck_session,
+            session::add_deck_asset,
+            session::read_html_deck,
+            session::write_draft,
             session::set_deck_slides,
             session::close_deck,
         ])

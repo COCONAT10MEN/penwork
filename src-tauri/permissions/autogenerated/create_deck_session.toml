@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-create-deck-session"
+description = "Enables the create_deck_session command without any pre-configured scope."
+commands.allow = ["create_deck_session"]
+
+[[permission]]
+identifier = "deny-create-deck-session"
+description = "Denies the create_deck_session command without any pre-configured scope."
+commands.deny = ["create_deck_session"]

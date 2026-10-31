@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-delete-thumb"
+description = "Enables the delete_thumb command without any pre-configured scope."
+commands.allow = ["delete_thumb"]
+
+[[permission]]
+identifier = "deny-delete-thumb"
+description = "Denies the delete_thumb command without any pre-configured scope."
+commands.deny = ["delete_thumb"]

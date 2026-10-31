@@ -12,7 +12,22 @@ const open = (
   library = EMPTY_LIBRARY,
   path = "C:\\Decks\\Waves.pwpptx",
   now = "2026-10-30T10:00:00Z",
-) => recordOpen(library, { path, kind: "pwpptx", title: "Waves", slides: 8 }, now, () => "new-id");
+) =>
+  recordOpen(
+    library,
+    {
+      path,
+      kind: "pwpptx",
+      title: "Waves",
+      slides: 8,
+      quizzes: 0,
+      interactive: false,
+      ink: false,
+      text: "",
+    },
+    now,
+    () => "new-id",
+  );
 
 describe("parseLibrary", () => {
   it("starts empty with no file or a damaged one", () => {

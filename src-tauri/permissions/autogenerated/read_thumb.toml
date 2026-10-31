@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-read-thumb"
+description = "Enables the read_thumb command without any pre-configured scope."
+commands.allow = ["read_thumb"]
+
+[[permission]]
+identifier = "deny-read-thumb"
+description = "Denies the read_thumb command without any pre-configured scope."
+commands.deny = ["read_thumb"]

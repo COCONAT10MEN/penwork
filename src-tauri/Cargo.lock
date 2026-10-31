@@ -2417,6 +2417,7 @@ dependencies = [
  "tauri-plugin-window-state",
  "thiserror 2.0.21",
  "uuid",
+ "webview2-com",
  "windows",
  "zip",
 ]

@@ -10,6 +10,16 @@ fn main() {
         "open_deck",
         "set_deck_slides",
         "close_deck",
+        "create_deck_session",
+        "add_deck_asset",
+        "read_html_deck",
+        "write_draft",
+        "existing_paths",
+        "read_logo_file",
+        "write_thumb",
+        "read_thumb",
+        "delete_thumb",
+        "capture_view",
     ]);
     tauri_build::try_build(tauri_build::Attributes::new().app_manifest(manifest))
         .expect("failed to run the Tauri build script");

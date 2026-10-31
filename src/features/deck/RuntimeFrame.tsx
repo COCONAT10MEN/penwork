@@ -5,6 +5,8 @@ import styles from "./RuntimeFrame.module.css";
 
 export interface RuntimeFrameHandle {
   go: (slide: number) => void;
+  /** Where the slide page is on screen, for cropping a thumbnail. */
+  rect: () => DOMRect | null;
 }
 
 interface RuntimeFrameProps {
@@ -33,6 +35,7 @@ export const RuntimeFrame = forwardRef<RuntimeFrameHandle, RuntimeFrameProps>(fu
         { v: 1, id: String(Date.now()), type: "go", payload: { slide } },
         "*",
       ),
+    rect: () => frame.current?.getBoundingClientRect() ?? null,
   }));
 
   useEffect(() => {

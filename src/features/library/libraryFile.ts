@@ -10,8 +10,14 @@ export interface LibraryDeck {
   lastOpened: string;
   lastSlide: number;
   lastStep: number;
+  /** The file version the cached thumbnail shows. Null when there is none yet. */
   thumb: string | null;
   missing: boolean;
+  quizzes: number;
+  interactive: boolean;
+  ink: boolean;
+  /** Slide words, for search. */
+  text: string;
 }
 
 export interface Library {
@@ -38,6 +44,10 @@ function readDeck(value: unknown): LibraryDeck | null {
     lastStep: count(d.lastStep),
     thumb: typeof d.thumb === "string" ? d.thumb : null,
     missing: d.missing === true,
+    quizzes: count(d.quizzes),
+    interactive: d.interactive === true,
+    ink: d.ink === true,
+    text: typeof d.text === "string" ? d.text : "",
   };
 }
 
@@ -57,7 +67,10 @@ export function parseLibrary(text: string | null): Library {
 /** Newest first. Windows paths ignore case, so the same file isn't listed twice. */
 export function recordOpen(
   library: Library,
-  entry: Pick<LibraryDeck, "path" | "kind" | "title" | "slides">,
+  entry: Pick<
+    LibraryDeck,
+    "path" | "kind" | "title" | "slides" | "quizzes" | "interactive" | "ink" | "text"
+  >,
   now: string,
   newId: () => string,
 ): Library {
@@ -98,5 +111,24 @@ export function setLastSlide(library: Library, path: string, slide: number): Lib
     decks: library.decks.map((d) =>
       d.path.toLowerCase() === key ? { ...d, lastSlide: slide } : d,
     ),
+  };
+}
+
+export function setFavorite(library: Library, id: string, favorite: boolean): Library {
+  return { ...library, decks: library.decks.map((d) => (d.id === id ? { ...d, favorite } : d)) };
+}
+
+export function setThumb(library: Library, id: string, stamp: string): Library {
+  return {
+    ...library,
+    decks: library.decks.map((d) => (d.id === id ? { ...d, thumb: stamp } : d)),
+  };
+}
+
+/** Files moved or deleted since last time. `exists` lines up with `library.decks`. */
+export function markExisting(library: Library, exists: boolean[]): Library {
+  return {
+    ...library,
+    decks: library.decks.map((d, i) => ({ ...d, missing: exists[i] === false })),
   };
 }

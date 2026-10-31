@@ -4,6 +4,7 @@ import { useApp } from "./appStore";
 import { PlaceholderViewer } from "./features/deck/PlaceholderViewer";
 import { useFileOpening } from "./features/deck/useFileOpening";
 import { Home } from "./features/library/Home";
+import { useSettings } from "./features/settings/settingsStore";
 import { SnackbarProvider } from "./ui";
 
 // Dev builds only: the import is behind import.meta.env.DEV, so release builds drop the Gallery.
@@ -51,9 +52,10 @@ function Screens() {
 }
 
 function App() {
+  const reduceMotion = useSettings((s) => s.settings.reduceMotion);
   return (
-    // Motion ignores the OS setting unless told otherwise. Settings will switch this to "always".
-    <MotionConfig reducedMotion="user">
+    // Motion ignores the OS setting unless told otherwise.
+    <MotionConfig reducedMotion={reduceMotion ? "always" : "user"}>
       <SnackbarProvider>
         <Screens />
       </SnackbarProvider>

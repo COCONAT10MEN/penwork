@@ -3,22 +3,23 @@ import "./theme/fonts";
 import "./theme/tokens.css";
 import "./theme/typography.css";
 import "./theme/base.css";
-import { getSystemSeed, onSystemSeedChange } from "./theme/accent";
 import { applyMotionTokens } from "./theme/motion";
 import { DEFAULT_SEED, applyTheme } from "./theme/theme";
+import { startSettings } from "./features/settings/settingsStore";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 
-// Before the first render so there is no flash of the fallback colors in tokens.css,
-// then swap in the Windows accent color as soon as Rust answers (a few ms).
 applyTheme(DEFAULT_SEED);
 applyMotionTokens();
-void getSystemSeed().then((seed) => applyTheme(seed));
-void onSystemSeedChange((seed) => applyTheme(seed));
 
-ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-);
+// Settings first (a few ms), so the app never flashes the wrong theme or colour as it opens.
+void startSettings()
+  .catch(() => {})
+  .finally(() => {
+    ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
+      <React.StrictMode>
+        <App />
+      </React.StrictMode>,
+    );
+  });

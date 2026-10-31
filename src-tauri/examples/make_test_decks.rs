@@ -1,6 +1,6 @@
 //! Builds the decks in test-files/ from the owner's template. Run from src-tauri:
 //!   cargo run --example make_test_decks
-//! Not part of the app. Part 2 adds the real importer; this only prepares test files.
+//! Not part of the app.
 
 use penwork_lib::deck::format::{write_deck, DeckContent, DeckWrite};
 use serde_json::json;
@@ -70,6 +70,30 @@ W.probe = function (root) {
 };
 "#;
 
+const WIDGET_SLIDE: &str = r#"<section class="slide" data-title="Try it" data-bg="900,-420,1.2;1500,500,.9;-120,820,1.2;1650,-120,.7">
+  <div class="body"><div class="sec"><div class="eb">Test</div><h2>A widget from widgets.js</h2></div>
+  <div class="main"><div data-w="counter"></div></div></div>
+</section>"#;
+
+const WIDGET_JS: &str = r#"
+W.counter = function (root) {
+  var n = 0;
+  root.innerHTML = '<button type="button" class="card" style="font-size:40px">Clicked 0 times</button>';
+  root.firstChild.onclick = function () { n++; root.firstChild.textContent = "Clicked " + n + " times"; };
+};
+"#;
+
+const SLIDES_ONLY: &str = r#"<section class="slide hero" data-title="Waves" data-bg="1300,-320,1;-260,620,1;1560,760,1;120,-300,.9">
+  <div class="kick">Physics · Waves</div>
+  <div class="mid"><div class="sdot big" data-m="sdot"><b class="sv">LESSON</b><b class="sn">2</b></div><h1 class="snm big" data-m="snm">Waves</h1></div>
+  <div class="toc"><div class="c"><i>1</i>Frequency</div><div class="c"><i>2</i>Wavelength</div></div>
+</section>
+<section class="slide" data-title="Frequency" data-bg="900,-420,1.2;1500,500,.9;-120,820,1.2;1650,-120,.7">
+  <div class="spill"><span class="sdot" data-m="sdot"><b class="sv">LESSON</b><b class="sn">2</b></span><span class="snm" data-m="snm">Waves</span></div>
+  <div class="body"><div class="sec"><div class="eb">Part 01</div><h2>Frequency</h2></div>
+  <div class="main"><div class="card soft"><h3><span class="tri">▶</span>Definition</h3><div style="font-size:29px">Oscillations per second, measured in hertz.</div></div></div></div>
+</section>"#;
+
 fn write(path: &Path, content: &DeckContent, assets: &[(&str, &[u8])]) {
     write_deck(path, &DeckWrite { content, source: None, assets }).expect("write deck");
     println!("wrote {}", path.display());
@@ -116,4 +140,22 @@ fn main() {
     fs::write(out.join("broken.pwpptx"), "This is not a zip file, so it can't be opened.")
         .expect("broken file");
     println!("wrote broken.pwpptx");
+
+    write(
+        &out.join("widget.pwpptx"),
+        &DeckContent {
+            manifest: manifest("Deck with a widget"),
+            slides_html: WIDGET_SLIDE.to_string(),
+            theme_css: Some(theme.to_string()),
+            widgets_js: Some(WIDGET_JS.to_string()),
+            notes: None,
+            ink: None,
+        },
+        &[],
+    );
+
+    fs::write(out.join("newtons-second-law.html"), TEMPLATE).expect("template copy");
+    println!("wrote newtons-second-law.html");
+    fs::write(out.join("slides-only.html"), SLIDES_ONLY).expect("slides-only file");
+    println!("wrote slides-only.html");
 }

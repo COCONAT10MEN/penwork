@@ -1,7 +1,7 @@
 [package]
 name = "penwork"
 version = "0.1.0"
-description = "Penwork: PDF reader/annotator and notebook app"
+description = "Penwork: a presentation app"
 authors = ["COCONAT10MEN"]
 edition = "2024"
 
@@ -28,9 +28,17 @@ zip = { version = "9.1.3", default-features = false, features = ["deflate"] }
 thiserror = "2.0.21"
 uuid = { version = "1.29.0", features = ["v4"] }
 
-# Same version Tauri already uses, so this adds no new download. Only for the accent color.
+# Same versions Tauri already uses, so these add no new download.
+# For the accent color and for capturing deck thumbnails.
 [target.'cfg(windows)'.dependencies]
-windows = { version = "0.62", features = ["UI_ViewManagement", "Foundation"] }
+windows = { version = "0.62", features = [
+  "UI_ViewManagement",
+  "Foundation",
+  "Win32_Foundation",
+  "Win32_System_Com",
+  "Win32_UI_Shell",
+] }
+webview2-com = "0.39"
 
 
 # Read the optimization guideline for more details: https://tauri.app/concept/size/#cargo-configuration

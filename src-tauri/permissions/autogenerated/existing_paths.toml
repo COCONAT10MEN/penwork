@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-existing-paths"
+description = "Enables the existing_paths command without any pre-configured scope."
+commands.allow = ["existing_paths"]
+
+[[permission]]
+identifier = "deny-existing-paths"
+description = "Denies the existing_paths command without any pre-configured scope."
+commands.deny = ["existing_paths"]

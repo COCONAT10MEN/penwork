@@ -4,7 +4,11 @@ import type { RuntimeMessage } from "../../lib/deck/bridge";
 import { IconButton, TopAppBar } from "../../ui";
 import type { OpenDeck } from "./openDeck";
 import { RuntimeFrame, type RuntimeFrameHandle } from "./RuntimeFrame";
+import { captureThumb } from "./thumbnail";
 import styles from "./PlaceholderViewer.module.css";
+
+/** Long enough for the slide to be drawn after it reports ready. */
+const CAPTURE_DELAY = 500;
 
 /** A simple way to look through a deck until Present arrives in M3. */
 export function PlaceholderViewer({ deck, start }: { deck: OpenDeck; start: number }) {
@@ -13,6 +17,7 @@ export function PlaceholderViewer({ deck, start }: { deck: OpenDeck; start: numb
   const frame = useRef<RuntimeFrameHandle>(null);
   const [slide, setSlide] = useState(0);
   const [total, setTotal] = useState(deck.slideCount);
+  const captured = useRef(false);
 
   const go = useCallback(
     (next: number) => {
@@ -43,10 +48,27 @@ export function PlaceholderViewer({ deck, start }: { deck: OpenDeck; start: numb
     return () => window.removeEventListener("keydown", listener);
   }, [onKey]);
 
+  const saveThumbIfNeeded = () => {
+    if (captured.current) return;
+    captured.current = true;
+    const { library, thumbSaved } = useApp.getState();
+    const key = deck.path.toLowerCase();
+    const entry = library.decks.find((d) => d.path.toLowerCase() === key);
+    if (!entry || entry.thumb === deck.stamp) return;
+    setTimeout(() => {
+      const rect = frame.current?.rect();
+      if (!rect) return;
+      void captureThumb(rect, entry.id).then((saved) => {
+        if (saved) thumbSaved(entry.id, deck.stamp);
+      });
+    }, CAPTURE_DELAY);
+  };
+
   const onMessage = (message: RuntimeMessage) => {
     if (message.type === "ready") {
       setTotal(message.total);
       if (start > 0) frame.current?.go(Math.min(start, message.total - 1));
+      saveThumbIfNeeded();
     } else if (message.type === "state") {
       setSlide(message.slide);
       setTotal(message.total);

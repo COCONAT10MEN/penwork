@@ -57,3 +57,8 @@
 .close.close {
   color: var(--pw-snack-close);
 }
+
+/* A note must not end up in a thumbnail taken while it's showing. */
+:global(:root[data-capturing]) .snackbar {
+  visibility: hidden;
+}

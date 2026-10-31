@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-add-deck-asset"
+description = "Enables the add_deck_asset command without any pre-configured scope."
+commands.allow = ["add_deck_asset"]
+
+[[permission]]
+identifier = "deny-add-deck-asset"
+description = "Denies the add_deck_asset command without any pre-configured scope."
+commands.deny = ["add_deck_asset"]

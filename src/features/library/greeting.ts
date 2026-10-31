@@ -12,3 +12,7 @@ export function whenOpened(iso: string, now: Date): string {
   if (days === 1) return "Yesterday";
   return then.toLocaleDateString(undefined, { day: "numeric", month: "short" });
 }
+
+export function slidesLabel(count: number): string {
+  return count === 1 ? "1 slide" : `${count} slides`;
+}

@@ -15,7 +15,17 @@
     "allow-write-app-file",
     "allow-open-deck",
     "allow-set-deck-slides",
-    "allow-close-deck"
+    "allow-close-deck",
+    "allow-create-deck-session",
+    "allow-add-deck-asset",
+    "allow-read-html-deck",
+    "allow-write-draft",
+    "allow-existing-paths",
+    "allow-read-logo-file",
+    "allow-write-thumb",
+    "allow-read-thumb",
+    "allow-delete-thumb",
+    "allow-capture-view"
   ],
   "local": true
 }

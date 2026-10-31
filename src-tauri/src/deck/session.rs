@@ -4,13 +4,15 @@
 //! a srcdoc page inherits the app's security policy (deck scripts wouldn't run), and blob
 //! URLs fail inside a sandbox. Each response carries its own policy (docs/ARCHITECTURE-DECKS.md).
 
-use super::format::{read_asset, read_deck, DeckContent, DeckError};
+use super::format::{read_asset, read_deck, write_deck, DeckContent, DeckError, DeckWrite};
 use serde::Serialize;
+use serde_json::Value;
 use std::collections::HashMap;
-use std::path::PathBuf;
+use std::fs;
+use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 use tauri::http::{header, Request, Response, StatusCode};
-use tauri::State;
+use tauri::{AppHandle, Manager, State};
 
 pub const SCHEME: &str = "penwork-deck";
 
@@ -20,14 +22,21 @@ const SOURCES: &str = "http://penwork-deck.localhost penwork-deck:";
 const ENGINE_CSS: &str = include_str!("../../../src/runtime/engine.css");
 const VIEWER_JS: &str = include_str!("../../../src/runtime/viewer.js");
 
+/// The largest `.html` deck read, matching the `.pwpptx` limit.
+const MAX_HTML_BYTES: u64 = 200 * 1024 * 1024;
+
 struct Session {
-    path: PathBuf,
+    /// The `.pwpptx` assets are read from. None for a deck that exists only in memory so far.
+    source: Option<PathBuf>,
+    manifest: Value,
     /// Sanitised by the frontend before it reaches this page.
     slides_html: String,
     theme_css: String,
     widgets_js: String,
     lang: String,
     dir: String,
+    /// Images pulled out of the slides by the frontend. Checked before `source`.
+    assets: HashMap<String, Vec<u8>>,
 }
 
 #[derive(Default)]
@@ -38,16 +47,37 @@ pub struct Sessions(Mutex<HashMap<String, Session>>);
 pub struct OpenedDeck {
     token: String,
     path: String,
+    /// Changes when the file does, so a cached thumbnail can tell it is out of date.
+    stamp: String,
     content: DeckContent,
 }
 
-fn manifest_text(content: &DeckContent, key: &str, fallback: &str) -> String {
-    let value = content.manifest.get(key).and_then(|v| v.as_str()).unwrap_or(fallback);
+fn manifest_text(manifest: &Value, key: &str, fallback: &str) -> String {
+    let value = manifest.get(key).and_then(|v| v.as_str()).unwrap_or(fallback);
     // These go into an HTML attribute, so only plain language codes are let through.
     if value.chars().all(|c| c.is_ascii_alphanumeric() || c == '-') {
         value.to_string()
     } else {
         fallback.to_string()
+    }
+}
+
+fn file_stamp(path: &Path) -> String {
+    let modified = fs::metadata(path).and_then(|m| m.modified()).ok();
+    let age = modified.and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok());
+    age.map_or_else(String::new, |d| d.as_millis().to_string())
+}
+
+fn new_session(source: Option<PathBuf>, manifest: Value, theme_css: String, widgets_js: String) -> Session {
+    Session {
+        source,
+        lang: manifest_text(&manifest, "lang", "en"),
+        dir: manifest_text(&manifest, "dir", "ltr"),
+        manifest,
+        slides_html: String::new(),
+        theme_css,
+        widgets_js,
+        assets: HashMap::new(),
     }
 }
 
@@ -60,16 +90,104 @@ pub async fn open_deck(path: String, sessions: State<'_, Sessions>) -> Result<Op
         .map_err(|e| DeckError::Damaged(e.to_string()))??;
 
     let token = uuid::Uuid::new_v4().simple().to_string();
-    let session = Session {
-        path: file,
-        slides_html: String::new(),
-        theme_css: content.theme_css.clone().unwrap_or_default(),
-        widgets_js: content.widgets_js.clone().unwrap_or_default(),
-        lang: manifest_text(&content, "lang", "en"),
-        dir: manifest_text(&content, "dir", "ltr"),
-    };
+    let session = new_session(
+        Some(file.clone()),
+        content.manifest.clone(),
+        content.theme_css.clone().unwrap_or_default(),
+        content.widgets_js.clone().unwrap_or_default(),
+    );
     sessions.0.lock().unwrap().insert(token.clone(), session);
-    Ok(OpenedDeck { token, path, content })
+    Ok(OpenedDeck { token, stamp: file_stamp(&file), path, content })
+}
+
+/// A deck built by an importer. It has no file of its own, so its images stay in memory.
+#[tauri::command]
+pub fn create_deck_session(
+    manifest: Value,
+    theme_css: String,
+    widgets_js: String,
+    sessions: State<'_, Sessions>,
+) -> String {
+    let token = uuid::Uuid::new_v4().simple().to_string();
+    let session = new_session(None, manifest, theme_css, widgets_js);
+    sessions.0.lock().unwrap().insert(token.clone(), session);
+    token
+}
+
+/// Raw bytes, because a base64 or JSON copy of a large image is slow to pass across.
+#[tauri::command]
+pub fn add_deck_asset(request: tauri::ipc::Request<'_>, sessions: State<'_, Sessions>) -> Result<(), String> {
+    let header_text = |name: &str| {
+        let value = request.headers().get(name).and_then(|v| v.to_str().ok());
+        value.map(str::to_string).ok_or_else(|| format!("missing {name}"))
+    };
+    let (token, name) = (header_text("deck-token")?, header_text("asset-name")?);
+    if !name.starts_with("assets/") || !super::format::is_safe_entry_name(&name) {
+        return Err(format!("unsafe file name: {name}"));
+    }
+    let tauri::ipc::InvokeBody::Raw(bytes) = request.body() else {
+        return Err("expected raw bytes".into());
+    };
+    if let Some(session) = sessions.0.lock().unwrap().get_mut(&token) {
+        session.assets.insert(name, bytes.clone());
+    }
+    Ok(())
+}
+
+#[derive(Serialize)]
+pub struct HtmlDeck {
+    text: String,
+    stamp: String,
+}
+
+/// Reads a deck written as one `.html` file. Only `.html` files: this is not a general file reader.
+#[tauri::command]
+pub async fn read_html_deck(path: String) -> Result<HtmlDeck, DeckError> {
+    let file = PathBuf::from(&path);
+    let extension = file.extension().and_then(|e| e.to_str()).map(str::to_ascii_lowercase);
+    if !matches!(extension.as_deref(), Some("html" | "htm")) {
+        return Err(DeckError::NotADeck);
+    }
+    if fs::metadata(&file)?.len() > MAX_HTML_BYTES {
+        return Err(DeckError::TooLarge("over 200 MB in total".into()));
+    }
+    let stamp = file_stamp(&file);
+    let bytes = tauri::async_runtime::spawn_blocking(move || fs::read(file))
+        .await
+        .map_err(|e| DeckError::Damaged(e.to_string()))??;
+    Ok(HtmlDeck { text: String::from_utf8_lossy(&bytes).into_owned(), stamp })
+}
+
+/// A deck with no file yet (Paste from AI, New deck) is kept in the app's own folder until
+/// Save as arrives in M4, so closing it doesn't lose it.
+#[tauri::command]
+pub fn write_draft(token: String, app: AppHandle, sessions: State<'_, Sessions>) -> Result<String, DeckError> {
+    let dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| DeckError::Damaged(e.to_string()))?
+        .join("drafts");
+    fs::create_dir_all(&dir)?;
+    let path = dir.join(format!("{}.pwpptx", uuid::Uuid::new_v4().simple()));
+
+    let mut guard = sessions.0.lock().unwrap();
+    let session = guard
+        .get_mut(&token)
+        .ok_or_else(|| DeckError::Damaged("this deck is no longer open".into()))?;
+    let optional = |text: &str| (!text.is_empty()).then(|| text.to_string());
+    let content = DeckContent {
+        manifest: session.manifest.clone(),
+        slides_html: session.slides_html.clone(),
+        theme_css: optional(&session.theme_css),
+        widgets_js: optional(&session.widgets_js),
+        notes: None,
+        ink: None,
+    };
+    let assets: Vec<(&str, &[u8])> =
+        session.assets.iter().map(|(name, bytes)| (name.as_str(), bytes.as_slice())).collect();
+    write_deck(&path, &DeckWrite { content: &content, source: None, assets: &assets })?;
+    session.source = Some(path.clone());
+    Ok(path.to_string_lossy().into_owned())
 }
 
 /// The frontend sanitises the slides and hands them back, so nothing unsanitised is ever served.
@@ -166,7 +284,12 @@ pub fn handle(sessions: &Sessions, request: &Request<Vec<u8>>) -> Response<Vec<u
         "viewer.js" => text("text/javascript; charset=utf-8", VIEWER_JS),
         "widgets.js" => text("text/javascript; charset=utf-8", &session.widgets_js),
         name if name.starts_with("assets/") => {
-            let deck = session.path.clone();
+            if let Some(bytes) = session.assets.get(name) {
+                return respond(StatusCode::OK, content_type(name), bytes.clone());
+            }
+            let Some(deck) = session.source.clone() else {
+                return not_found();
+            };
             // Reading an asset can be slow, so the lock isn't held for it.
             drop(guard);
             match read_asset(&deck, name) {

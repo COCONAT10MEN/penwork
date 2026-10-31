@@ -1,0 +1,119 @@
+import { useApp } from "../../appStore";
+import { Button, Card, Icon, Surface, useSnackbar } from "../../ui";
+import { DeckGrid, DeckMenu, DeckThumb, NewDeckCard } from "./DeckCard";
+import { greeting, slidesLabel, whenOpened } from "./greeting";
+import type { LibraryDeck } from "./libraryFile";
+import styles from "./Home.module.css";
+
+function DropZone({ dragging }: { dragging: boolean }) {
+  return (
+    <Surface
+      material="glass"
+      blur={false}
+      className={styles.drop}
+      data-dragging={dragging || undefined}
+    >
+      <Icon name="download" size={32} className={styles.dropIcon} />
+      <span className={styles.dropTitle}>Drop a deck here</span>
+      <span className={styles.dropHint}>
+        .pwpptx files, your Life of Physics .html decks, or slides you got from Claude
+      </span>
+    </Surface>
+  );
+}
+
+function ContinueCard({ deck }: { deck: LibraryDeck }) {
+  const notify = useSnackbar();
+  const openPath = useApp((s) => s.openPath);
+  const tags = [
+    slidesLabel(deck.slides),
+    deck.quizzes > 0 && (deck.quizzes === 1 ? "1 quiz" : `${deck.quizzes} quizzes`),
+    deck.interactive && "Interactive",
+    deck.ink && "Ink saved",
+  ].filter((tag) => typeof tag === "string");
+  return (
+    <Card material="glass" blur shape="hero" className={styles.continue}>
+      <DeckThumb deck={deck} className={styles.continueThumb} />
+      <div className={styles.continueText}>
+        <div className={styles.continueHead}>
+          <span className={styles.overline}>Continue</span>
+          <DeckMenu deck={deck} />
+        </div>
+        <span className={styles.continueTitle}>{deck.title}</span>
+        <span className={styles.meta}>
+          {deck.missing
+            ? "File not found"
+            : `Slide ${deck.lastSlide + 1} of ${deck.slides} · ${whenOpened(deck.lastOpened, new Date())}`}
+        </span>
+        <div className={styles.tags}>
+          {tags.map((tag) => (
+            <span key={tag} className={styles.tag}>
+              {tag}
+            </span>
+          ))}
+        </div>
+        <div className={styles.continueActions}>
+          <Button
+            size="medium"
+            icon="play_arrow"
+            aria-label={`Present ${deck.title}`}
+            onClick={() => void openPath(deck.path, notify)}
+          >
+            Present
+          </Button>
+          <Button
+            size="medium"
+            variant="tonal"
+            icon="edit"
+            aria-label={`Edit ${deck.title}`}
+            onClick={() => notify({ message: "Editing arrives in a later update." })}
+          >
+            Edit
+          </Button>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+export function HomePage({
+  dragging,
+  onSeeAll,
+  onNewDeck,
+}: {
+  dragging: boolean;
+  onSeeAll: () => void;
+  onNewDeck: () => void;
+}) {
+  const decks = useApp((s) => s.library.decks);
+  const [latest, ...others] = decks;
+  return (
+    <>
+      <header className={styles.header}>
+        <h1 className={styles.greeting}>{greeting(new Date().getHours())}</h1>
+        <p className={styles.sub}>
+          {latest ? "Ready to teach? Pick up where you left off." : "Open a deck to get started."}
+        </p>
+      </header>
+      <section className={styles.hero} aria-label="Start here">
+        {latest && <ContinueCard deck={latest} />}
+        <DropZone dragging={dragging} />
+      </section>
+      <section aria-labelledby="recent-heading">
+        <div className={styles.headingRow}>
+          <h2 id="recent-heading" className={styles.heading}>
+            Recent decks
+          </h2>
+          {others.length > 3 && (
+            <Button variant="text" size="small" onClick={onSeeAll}>
+              See all
+            </Button>
+          )}
+        </div>
+        <DeckGrid decks={others.slice(0, 3)}>
+          <NewDeckCard onClick={onNewDeck} />
+        </DeckGrid>
+      </section>
+    </>
+  );
+}

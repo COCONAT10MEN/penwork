@@ -177,12 +177,7 @@ export function Home({ dragging }: { dragging: boolean }) {
             />
           </div>
           {opening && <LoadingIndicator label="Opening deck" size={40} />}
-          <Button
-            ref={openButton}
-            size="medium"
-            icon="folder_open"
-            onClick={() => void onOpen()}
-          >
+          <Button ref={openButton} size="medium" icon="folder_open" onClick={() => void onOpen()}>
             Open deck
           </Button>
         </div>

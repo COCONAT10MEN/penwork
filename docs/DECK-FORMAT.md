@@ -101,9 +101,8 @@ The whiteboard uses the key `"wb"` in place of a slide id.
 | Input | What happens |
 |---|---|
 | `.pwpptx` | Open directly. |
-| Life of Physics `.html` (built with `build_deck.py`) | **Import** into a new unsaved deck: `<title>` → title; `<style id="theme">` → `theme.css`; sections between `<!-- SLIDES:START -->` and `<!-- SLIDES:END -->` → `slides.html`; extra widget code (anything the stock engine script in `reference/lop-deck/deck-template.html` doesn't contain before `/* ---- quiz ---- */`) → `widgets.js`; base64 images → `assets/`; brand values read from the `.spill`/cover. The original `.html` is never modified. Show what was imported. |
-| A file or clipboard text with only `<section class="slide">` blocks (Claude chat replies) | New deck, or insert into the open deck (after the current slide, or replacing selected slides). An optional ```` ```css ```` block → appended to `theme.css`. |
-| Drag-and-drop of any of the above | Same as above. |
+| Clipboard text with `<section class="slide">` blocks (Claude chat replies) | Paste from AI: a new deck (M4 adds inserting into the open deck). An optional ```` ```css ```` block is appended to `theme.css`, and a ```` ```js ```` block with `W.name=` code goes into `widgets.js`. Everything is sanitised like any deck. |
+| Raw `.html` files | **Refused.** Penwork never opens or imports them, by drag-and-drop, Open with or any other way (owner decision, 2026-10-31). |
 
 ## 8. Saving
 

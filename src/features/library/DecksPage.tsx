@@ -36,7 +36,13 @@ export function DecksPage({
       <h1 className={styles.pageTitle}>{title}</h1>
       <div className={styles.chips} role="group" aria-label="Filter decks">
         {FILTERS.map(({ id, label }) => (
-          <Chip key={id} label={label} selected={filter === id} onClick={() => setFilter(id)} />
+          <Chip
+            key={id}
+            variant="filter"
+            label={label}
+            selected={filter === id}
+            onClick={() => setFilter(id)}
+          />
         ))}
       </div>
       {found.length > 0 ? (

@@ -3,7 +3,6 @@
 export interface LibraryDeck {
   id: string;
   path: string;
-  kind: "pwpptx" | "html";
   title: string;
   slides: number;
   favorite: boolean;
@@ -35,7 +34,6 @@ function readDeck(value: unknown): LibraryDeck | null {
   return {
     id: d.id,
     path: d.path,
-    kind: d.kind === "html" ? "html" : "pwpptx",
     title: typeof d.title === "string" && d.title ? d.title : d.path,
     slides: count(d.slides),
     favorite: d.favorite === true,
@@ -69,7 +67,7 @@ export function recordOpen(
   library: Library,
   entry: Pick<
     LibraryDeck,
-    "path" | "kind" | "title" | "slides" | "quizzes" | "interactive" | "ink" | "text"
+    "path" | "title" | "slides" | "quizzes" | "interactive" | "ink" | "text"
   >,
   now: string,
   newId: () => string,

@@ -17,7 +17,6 @@ const open = (
     library,
     {
       path,
-      kind: "pwpptx",
       title: "Waves",
       slides: 8,
       quizzes: 0,
@@ -41,7 +40,7 @@ describe("parseLibrary", () => {
       JSON.stringify({ decks: [{ id: "a", path: "x.pwpptx" }, { id: 1 }, null, { id: "b" }] }),
     );
     expect(lib.decks.map((d) => d.id)).toEqual(["a"]);
-    expect(lib.decks[0]).toMatchObject({ kind: "pwpptx", slides: 0, favorite: false });
+    expect(lib.decks[0]).toMatchObject({ slides: 0, favorite: false });
   });
 
   it("round-trips", () => {

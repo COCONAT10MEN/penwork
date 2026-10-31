@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { extractImages } from "../../lib/deck/assets";
 import { deckAccent, deckFacts, type DeckFacts } from "../../lib/deck/facts";
-import { importHtml, manifestFor, type ImportedDeck } from "../../lib/deck/importHtml";
+import { manifestFor, type DeckParts } from "../../lib/deck/importPaste";
 import { fileTitle, readManifest, type DeckManifest } from "../../lib/deck/manifest";
 import { sanitizeSlides } from "../../lib/deck/sanitize";
 
@@ -19,8 +19,6 @@ export interface OpenDeck {
   /** Changes when the file does, so a cached thumbnail knows it's out of date. */
   stamp: string;
   hasInk: boolean;
-  /** Set for a deck imported from .html: what's worth saying about the import. */
-  importNotes?: string[];
 }
 
 interface OpenedFromRust {
@@ -74,7 +72,7 @@ export async function openDeckFile(path: string): Promise<OpenDeck> {
   };
 }
 
-async function openImported(deck: ImportedDeck, generator: string) {
+async function openParts(deck: DeckParts, generator: string) {
   const manifest = manifestFor(deck, generator, new Date().toISOString());
   const token = await invoke<string>("create_deck_session", {
     manifest,
@@ -93,18 +91,9 @@ async function openImported(deck: ImportedDeck, generator: string) {
   };
 }
 
-/** An .html deck is read fresh each time. The original file is never written to. */
-export async function importHtmlFile(path: string): Promise<OpenDeck> {
-  const { text, stamp } = await invoke<{ text: string; stamp: string }>("read_html_deck", { path });
-  const deck = importHtml(text, path);
-  if (!deck) throw { code: "not-a-deck", message: "This .html file has no slides in it." };
-  const opened = await openImported(deck, "Imported from .html");
-  return { ...opened, path, stamp, importNotes: deck.notes };
-}
-
 /** A new deck with no file yet: it lives in the app's folder until Save as arrives in M4. */
-export async function createDraft(deck: ImportedDeck, generator: string): Promise<OpenDeck> {
-  const opened = await openImported(deck, generator);
+export async function createDraft(deck: DeckParts, generator: string): Promise<OpenDeck> {
+  const opened = await openParts(deck, generator);
   const path = await invoke<string>("write_draft", { token: opened.token });
   return { ...opened, path, stamp: "" };
 }
@@ -118,11 +107,7 @@ export function deckUrl(token: string): string {
   return `http://penwork-deck.localhost/${token}/index.html`;
 }
 
-export type OpenableKind = "pwpptx" | "html" | "other";
-
-export function fileKind(path: string): OpenableKind {
-  const lower = path.toLowerCase();
-  if (lower.endsWith(".pwpptx")) return "pwpptx";
-  if (lower.endsWith(".html") || lower.endsWith(".htm")) return "html";
-  return "other";
+/** .pwpptx only. Raw .html is refused on purpose: the format exists so decks stay contained. */
+export function isDeckPath(path: string): boolean {
+  return path.toLowerCase().endsWith(".pwpptx");
 }

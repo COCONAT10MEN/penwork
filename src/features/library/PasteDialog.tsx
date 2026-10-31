@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { useApp } from "../../appStore";
-import { importPaste, type ImportedDeck } from "../../lib/deck/importHtml";
+import { importPaste, type DeckParts } from "../../lib/deck/importPaste";
 import { Button, Dialog, TextField, useSnackbar } from "../../ui";
 import { slidesLabel } from "./greeting";
 import styles from "./Home.module.css";
 
-function countSlides(deck: ImportedDeck): number {
+function countSlides(deck: DeckParts): number {
   return deck.slidesHtml.match(/<section\b/gi)?.length ?? 0;
 }
 
@@ -13,7 +13,7 @@ function countSlides(deck: ImportedDeck): number {
 export function PasteDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const notify = useSnackbar();
   const createDeck = useApp((s) => s.createDeck);
-  const [deck, setDeck] = useState<ImportedDeck | null>(null);
+  const [deck, setDeck] = useState<DeckParts | null>(null);
   const [title, setTitle] = useState("");
   const [checked, setChecked] = useState(false);
 

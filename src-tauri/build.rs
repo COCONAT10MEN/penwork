@@ -12,7 +12,6 @@ fn main() {
         "close_deck",
         "create_deck_session",
         "add_deck_asset",
-        "read_html_deck",
         "write_draft",
         "existing_paths",
         "read_logo_file",

@@ -47,13 +47,13 @@ Tick boxes only when finished and verified in the running app.
 - [x] First launch window fits 1366×768 (≈90% work area, centred); remember size/position/maximised
 - [x] `.pwpptx` reader/writer + manifest schema validation + tests (`docs/DECK-FORMAT.md`)
 - [ ] Sanitiser (DOMPurify + our rules) with tests, and a "Cleaned up while opening" note
-- [ ] Importers: Life of Physics `.html`, slides-only `.html`, clipboard "Paste from AI" (new deck)
-- [ ] Open by button, drag-and-drop, double-click in Explorer (file association `.pwpptx`), Open with (`.html` → import), single instance
+- [ ] Clipboard "Paste from AI" (new deck). Raw `.html` files are never opened (owner decision, 2026-10-31)
+- [ ] Open by button, drag-and-drop, double-click in Explorer (file association `.pwpptx`), Open with, single instance
 - [ ] Library storage (recents, favourites, last slide), thumbnails cached, search + filter chips, remove from recents
 - [ ] Startup feels instant: measure cold start to Home and "open deck to first slide" on the laptop, report both
 - [ ] Settings screen (glass): theme, app colour (sync with logo / match deck / custom), custom logo (SVG, `docs/DESIGN-GLASS.md` §8),
       logo background, transparency, reduce motion
-- [ ] Test decks in `test-files/`: the demo deck (.pwpptx), the original demo `.html`, a slides-only file, a broken zip, a deck with a widget
+- [ ] Test decks in `test-files/`: the demo deck (.pwpptx), a broken zip, a deck with a widget
 
 ## M3: Slide runtime & Present
 - [ ] Runtime ported from `reference/lop-deck/deck-template.html` into `src/runtime/` (engine only, no dock/ink)

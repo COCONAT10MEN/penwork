@@ -15,9 +15,7 @@ function DropZone({ dragging }: { dragging: boolean }) {
     >
       <Icon name="download" size={32} className={styles.dropIcon} />
       <span className={styles.dropTitle}>Drop a deck here</span>
-      <span className={styles.dropHint}>
-        .pwpptx files, your Life of Physics .html decks, or slides you got from Claude
-      </span>
+      <span className={styles.dropHint}>.pwpptx files open straight away</span>
     </Surface>
   );
 }

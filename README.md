@@ -1,7 +1,6 @@
 # Penwork
 
-A presentation app for Windows (Linux and Android later): open `.pwpptx` decks, import Life of Physics
-`.html` decks, present them, and make small edits without asking an AI. PDFs and notebooks are paused.
+A presentation app for Windows (Linux and Android later): open `.pwpptx` decks, present them, and make small edits without asking an AI. PDFs and notebooks are paused.
 Designed as Glass Expressive: Material 3 Expressive with tinted liquid glass.
 
 **Status:** M0 done, M1 in progress. Why it changed: [`docs/PIVOT.md`](docs/PIVOT.md).

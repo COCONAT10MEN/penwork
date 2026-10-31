@@ -18,7 +18,6 @@
     "allow-close-deck",
     "allow-create-deck-session",
     "allow-add-deck-asset",
-    "allow-read-html-deck",
     "allow-write-draft",
     "allow-existing-paths",
     "allow-read-logo-file",

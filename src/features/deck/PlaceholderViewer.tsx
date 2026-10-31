@@ -17,7 +17,9 @@ export function PlaceholderViewer({ deck, start }: { deck: OpenDeck; start: numb
   const frame = useRef<RuntimeFrameHandle>(null);
   const [slide, setSlide] = useState(0);
   const [total, setTotal] = useState(deck.slideCount);
-  const captured = useRef(false);
+  const captureTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  useEffect(() => () => clearTimeout(captureTimer.current), []);
 
   const go = useCallback(
     (next: number) => {
@@ -48,14 +50,14 @@ export function PlaceholderViewer({ deck, start }: { deck: OpenDeck; start: numb
     return () => window.removeEventListener("keydown", listener);
   }, [onKey]);
 
-  const saveThumbIfNeeded = () => {
-    if (captured.current) return;
-    captured.current = true;
+  // Waits until the first slide has stayed on screen, so moving on quickly can't catch another.
+  const thumbOnFirstSlide = (slide: number) => {
+    clearTimeout(captureTimer.current);
     const { library, thumbSaved } = useApp.getState();
     const key = deck.path.toLowerCase();
     const entry = library.decks.find((d) => d.path.toLowerCase() === key);
-    if (!entry || entry.thumb === deck.stamp) return;
-    setTimeout(() => {
+    if (slide !== 0 || !entry || entry.thumb === deck.stamp) return;
+    captureTimer.current = setTimeout(() => {
       const rect = frame.current?.rect();
       if (!rect) return;
       void captureThumb(rect, entry.id).then((saved) => {
@@ -68,11 +70,11 @@ export function PlaceholderViewer({ deck, start }: { deck: OpenDeck; start: numb
     if (message.type === "ready") {
       setTotal(message.total);
       if (start > 0) frame.current?.go(Math.min(start, message.total - 1));
-      saveThumbIfNeeded();
     } else if (message.type === "state") {
       setSlide(message.slide);
       setTotal(message.total);
       rememberSlide(message.slide);
+      thumbOnFirstSlide(message.slide);
     } else if (message.type === "key" && !message.ctrl && !message.alt) {
       onKey(message.key);
     }

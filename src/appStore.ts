@@ -3,9 +3,8 @@ import { create } from "zustand";
 import {
   closeDeckFile,
   createDraft,
-  fileKind,
-  importHtmlFile,
   isDeckError,
+  isDeckPath,
   openDeckFile,
   type OpenDeck,
 } from "./features/deck/openDeck";
@@ -21,7 +20,7 @@ import {
   setThumb,
   type Library,
 } from "./features/library/libraryFile";
-import type { ImportedDeck } from "./lib/deck/importHtml";
+import type { DeckParts } from "./lib/deck/importPaste";
 
 export interface AppNotice {
   message: string;
@@ -39,7 +38,7 @@ interface AppState {
   loadLibrary: () => Promise<void>;
   openPath: (path: string, notify: Notify) => Promise<void>;
   /** Paste from AI and New deck: makes the deck, then opens it. */
-  createDeck: (deck: ImportedDeck, generator: string, notify: Notify) => Promise<void>;
+  createDeck: (deck: DeckParts, generator: string, notify: Notify) => Promise<void>;
   closeDeck: () => void;
   rememberSlide: (slide: number) => void;
   removeFromRecents: (id: string) => void;
@@ -67,12 +66,10 @@ export const useApp = create<AppState>((set, get) => {
   const show = (deck: OpenDeck, notify: Notify) => {
     const previous = get().deck;
     if (previous) closeDeckFile(previous.token);
-    const known = get().library.decks.some((d) => d.path.toLowerCase() === deck.path.toLowerCase());
     const library = recordOpen(
       get().library,
       {
         path: deck.path,
-        kind: fileKind(deck.path) === "html" ? "html" : "pwpptx",
         title: deck.manifest.title,
         slides: deck.slideCount,
         quizzes: deck.facts.quizzes,
@@ -85,13 +82,12 @@ export const useApp = create<AppState>((set, get) => {
     );
     commit(library);
     set({ deck, startSlide: library.decks[0]?.lastSlide ?? 0 });
-    const notes: string[] = [];
-    if (deck.importNotes && !known) {
-      notes.push(`Imported ${deck.slideCount} slides. The original file wasn't changed.`);
+    if (deck.removed.length > 0) {
+      notify({
+        message: `Cleaned up while opening: ${deck.removed.join(", ")}`,
+        duration: 10_000,
+      });
     }
-    if (deck.removed.length > 0) notes.push(`Cleaned up while opening: ${deck.removed.join(", ")}`);
-    if (deck.importNotes?.length) notes.push(deck.importNotes.join(", "));
-    if (notes.length > 0) notify({ message: notes.join(" "), duration: 10_000 });
   };
 
   return {
@@ -112,14 +108,13 @@ export const useApp = create<AppState>((set, get) => {
     },
 
     openPath: async (path, notify) => {
-      const kind = fileKind(path);
-      if (kind === "other") {
-        notify({ message: "Penwork opens .pwpptx decks and .html slide decks." });
+      if (!isDeckPath(path)) {
+        notify({ message: "Penwork opens .pwpptx decks only." });
         return;
       }
       set({ opening: true });
       try {
-        show(await (kind === "html" ? importHtmlFile(path) : openDeckFile(path)), notify);
+        show(await openDeckFile(path), notify);
       } catch (error) {
         if (isDeckError(error) && error.code === "io") commit(markMissing(get().library, path));
         reportError(error, notify);

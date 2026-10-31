@@ -80,9 +80,11 @@ runtime, so it can forge any runtime message.
 
 ## 7. Files & safety
 
-- File associations: `.pwpptx` opens in Penwork (icon from the cookie logo). "Open with" for `.html` offers Import.
+- File associations: `.pwpptx` opens in Penwork (icon from the cookie logo). Raw `.html` files are never opened or
+  registered (owner decision, 2026-10-31).
 - Single instance: a second launch hands its file path to the running window.
 - Atomic saves and recovery files: `DECK-FORMAT.md` §8.
 - Library (recents, favourites, last slide per deck, cached thumbnail path) in `<AppData>/Penwork/library.json`, written temp-then-rename.
   "Remove from recents" never touches the deck file.
+- Decks with no file yet (Paste from AI, New deck) are kept in `<AppData>/drafts/` until Save as arrives in M4.
 - Capabilities: fs access only to app data and to files the user opened or saved through dialogs, drag-drop or open-with.

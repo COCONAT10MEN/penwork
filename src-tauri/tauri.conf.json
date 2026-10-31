@@ -35,11 +35,6 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "windows": {
-      "nsis": {
-        "installerHooks": "windows/open-with.nsh"
-      }
-    },
     "fileAssociations": [
       {
         "ext": [

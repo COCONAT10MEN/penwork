@@ -7,8 +7,8 @@ Read `docs/PIVOT.md` first: where it disagrees with an older doc, it wins.
 ## Scope right now (v1)
 
 - **Platform: Windows 10/11 only.** Linux and Android come later. Keep the frontend platform-neutral.
-- **Product: a presentation app.** Open `.pwpptx` decks (and import Life of Physics `.html` decks and
-  AI-written slides), present them, and make small edits in the app. See `docs/PIVOT.md`.
+- **Product: a presentation app.** Open `.pwpptx` decks (and turn AI-written slides into them with
+  Paste from AI), present them, and make small edits in the app. See `docs/PIVOT.md`.
 - **Paused:** PDF viewer/annotation, notebooks, Linux, Android.
 - **Input:** mouse, keyboard, touchpad, touch and stylus, exactly as the template does it. Use Pointer Events.
 - **Template parity:** every feature of the owner's template stays. Nothing may be missing (`docs/TEMPLATE-PARITY.md`).
@@ -75,7 +75,8 @@ The app must work **fully offline**. Never load scripts, fonts or icons from the
   - `src/lib/` — pure helpers (geometry, coordinate transforms, file formats) — unit-test these
   - `src-tauri/` — Rust: file access, dialogs, open-with/file associations, app data paths
 - **Deck ink:** store strokes in stage units (1920×1080) per slide, never in screen pixels.
-- **Never overwrite the owner's files silently.** An imported `.html` deck is never written back. A `.pwpptx` is written only on
+- **No raw `.html` files.** Penwork never opens, imports or registers for `.html`; that is why `.pwpptx` exists.
+- **Never overwrite the owner's files silently.** A `.pwpptx` is written only on
   Save or Save as; autosave goes to a separate recovery file.
 - **Paused with PDFs:** the next three rules apply when that work resumes.
 - **PDF coordinates:** store every annotation in PDF user-space points (origin bottom-left, from the page's

@@ -83,17 +83,6 @@ W.counter = function (root) {
 };
 "#;
 
-const SLIDES_ONLY: &str = r#"<section class="slide hero" data-title="Waves" data-bg="1300,-320,1;-260,620,1;1560,760,1;120,-300,.9">
-  <div class="kick">Physics · Waves</div>
-  <div class="mid"><div class="sdot big" data-m="sdot"><b class="sv">LESSON</b><b class="sn">2</b></div><h1 class="snm big" data-m="snm">Waves</h1></div>
-  <div class="toc"><div class="c"><i>1</i>Frequency</div><div class="c"><i>2</i>Wavelength</div></div>
-</section>
-<section class="slide" data-title="Frequency" data-bg="900,-420,1.2;1500,500,.9;-120,820,1.2;1650,-120,.7">
-  <div class="spill"><span class="sdot" data-m="sdot"><b class="sv">LESSON</b><b class="sn">2</b></span><span class="snm" data-m="snm">Waves</span></div>
-  <div class="body"><div class="sec"><div class="eb">Part 01</div><h2>Frequency</h2></div>
-  <div class="main"><div class="card soft"><h3><span class="tri">▶</span>Definition</h3><div style="font-size:29px">Oscillations per second, measured in hertz.</div></div></div></div>
-</section>"#;
-
 fn write(path: &Path, content: &DeckContent, assets: &[(&str, &[u8])]) {
     write_deck(path, &DeckWrite { content, source: None, assets }).expect("write deck");
     println!("wrote {}", path.display());
@@ -154,8 +143,4 @@ fn main() {
         &[],
     );
 
-    fs::write(out.join("newtons-second-law.html"), TEMPLATE).expect("template copy");
-    println!("wrote newtons-second-law.html");
-    fs::write(out.join("slides-only.html"), SLIDES_ONLY).expect("slides-only file");
-    println!("wrote slides-only.html");
 }

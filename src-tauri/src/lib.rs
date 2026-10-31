@@ -71,7 +71,6 @@ pub fn run() {
             session::open_deck,
             session::create_deck_session,
             session::add_deck_asset,
-            session::read_html_deck,
             session::write_draft,
             session::set_deck_slides,
             session::close_deck,

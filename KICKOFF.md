@@ -25,7 +25,7 @@ If it starts forgetting things, type `/compact`.
 
 In Penwork: Settings → "Get the AI kit". Attach the kit to a Claude chat with your lesson material, then
 paste the prompt from `authoring/PROMPT.md`. Until then, use the old template's prompt
-(`reference/lop-deck/presentation-template/AI-GUIDE.md` §1). Penwork's importer reads those `.html` decks too.
+(`reference/lop-deck/presentation-template/AI-GUIDE.md` §1). Penwork doesn't open `.html` files: paste the slides in with Paste from AI.
 
 ## Good habits to paste when needed
 

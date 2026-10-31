@@ -1,4 +1,4 @@
-import { DEFAULT_THEME, type ImportedDeck } from "./importHtml";
+import { DEFAULT_THEME, type DeckParts } from "./importPaste";
 
 /**
  * The starting slides for New deck, in the template's own vocabulary
@@ -57,7 +57,7 @@ function quiz(title: string): string {
 </section>`;
 }
 
-export function newDeck(rawTitle: string, layout: StartLayout): ImportedDeck {
+export function newDeck(rawTitle: string, layout: StartLayout): DeckParts {
   const name = rawTitle.trim() || "Untitled deck";
   const title = escaped(name);
   const slides = [cover(title)];
@@ -71,6 +71,5 @@ export function newDeck(rawTitle: string, layout: StartLayout): ImportedDeck {
     slidesHtml: slides.join("\n"),
     themeCss: DEFAULT_THEME,
     widgetsJs: "",
-    notes: [],
   };
 }

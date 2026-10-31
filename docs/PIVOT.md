@@ -43,7 +43,7 @@ colour from a seed) and the **tinted liquid-glass** look of the owner's toolbar.
 - The stack: Tauri 2 + React + TypeScript + Vite, Motion, Material Color Utilities, our own kit in `src/ui/`.
 - Everything done in M0 and M1. The M1 components gain a glass material; they are not thrown away.
 - Fully offline. Nothing loads from the internet at runtime.
-- Never overwrite the owner's files silently. An imported `.html` deck is never written back. A `.pwpptx`
+- Never overwrite the owner's files silently. A `.pwpptx`
   is written only on Save, through autosave to a separate recovery file, or by explicit "Save as".
 - Dependency and credit rules: use well-known libraries as dependencies, never copy code in, and credit
   everything in `THIRD_PARTY.md`.
@@ -58,7 +58,7 @@ colour from a seed) and the **tinted liquid-glass** look of the owner's toolbar.
 ## Scope right now (v1)
 
 - **Platform: Windows 10/11 only.** Linux and Android come later. Keep the frontend platform-neutral.
-- **Product: a presentation app.** Open `.pwpptx` decks (and import Life of Physics `.html` decks and
+- **Product: a presentation app.** Open `.pwpptx` decks (and turn AI-written slides into them with Paste from AI;
   AI-written slides), present them, and make small edits in the app. See `docs/PIVOT.md`.
 - **Paused:** PDF viewer/annotation, notebooks, Linux, Android.
 - **Input:** mouse, keyboard, touchpad, touch and stylus, exactly as the template does it. Use Pointer Events.
@@ -104,3 +104,6 @@ colour from a seed) and the **tinted liquid-glass** look of the owner's toolbar.
    (a "New deck" card, no FAB). When in doubt, follow the design mockup.
 9. **AI kit:** must explain exactly how `.pwpptx` relates to plain HTML, so an AI knows what to write.
 10. **Ink strokes use `perfect-freehand`** instead of the template's own stroke drawing. Highlighter multiply compositing stays.
+11. **No raw `.html` files (2026-10-31).** Penwork never opens, imports or registers for `.html`, by any route, because raw
+    HTML can cause problems and that is the reason `.pwpptx` exists. This replaces every mention of an `.html` importer.
+    Paste from AI stays: it takes text, cleans it like any deck and makes a real `.pwpptx`.

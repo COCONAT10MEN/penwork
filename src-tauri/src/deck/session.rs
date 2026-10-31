@@ -22,9 +22,6 @@ const SOURCES: &str = "http://penwork-deck.localhost penwork-deck:";
 const ENGINE_CSS: &str = include_str!("../../../src/runtime/engine.css");
 const VIEWER_JS: &str = include_str!("../../../src/runtime/viewer.js");
 
-/// The largest `.html` deck read, matching the `.pwpptx` limit.
-const MAX_HTML_BYTES: u64 = 200 * 1024 * 1024;
-
 struct Session {
     /// The `.pwpptx` assets are read from. None for a deck that exists only in memory so far.
     source: Option<PathBuf>,
@@ -132,30 +129,6 @@ pub fn add_deck_asset(request: tauri::ipc::Request<'_>, sessions: State<'_, Sess
         session.assets.insert(name, bytes.clone());
     }
     Ok(())
-}
-
-#[derive(Serialize)]
-pub struct HtmlDeck {
-    text: String,
-    stamp: String,
-}
-
-/// Reads a deck written as one `.html` file. Only `.html` files: this is not a general file reader.
-#[tauri::command]
-pub async fn read_html_deck(path: String) -> Result<HtmlDeck, DeckError> {
-    let file = PathBuf::from(&path);
-    let extension = file.extension().and_then(|e| e.to_str()).map(str::to_ascii_lowercase);
-    if !matches!(extension.as_deref(), Some("html" | "htm")) {
-        return Err(DeckError::NotADeck);
-    }
-    if fs::metadata(&file)?.len() > MAX_HTML_BYTES {
-        return Err(DeckError::TooLarge("over 200 MB in total".into()));
-    }
-    let stamp = file_stamp(&file);
-    let bytes = tauri::async_runtime::spawn_blocking(move || fs::read(file))
-        .await
-        .map_err(|e| DeckError::Damaged(e.to_string()))??;
-    Ok(HtmlDeck { text: String::from_utf8_lossy(&bytes).into_owned(), stamp })
 }
 
 /// A deck with no file yet (Paste from AI, New deck) is kept in the app's own folder until

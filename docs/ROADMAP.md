@@ -51,7 +51,9 @@ Tick boxes only when finished and verified in the running app.
 - [x] Open by button, drag-and-drop, double-click in Explorer (file association `.pwpptx`), single instance
 - [ ] The Open with menu in File Explorer (uses the same launch as double-click; the owner confirms it by hand)
 - [x] Library storage (recents, favourites, last slide), thumbnails cached, search + filter chips, remove from recents
-- [x] Measure cold start to Home and "open deck to first slide" on the laptop, report both
+- [ ] Startup feels instant: measure cold start to Home and "open deck to first slide" on the laptop, report both.
+      Measured 2026-10-31 on the installed app: Home in about 2 s (1.0–2.1 s), first launch after installing 3.7 s;
+      8-slide deck to first slide 64 ms. The owner decides whether that feels instant
 - [x] Settings screen (glass): theme, app colour (sync with logo / match deck / custom), custom logo (SVG, `docs/DESIGN-GLASS.md` §8),
       logo background, transparency, reduce motion
 - [x] Test decks in `test-files/`: the demo deck (.pwpptx), a broken zip, a deck with a widget

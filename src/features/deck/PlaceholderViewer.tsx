@@ -33,7 +33,12 @@ export function PlaceholderViewer({ deck, start }: { deck: OpenDeck; start: numb
   );
 
   useEffect(() => {
-    const listener = (e: KeyboardEvent) => onKey(e.key);
+    const listener = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.altKey) return;
+      // Space on a focused button clicks it; acting here too would do two things at once.
+      if (e.key === " " && e.target instanceof HTMLButtonElement) return;
+      onKey(e.key);
+    };
     window.addEventListener("keydown", listener);
     return () => window.removeEventListener("keydown", listener);
   }, [onKey]);

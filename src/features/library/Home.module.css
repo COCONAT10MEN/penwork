@@ -47,9 +47,10 @@
 }
 .greeting {
   margin: 0;
-  font-size: var(--md-sys-typescale-display-small-size);
-  line-height: var(--md-sys-typescale-display-small-line-height);
-  font-weight: var(--md-sys-typescale-display-small-weight-emphasized);
+  font-size: var(--md-sys-typescale-display-medium-size);
+  line-height: var(--md-sys-typescale-display-medium-line-height);
+  font-weight: var(--md-sys-typescale-display-medium-weight-emphasized);
+  letter-spacing: var(--md-sys-typescale-display-medium-tracking);
 }
 .sub {
   margin: 0;
@@ -80,7 +81,7 @@
   font-size: var(--md-sys-typescale-label-medium-size);
   line-height: var(--md-sys-typescale-label-medium-line-height);
   font-weight: var(--md-sys-typescale-label-medium-weight-emphasized);
-  letter-spacing: 0.06em;
+  letter-spacing: var(--md-sys-typescale-label-medium-tracking);
   text-transform: uppercase;
 }
 .continueTitle {

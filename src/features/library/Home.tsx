@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useApp } from "../../appStore";
 import {
   AmbientBackground,
@@ -27,7 +27,7 @@ const NAV: RailItem[] = [
   { id: "favorites", label: "Favorites", icon: "star" },
 ];
 
-function DeckCard({ deck }: { deck: LibraryDeck }) {
+function DeckCard({ deck, onRemoved }: { deck: LibraryDeck; onRemoved: () => void }) {
   const notify = useSnackbar();
   const openPath = useApp((s) => s.openPath);
   const remove = useApp((s) => s.removeFromRecents);
@@ -74,6 +74,7 @@ function DeckCard({ deck }: { deck: LibraryDeck }) {
               icon: "playlist_remove",
               onSelect: () => {
                 remove(deck.id);
+                onRemoved();
                 notify({
                   message: "Removed from recents. The file wasn't touched.",
                   material: "glass",
@@ -129,10 +130,21 @@ export function Home({ dragging }: { dragging: boolean }) {
   const [page, setPage] = useState("home");
   const [query, setQuery] = useState("");
   const latest = decks[0];
+  const grid = useRef<HTMLDivElement>(null);
+  const openButton = useRef<HTMLButtonElement>(null);
 
   const onOpen = async () => {
     const path = await pickDeck();
     if (path) await openPath(path, notify);
+  };
+
+  // The card holding focus has just gone, so keyboard users would land back at the top of the page.
+  const refocusAfterRemove = (index: number) => {
+    requestAnimationFrame(() => {
+      const more = grid.current?.querySelectorAll<HTMLElement>('[aria-haspopup="menu"]');
+      const next = more?.[index] ?? more?.[index - 1] ?? openButton.current;
+      next?.focus();
+    });
   };
 
   return (
@@ -165,7 +177,12 @@ export function Home({ dragging }: { dragging: boolean }) {
             />
           </div>
           {opening && <LoadingIndicator label="Opening deck" size={40} />}
-          <Button size="medium" icon="folder_open" onClick={() => void onOpen()}>
+          <Button
+            ref={openButton}
+            size="medium"
+            icon="folder_open"
+            onClick={() => void onOpen()}
+          >
             Open deck
           </Button>
         </div>
@@ -187,9 +204,13 @@ export function Home({ dragging }: { dragging: boolean }) {
             {decks.length > 0 && (
               <section aria-label="Recent decks">
                 <h2 className={styles.heading}>Recent decks</h2>
-                <div className={styles.grid}>
-                  {decks.map((deck) => (
-                    <DeckCard key={deck.id} deck={deck} />
+                <div ref={grid} className={styles.grid}>
+                  {decks.map((deck, index) => (
+                    <DeckCard
+                      key={deck.id}
+                      deck={deck}
+                      onRemoved={() => refocusAfterRemove(index)}
+                    />
                   ))}
                 </div>
               </section>

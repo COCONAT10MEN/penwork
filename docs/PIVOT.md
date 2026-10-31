@@ -58,8 +58,7 @@ colour from a seed) and the **tinted liquid-glass** look of the owner's toolbar.
 ## Scope right now (v1)
 
 - **Platform: Windows 10/11 only.** Linux and Android come later. Keep the frontend platform-neutral.
-- **Product: a presentation app.** Open `.pwpptx` decks (and turn AI-written slides into them with Paste from AI;
-  AI-written slides), present them, and make small edits in the app. See `docs/PIVOT.md`.
+- **Product: a presentation app.** Open `.pwpptx` decks, present them, and make small edits in the app. See `docs/PIVOT.md`.
 - **Paused:** PDF viewer/annotation, notebooks, Linux, Android.
 - **Input:** mouse, keyboard, touchpad, touch and stylus, exactly as the template does it. Use Pointer Events.
 - **Template parity:** every feature of the owner's template stays. Nothing may be missing (`docs/TEMPLATE-PARITY.md`).
@@ -106,4 +105,4 @@ colour from a seed) and the **tinted liquid-glass** look of the owner's toolbar.
 10. **Ink strokes use `perfect-freehand`** instead of the template's own stroke drawing. Highlighter multiply compositing stays.
 11. **No raw `.html` files (2026-10-31).** Penwork never opens, imports or registers for `.html`, by any route, because raw
     HTML can cause problems and that is the reason `.pwpptx` exists. This replaces every mention of an `.html` importer.
-    Paste from AI stays: it takes text, cleans it like any deck and makes a real `.pwpptx`.
+    Paste from AI on Home is removed too (2026-10-31). A `.pwpptx` file and New deck are the only ways a deck gets in.

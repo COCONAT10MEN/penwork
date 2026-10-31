@@ -97,7 +97,7 @@ pub async fn open_deck(path: String, sessions: State<'_, Sessions>) -> Result<Op
     Ok(OpenedDeck { token, stamp: file_stamp(&file), path, content })
 }
 
-/// A deck built by an importer. It has no file of its own, so its images stay in memory.
+/// A new deck. It has no file of its own yet, so its images stay in memory.
 #[tauri::command]
 pub fn create_deck_session(
     manifest: Value,
@@ -131,7 +131,7 @@ pub fn add_deck_asset(request: tauri::ipc::Request<'_>, sessions: State<'_, Sess
     Ok(())
 }
 
-/// A deck with no file yet (Paste from AI, New deck) is kept in the app's own folder until
+/// A new deck has no file yet, so it is kept in the app's own folder until
 /// Save as arrives in M4, so closing it doesn't lose it.
 #[tauri::command]
 pub fn write_draft(token: String, app: AppHandle, sessions: State<'_, Sessions>) -> Result<String, DeckError> {

@@ -1,58 +1,9 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from "vitest";
 import { deckAccent, deckFacts } from "./facts";
-import { importPaste, manifestFor } from "./importPaste";
+import { manifestFor } from "./deckParts";
 import { newDeck } from "./layouts";
 import { sanitizeSlides } from "./sanitize";
-
-describe("importPaste", () => {
-  const reply = `Here are your slides:
-
-\`\`\`html
-<section class="slide" data-title="First"><div class="spill"><span class="snm">Optics</span></div></section>
-<section class="slide" data-title="Second"></section>
-\`\`\`
-
-And some colours:
-
-\`\`\`css
-.slide h2{color:red}
-\`\`\`
-
-\`\`\`js
-W.spin=function(root){};
-\`\`\`
-
-\`\`\`js
-console.log("not for the deck");
-\`\`\`
-`;
-
-  it("finds slides, css and widget code among the words of a chat reply", () => {
-    const deck = importPaste(reply);
-    expect(deck?.title).toBe("Optics");
-    expect(sanitizeSlides(deck?.slidesHtml ?? "").slideCount).toBe(2);
-    expect(deck?.slidesHtml).not.toContain("Here are your slides");
-    expect(deck?.themeCss).toContain(".slide h2{color:red}");
-    expect(deck?.themeCss).toContain("--teal");
-    expect(deck?.widgetsJs).toContain("W.spin");
-    expect(deck?.widgetsJs).not.toContain("console.log");
-  });
-
-  it("leaves unsafe slides for the sanitiser to clean", () => {
-    const deck = importPaste(
-      '<section class="slide"><img src="x" onerror="boom()"><script>boom()</script></section>',
-    );
-    const clean = sanitizeSlides(deck?.slidesHtml ?? "");
-    expect(clean.html).not.toContain("onerror");
-    expect(clean.html).not.toContain("boom");
-  });
-
-  it("returns null when there are no slides", () => {
-    expect(importPaste("Just some text from the clipboard")).toBeNull();
-    expect(importPaste("")).toBeNull();
-  });
-});
 
 describe("facts", () => {
   it("counts what the cards show and keeps words for search", () => {

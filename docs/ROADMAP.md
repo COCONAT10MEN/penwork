@@ -47,7 +47,7 @@ Tick boxes only when finished and verified in the running app.
 - [x] First launch window fits 1366×768 (≈90% work area, centred); remember size/position/maximised
 - [x] `.pwpptx` reader/writer + manifest schema validation + tests (`docs/DECK-FORMAT.md`)
 - [x] Sanitiser (DOMPurify + our rules) with tests, and a "Cleaned up while opening" note
-- [x] Clipboard "Paste from AI" (new deck). Raw `.html` files are never opened (owner decision, 2026-10-31)
+- Removed by the owner (2026-10-31): opening raw `.html` files, and Paste from AI on Home. A `.pwpptx` file and New deck are the ways in
 - [x] Open by button, drag-and-drop, double-click in Explorer (file association `.pwpptx`), single instance
 - [ ] The Open with menu in File Explorer (uses the same launch as double-click; the owner confirms it by hand)
 - [x] Library storage (recents, favourites, last slide), thumbnails cached, search + filter chips, remove from recents

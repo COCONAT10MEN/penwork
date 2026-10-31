@@ -86,5 +86,5 @@ runtime, so it can forge any runtime message.
 - Atomic saves and recovery files: `DECK-FORMAT.md` §8.
 - Library (recents, favourites, last slide per deck, cached thumbnail path) in `<AppData>/Penwork/library.json`, written temp-then-rename.
   "Remove from recents" never touches the deck file.
-- Decks with no file yet (Paste from AI, New deck) are kept in `<AppData>/drafts/` until Save as arrives in M4.
+- New decks, which have no file yet, are kept in `<AppData>/drafts/` until Save as arrives in M4.
 - Capabilities: fs access only to app data and to files the user opened or saved through dialogs, drag-drop or open-with.

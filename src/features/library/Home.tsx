@@ -18,7 +18,6 @@ import { OPEN_BUTTON_ID } from "./DeckCard";
 import { DecksPage } from "./DecksPage";
 import { HomePage } from "./HomePage";
 import { NewDeckDialog } from "./NewDeckDialog";
-import { PasteDialog } from "./PasteDialog";
 import styles from "./Home.module.css";
 
 const NAV: RailItem[] = [
@@ -35,7 +34,7 @@ export function Home({ dragging }: { dragging: boolean }) {
   const logo = useSettings((s) => s.settings.logo);
   const [page, setPage] = useState("home");
   const [query, setQuery] = useState("");
-  const [dialog, setDialog] = useState<"paste" | "new" | null>(null);
+  const [newDeckOpen, setNewDeckOpen] = useState(false);
   const main = useRef<HTMLElement>(null);
 
   const onOpen = async () => {
@@ -57,7 +56,7 @@ export function Home({ dragging }: { dragging: boolean }) {
           <HomePage
             dragging={dragging}
             onSeeAll={() => go("decks")}
-            onNewDeck={() => setDialog("new")}
+            onNewDeck={() => setNewDeckOpen(true)}
           />
         );
       case "decks":
@@ -121,14 +120,6 @@ export function Home({ dragging }: { dragging: boolean }) {
           <span className={styles.spacer} />
           {opening && <LoadingIndicator label="Opening deck" size={40} />}
           <Button
-            size="medium"
-            variant="tonal"
-            icon="content_paste"
-            onClick={() => setDialog("paste")}
-          >
-            Paste from AI
-          </Button>
-          <Button
             id={OPEN_BUTTON_ID}
             size="medium"
             icon="folder_open"
@@ -139,8 +130,7 @@ export function Home({ dragging }: { dragging: boolean }) {
         </div>
         {content()}
       </main>
-      <PasteDialog open={dialog === "paste"} onClose={() => setDialog(null)} />
-      <NewDeckDialog open={dialog === "new"} onClose={() => setDialog(null)} />
+      <NewDeckDialog open={newDeckOpen} onClose={() => setNewDeckOpen(false)} />
     </div>
   );
 }

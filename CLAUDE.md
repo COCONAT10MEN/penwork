@@ -7,8 +7,7 @@ Read `docs/PIVOT.md` first: where it disagrees with an older doc, it wins.
 ## Scope right now (v1)
 
 - **Platform: Windows 10/11 only.** Linux and Android come later. Keep the frontend platform-neutral.
-- **Product: a presentation app.** Open `.pwpptx` decks (and turn AI-written slides into them with
-  Paste from AI), present them, and make small edits in the app. See `docs/PIVOT.md`.
+- **Product: a presentation app.** Open `.pwpptx` decks, present them, and make small edits in the app. See `docs/PIVOT.md`.
 - **Paused:** PDF viewer/annotation, notebooks, Linux, Android.
 - **Input:** mouse, keyboard, touchpad, touch and stylus, exactly as the template does it. Use Pointer Events.
 - **Template parity:** every feature of the owner's template stays. Nothing may be missing (`docs/TEMPLATE-PARITY.md`).

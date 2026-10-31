@@ -19,7 +19,6 @@ fn main() {
         "read_thumb",
         "delete_thumb",
         "capture_view",
-        "read_clipboard_text",
     ]);
     tauri_build::try_build(tauri_build::Attributes::new().app_manifest(manifest))
         .expect("failed to run the Tauri build script");

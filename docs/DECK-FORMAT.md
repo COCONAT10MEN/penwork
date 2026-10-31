@@ -101,8 +101,9 @@ The whiteboard uses the key `"wb"` in place of a slide id.
 | Input | What happens |
 |---|---|
 | `.pwpptx` | Open directly. |
-| Clipboard text with `<section class="slide">` blocks (Claude chat replies) | Paste from AI: a new deck (M4 adds inserting into the open deck). An optional ```` ```css ```` block is appended to `theme.css`, and a ```` ```js ```` block with `W.name=` code goes into `widgets.js`. Everything is sanitised like any deck. |
+| New deck | Made in the app from a starting layout, as a real `.pwpptx`. |
 | Raw `.html` files | **Refused.** Penwork never opens or imports them, by drag-and-drop, Open with or any other way (owner decision, 2026-10-31). |
+| Paste from AI on Home | **Removed** (owner decision, 2026-10-31). AI-written decks arrive as `.pwpptx`, packed with the authoring kit (§9). |
 
 ## 8. Saving
 

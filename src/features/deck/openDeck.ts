@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { extractImages } from "../../lib/deck/assets";
 import { deckAccent, deckFacts, type DeckFacts } from "../../lib/deck/facts";
-import { manifestFor, type DeckParts } from "../../lib/deck/importPaste";
+import { manifestFor, type DeckParts } from "../../lib/deck/deckParts";
 import { fileTitle, readManifest, type DeckManifest } from "../../lib/deck/manifest";
 import { sanitizeSlides } from "../../lib/deck/sanitize";
 

@@ -1,4 +1,4 @@
-import { DEFAULT_THEME, type DeckParts } from "./importPaste";
+import { DEFAULT_THEME, type DeckParts } from "./deckParts";
 
 /**
  * The starting slides for New deck, in the template's own vocabulary

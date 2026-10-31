@@ -20,7 +20,7 @@ import {
   setThumb,
   type Library,
 } from "./features/library/libraryFile";
-import type { DeckParts } from "./lib/deck/importPaste";
+import type { DeckParts } from "./lib/deck/deckParts";
 
 export interface AppNotice {
   message: string;
@@ -37,7 +37,7 @@ interface AppState {
   opening: boolean;
   loadLibrary: () => Promise<void>;
   openPath: (path: string, notify: Notify) => Promise<void>;
-  /** Paste from AI and New deck: makes the deck, then opens it. */
+  /** New deck: makes the deck, then opens it. */
   createDeck: (deck: DeckParts, generator: string, notify: Notify) => Promise<void>;
   closeDeck: () => void;
   rememberSlide: (slide: number) => void;

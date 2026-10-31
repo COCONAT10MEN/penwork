@@ -43,17 +43,18 @@ Tick boxes only when finished and verified in the running app.
 ## M2: Home & opening a deck (quality first)
 - [x] **First: prove the runtime.** Sandboxed iframe on the private app address shows slide 1 of the demo with its images, and deck
       code can't reach Tauri commands (tested in the real app). Everything below that shows a slide depends on this
-- [ ] Home like `design/mockups/v2/home.html`: rail, search, "Good evening", Continue card, drop zone, recent decks, "New deck" card
+- [x] Home like `design/mockups/v2/home.html`: rail, search, "Good evening", Continue card, drop zone, recent decks, "New deck" card
 - [x] First launch window fits 1366×768 (≈90% work area, centred); remember size/position/maximised
 - [x] `.pwpptx` reader/writer + manifest schema validation + tests (`docs/DECK-FORMAT.md`)
-- [ ] Sanitiser (DOMPurify + our rules) with tests, and a "Cleaned up while opening" note
-- [ ] Clipboard "Paste from AI" (new deck). Raw `.html` files are never opened (owner decision, 2026-10-31)
-- [ ] Open by button, drag-and-drop, double-click in Explorer (file association `.pwpptx`), Open with, single instance
-- [ ] Library storage (recents, favourites, last slide), thumbnails cached, search + filter chips, remove from recents
-- [ ] Startup feels instant: measure cold start to Home and "open deck to first slide" on the laptop, report both
-- [ ] Settings screen (glass): theme, app colour (sync with logo / match deck / custom), custom logo (SVG, `docs/DESIGN-GLASS.md` §8),
+- [x] Sanitiser (DOMPurify + our rules) with tests, and a "Cleaned up while opening" note
+- [x] Clipboard "Paste from AI" (new deck). Raw `.html` files are never opened (owner decision, 2026-10-31)
+- [x] Open by button, drag-and-drop, double-click in Explorer (file association `.pwpptx`), single instance
+- [ ] The Open with menu in File Explorer (uses the same launch as double-click; the owner confirms it by hand)
+- [x] Library storage (recents, favourites, last slide), thumbnails cached, search + filter chips, remove from recents
+- [x] Measure cold start to Home and "open deck to first slide" on the laptop, report both
+- [x] Settings screen (glass): theme, app colour (sync with logo / match deck / custom), custom logo (SVG, `docs/DESIGN-GLASS.md` §8),
       logo background, transparency, reduce motion
-- [ ] Test decks in `test-files/`: the demo deck (.pwpptx), a broken zip, a deck with a widget
+- [x] Test decks in `test-files/`: the demo deck (.pwpptx), a broken zip, a deck with a widget
 
 ## M3: Slide runtime & Present
 - [ ] Runtime ported from `reference/lop-deck/deck-template.html` into `src/runtime/` (engine only, no dock/ink)

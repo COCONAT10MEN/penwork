@@ -1,3 +1,4 @@
+import { invoke } from "@tauri-apps/api/core";
 import { useCallback, useEffect, useState } from "react";
 import { useApp } from "../../appStore";
 import { importPaste, type DeckParts } from "../../lib/deck/importPaste";
@@ -18,7 +19,7 @@ export function PasteDialog({ open, onClose }: { open: boolean; onClose: () => v
   const [checked, setChecked] = useState(false);
 
   const check = useCallback(async () => {
-    const text = await navigator.clipboard.readText().catch(() => "");
+    const text = await invoke<string>("read_clipboard_text").catch(() => "");
     const found = importPaste(text);
     setDeck(found);
     setTitle(found?.title ?? "");

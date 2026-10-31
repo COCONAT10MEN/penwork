@@ -29,13 +29,15 @@ thiserror = "2.0.21"
 uuid = { version = "1.29.0", features = ["v4"] }
 
 # Same versions Tauri already uses, so these add no new download.
-# For the accent color and for capturing deck thumbnails.
+# For the accent color, capturing deck thumbnails and reading the clipboard.
 [target.'cfg(windows)'.dependencies]
 windows = { version = "0.62", features = [
   "UI_ViewManagement",
   "Foundation",
   "Win32_Foundation",
   "Win32_System_Com",
+  "Win32_System_DataExchange",
+  "Win32_System_Memory",
   "Win32_UI_Shell",
 ] }
 webview2-com = "0.39"

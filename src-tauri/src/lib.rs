@@ -1,5 +1,6 @@
 mod accent;
 mod capture;
+mod clipboard;
 pub mod deck;
 mod files;
 mod window;
@@ -60,6 +61,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             accent::get_accent_color,
             capture::capture_view,
+            clipboard::read_clipboard_text,
             take_pending_open,
             files::read_app_file,
             files::write_app_file,

@@ -24,7 +24,8 @@
     "allow-write-thumb",
     "allow-read-thumb",
     "allow-delete-thumb",
-    "allow-capture-view"
+    "allow-capture-view",
+    "allow-read-clipboard-text"
   ],
   "local": true
 }

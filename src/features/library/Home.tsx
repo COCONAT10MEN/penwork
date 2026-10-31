@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useApp } from "../../appStore";
 import {
   AmbientBackground,
@@ -36,6 +36,7 @@ export function Home({ dragging }: { dragging: boolean }) {
   const [page, setPage] = useState("home");
   const [query, setQuery] = useState("");
   const [dialog, setDialog] = useState<"paste" | "new" | null>(null);
+  const main = useRef<HTMLElement>(null);
 
   const onOpen = async () => {
     const path = await pickDeck();
@@ -45,6 +46,7 @@ export function Home({ dragging }: { dragging: boolean }) {
   const go = (next: string) => {
     setPage(next);
     setQuery("");
+    main.current?.scrollTo({ top: 0 });
   };
 
   const content = () => {
@@ -95,13 +97,18 @@ export function Home({ dragging }: { dragging: boolean }) {
               icon="settings"
               label="Settings"
               tooltipPlacement="right"
+              variant={page === "settings" ? "tonal" : "standard"}
               aria-current={page === "settings" ? "page" : undefined}
               onClick={() => go("settings")}
             />
           }
         />
       </div>
-      <main className={styles.main}>
+      <main
+        ref={main}
+        className={styles.main}
+        data-dragging={(dragging && (page !== "home" || query !== "")) || undefined}
+      >
         <div className={styles.top}>
           <div className={styles.search}>
             <SearchBar

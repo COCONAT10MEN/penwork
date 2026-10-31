@@ -31,15 +31,24 @@ export function NewDeckDialog({ open, onClose }: { open: boolean; onClose: () =>
       material="glass"
       actions={
         <>
-          <Button variant="text" onClick={onClose}>
+          <Button variant="text" size="medium" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={create}>Create deck</Button>
+          <Button size="medium" onClick={create}>
+            Create deck
+          </Button>
         </>
       }
     >
       <div className={styles.dialogBody}>
-        <TextField label="Deck name" value={title} onChange={setTitle} />
+        <TextField
+          label="Deck name"
+          value={title}
+          onChange={setTitle}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") create();
+          }}
+        />
         <SegmentedButton
           label="Start with"
           required

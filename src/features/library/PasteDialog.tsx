@@ -29,28 +29,36 @@ export function PasteDialog({ open, onClose }: { open: boolean; onClose: () => v
     if (open) void Promise.resolve().then(check);
   }, [open, check]);
 
+  const close = () => {
+    onClose();
+    setDeck(null);
+    setChecked(false);
+  };
+
   const create = () => {
     if (!deck) return;
-    onClose();
     void createDeck({ ...deck, title: title.trim() || deck.title }, "Paste from AI", notify);
+    close();
   };
 
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={close}
       headline="Paste from AI"
       icon="content_paste"
       material="glass"
       actions={
         <>
-          <Button variant="text" onClick={onClose}>
+          <Button variant="text" size="medium" onClick={close}>
             Cancel
           </Button>
           {deck ? (
-            <Button onClick={create}>Create deck</Button>
+            <Button size="medium" onClick={create}>
+              Create deck
+            </Button>
           ) : (
-            <Button variant="tonal" onClick={() => void check()}>
+            <Button variant="tonal" size="medium" onClick={() => void check()}>
               Check again
             </Button>
           )}
@@ -59,11 +67,20 @@ export function PasteDialog({ open, onClose }: { open: boolean; onClose: () => v
     >
       {deck ? (
         <div className={styles.dialogBody}>
-          <p className={styles.sub}>Found {slidesLabel(countSlides(deck))} on the clipboard.</p>
-          <TextField label="Deck name" value={title} onChange={setTitle} />
+          <p className={styles.sub} role="status">
+            Found {slidesLabel(countSlides(deck))} on the clipboard.
+          </p>
+          <TextField
+            label="Deck name"
+            value={title}
+            onChange={setTitle}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") create();
+            }}
+          />
         </div>
       ) : (
-        <p className={styles.sub}>
+        <p className={styles.sub} role="status">
           {checked
             ? "There are no slides on the clipboard. Copy Claude's reply, then press Check again."
             : "Reading the clipboard…"}

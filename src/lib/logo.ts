@@ -118,6 +118,24 @@ function recolour(root: Element): void {
   root.removeAttribute("height");
 }
 
+export function cleanLogoSvg(svg: string): string {
+  return DOMPurify.sanitize(svg, {
+    USE_PROFILES: { svg: true, svgFilters: true },
+    FORBID_ATTR: ["href", "xlink:href"],
+  });
+}
+
+/** The app is coloured from this value, so it must be hex. The browser knows the named colours. */
+function toHex(color: string): string | null {
+  if (/^#[0-9a-f]{6}$/.test(color)) return color;
+  const context = document.createElement("canvas").getContext("2d");
+  if (!context) return null;
+  context.fillStyle = "#000001";
+  context.fillStyle = color;
+  const result = context.fillStyle;
+  return /^#[0-9a-f]{6}$/.test(result) && result !== "#000001" ? result : null;
+}
+
 export function checkLogo(fileName: string, text: string): LogoResult | LogoRefusal {
   const refuse = (message: string): LogoRefusal => ({ ok: false, message });
   if (!fileName.toLowerCase().endsWith(".svg")) {
@@ -146,10 +164,9 @@ export function checkLogo(fileName: string, text: string): LogoResult | LogoRefu
   }
   recolour(root);
 
-  const svg = DOMPurify.sanitize(root.outerHTML, {
-    USE_PROFILES: { svg: true, svgFilters: true },
-    FORBID_ATTR: ["href", "xlink:href"],
-  });
+  const color = toHex([...colors][0] ?? "#000000");
+  if (!color) return refuse("The logo's colour must be a hex value like #E5352B.");
+  const svg = cleanLogoSvg(root.outerHTML);
   if (!svg.includes("<svg")) return refuse("This file isn't a valid SVG.");
-  return { ok: true, svg, color: [...colors][0] ?? "#000000" };
+  return { ok: true, svg, color };
 }

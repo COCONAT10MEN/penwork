@@ -46,6 +46,11 @@ describe("checkLogo", () => {
     expect(result.svg).not.toContain("#123456");
   });
 
+  it("never saves a colour that isn't hex, or the logo would be lost on restart", () => {
+    const result = checkLogo("mark.svg", svg('<path d="M0 0h10" fill="not-a-color"/>'));
+    expect(result.ok).toBe(false);
+  });
+
   it("refuses other file types with the reason", () => {
     expect(refusal("mark.png", "")).toContain(".svg");
     expect(refusal("mark.jpg", "")).toContain(".svg");

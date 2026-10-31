@@ -200,3 +200,11 @@
   font-size: 28px;
   line-height: 1.1;
 }
+
+.logoTiles {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: var(--md-sys-shape-corner-extra-large);
+}

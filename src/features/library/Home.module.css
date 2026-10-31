@@ -26,6 +26,12 @@
   overflow: auto;
 }
 
+/* Decks can be dropped on any page. Home has its drop zone; the others light up instead. */
+.main[data-dragging] {
+  outline: 2px solid var(--md-sys-color-primary);
+  outline-offset: -6px;
+}
+
 .top {
   display: flex;
   align-items: center;
@@ -166,8 +172,22 @@
   outline-color: var(--md-sys-color-primary);
   outline-style: solid;
 }
-.dropIcon {
+.dropShape {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
   color: var(--md-sys-color-primary);
+}
+.dropShape > svg {
+  position: absolute;
+  inset: 0;
+  fill: var(--md-sys-color-primary-container);
+}
+.dropIcon {
+  position: relative;
+  color: var(--md-sys-color-on-primary-container);
 }
 .dropTitle {
   font-size: var(--md-sys-typescale-title-medium-size);

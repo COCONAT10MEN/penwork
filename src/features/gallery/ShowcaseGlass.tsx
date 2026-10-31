@@ -8,6 +8,7 @@ import {
   IconButton,
   LinearProgress,
   LoadingIndicator,
+  LogoTile,
   PenworkLogo,
   SideSheet,
   SplitButton,
@@ -219,7 +220,11 @@ export function ShowcaseSplitSheet() {
   );
 }
 
+const SAMPLE_LOGO =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="currentColor"><path d="M50 5 95 95H5z"/></svg>';
+
 export function ShowcaseShapes() {
+  const material = useGalleryMaterial();
   return (
     <Section title="Logo · Expressive shapes">
       <div className={styles.row}>
@@ -229,6 +234,10 @@ export function ShowcaseShapes() {
         <span className={`${styles.logoChip} ${styles.logoChipOpen}`}>
           <PenworkLogo size={56} />
         </span>
+        <Surface material={material} className={styles.logoTiles}>
+          <LogoTile size={52} label="Penwork on its background" />
+          <LogoTile size={72} svg={SAMPLE_LOGO} label="A custom logo on its background" />
+        </Surface>
         <svg
           width="56"
           height="56"

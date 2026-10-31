@@ -1,7 +1,6 @@
 import { useRef, useState } from "react";
 import { useApp } from "../../appStore";
-import { Card, Icon, IconButton, Menu, useSnackbar } from "../../ui";
-import { COOKIE_PATH } from "../../ui/shapes";
+import { Card, COOKIE_PATH, Icon, IconButton, Menu, useSnackbar } from "../../ui";
 import { useThumb } from "../deck/thumbnail";
 import { slidesLabel, whenOpened } from "./greeting";
 import type { LibraryDeck } from "./libraryFile";
@@ -50,7 +49,11 @@ export function DeckMenu({ deck, onRemoved }: { deck: LibraryDeck; onRemoved?: (
           {
             label: deck.favorite ? "Remove from favorites" : "Add to favorites",
             icon: "star",
-            onSelect: () => toggleFavorite(deck.id),
+            onSelect: () => {
+              toggleFavorite(deck.id);
+              // On the Favorites page this card disappears, and focus with it.
+              onRemoved?.();
+            },
           },
           {
             label: "Remove from recents",
@@ -97,7 +100,7 @@ export function DeckCard({
       <div className={styles.row}>
         <div className={styles.text}>
           <span className={styles.title}>
-            {deck.favorite && <Icon name="star" size={16} className={styles.star} />}
+            {deck.favorite && <Icon name="star" filled size={16} className={styles.star} />}
             <span className={styles.titleText}>{deck.title}</span>
           </span>
           <span className={styles.meta}>{meta}</span>

@@ -19,6 +19,7 @@ export { Icon, type IconProps } from "./Icon";
 export { IconButton, type IconButtonProps } from "./IconButton/IconButton";
 export { List, ListIcon, ListItem, type ListItemProps } from "./List/List";
 export { LogoTile, PenworkLogo } from "./Logo/Logo";
+export { CLOVER_PATH, COOKIE_PATH } from "./shapes";
 export { Menu, type MenuEntry, type MenuProps } from "./Menu/Menu";
 export {
   NavigationRail,

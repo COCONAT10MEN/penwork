@@ -1,3 +1,4 @@
+import { cleanLogoSvg } from "../../lib/logo";
 import { isHexColor, type ThemeMode, type Transparency } from "../../theme/theme";
 
 /** settings.json. Anything missing or damaged falls back to its default, one setting at a time. */
@@ -40,8 +41,9 @@ function oneOf<T extends string>(value: unknown, options: readonly T[], fallback
 function readLogo(value: unknown): CustomLogo | null {
   if (typeof value !== "object" || value === null) return null;
   const { svg, color } = value as { svg?: unknown; color?: unknown };
+  // Cleaned again here: settings.json is a file on disk, and this ends up in the page.
   return typeof svg === "string" && typeof color === "string" && isHexColor(color)
-    ? { svg, color }
+    ? { svg: cleanLogoSvg(svg), color }
     : null;
 }
 

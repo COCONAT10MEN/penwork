@@ -1,6 +1,7 @@
 import { open } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
 import { useState, type ReactNode } from "react";
+import { contrastRatio } from "../../lib/contrast";
 import { checkLogo } from "../../lib/logo";
 import {
   Button,
@@ -13,9 +14,13 @@ import {
   useSnackbar,
 } from "../../ui";
 import type { ThemeMode, Transparency } from "../../theme/theme";
+import { logoColor } from "./appearance";
 import type { ColorSource } from "./settingsFile";
 import { useSettings } from "./settingsStore";
 import styles from "./Settings.module.css";
+
+/** Below this a logo starts to disappear into its background (the rule for non-text shapes). */
+const MIN_LOGO_CONTRAST = 3;
 
 function Section({ title, hint, children }: { title: string; hint?: string; children: ReactNode }) {
   return (
@@ -49,7 +54,11 @@ function ColorChoice({
         onClose={() => setOpen(false)}
         headline={label}
         material="glass"
-        actions={<Button onClick={() => setOpen(false)}>Done</Button>}
+        actions={
+          <Button size="medium" onClick={() => setOpen(false)}>
+            Done
+          </Button>
+        }
       >
         <ColorPicker value={value} onChange={onChange} />
       </Dialog>
@@ -59,8 +68,10 @@ function ColorChoice({
 
 function LogoSection() {
   const notify = useSnackbar();
-  const logo = useSettings((s) => s.settings.logo);
-  const background = useSettings((s) => s.settings.logoBackground);
+  const settings = useSettings((s) => s.settings);
+  const systemSeed = useSettings((s) => s.systemSeed);
+  const { logo, logoBackground: background } = settings;
+  const hardToSee = contrastRatio(logoColor(settings, systemSeed), background) < MIN_LOGO_CONTRAST;
   const update = useSettings((s) => s.update);
 
   const choose = async () => {
@@ -80,9 +91,6 @@ function LogoSection() {
       return;
     }
     update({ logo: { svg: result.svg, color: result.color } });
-    if (result.color === background) {
-      notify({ message: "Your logo and its background are the same colour. Change one of them." });
-    }
   };
 
   return (
@@ -109,6 +117,11 @@ function LogoSection() {
         value={background}
         onChange={(logoBackground) => update({ logoBackground })}
       />
+      {hardToSee && (
+        <p className={styles.hint} role="status">
+          The logo is hard to see on this background.
+        </p>
+      )}
     </Section>
   );
 }

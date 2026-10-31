@@ -1,6 +1,6 @@
 import { useApp } from "../../appStore";
-import { Button, Card, Icon, Surface, useSnackbar } from "../../ui";
-import { DeckGrid, DeckMenu, DeckThumb, NewDeckCard } from "./DeckCard";
+import { Button, Card, CLOVER_PATH, Icon, Surface, useSnackbar } from "../../ui";
+import { DeckGrid, DeckMenu, DeckThumb, NewDeckCard, OPEN_BUTTON_ID } from "./DeckCard";
 import { greeting, slidesLabel, whenOpened } from "./greeting";
 import type { LibraryDeck } from "./libraryFile";
 import styles from "./Home.module.css";
@@ -13,7 +13,12 @@ function DropZone({ dragging }: { dragging: boolean }) {
       className={styles.drop}
       data-dragging={dragging || undefined}
     >
-      <Icon name="download" size={32} className={styles.dropIcon} />
+      <span className={styles.dropShape} aria-hidden="true">
+        <svg viewBox="0 0 100 100" width="72" height="72">
+          <path d={CLOVER_PATH} />
+        </svg>
+        <Icon name="download" size={32} className={styles.dropIcon} />
+      </span>
       <span className={styles.dropTitle}>Drop a deck here</span>
       <span className={styles.dropHint}>.pwpptx files open straight away</span>
     </Surface>
@@ -35,7 +40,12 @@ function ContinueCard({ deck }: { deck: LibraryDeck }) {
       <div className={styles.continueText}>
         <div className={styles.continueHead}>
           <span className={styles.overline}>Continue</span>
-          <DeckMenu deck={deck} />
+          <DeckMenu
+            deck={deck}
+            onRemoved={() =>
+              requestAnimationFrame(() => document.getElementById(OPEN_BUTTON_ID)?.focus())
+            }
+          />
         </div>
         <span className={styles.continueTitle}>{deck.title}</span>
         <span className={styles.meta}>

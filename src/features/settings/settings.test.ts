@@ -4,7 +4,7 @@ import { applyAppearance, chromeSeed, logoColor } from "./appearance";
 import { DEFAULT_SETTINGS, parseSettings, type Settings } from "./settingsFile";
 
 const WINDOWS = "#0078D4";
-const logo = { svg: "<svg></svg>", color: "#e5352b" };
+const logo = { svg: '<svg viewBox="0 0 10 10"></svg>', color: "#e5352b" };
 const with_ = (change: Partial<Settings>): Settings => ({ ...DEFAULT_SETTINGS, ...change });
 
 describe("parseSettings", () => {
@@ -20,6 +20,12 @@ describe("parseSettings", () => {
     expect(parsed.theme).toBe("dark");
     expect(parsed.logoBackground).toBe("#000000");
     expect(parsed.transparency).toBe("auto");
+  });
+
+  it("cleans a saved logo again, because the file could have been changed", () => {
+    const svg = '<svg viewBox="0 0 10 10"><path d="M0 0" onclick="boom()"></path></svg>';
+    const parsed = parseSettings(JSON.stringify({ logo: { svg, color: "#112233" } }));
+    expect(parsed.logo?.svg).not.toContain("onclick");
   });
 
   it("drops a damaged logo", () => {

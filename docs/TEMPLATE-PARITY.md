@@ -49,7 +49,7 @@ Ticked items were checked in the running app, with simulated pen and touch input
 - [x] Right mouse button erases while a tool is armed
 - [x] Palm rejection: touches within 1.2 s of pen activity, or with a contact over 90×90, are ignored
 - [x] Pen tapping a control while tools are closed clicks it; dragging from it (over 9 px) draws instead; range sliders are left alone
-- [ ] Coalesced and raw pointer events, so fast strokes keep every point
+- [ ] Coalesced and raw pointer events, so fast strokes keep every point (in the code, but needs a real pen to check)
 - [x] Pointer capture while drawing; a lost capture ends the stroke cleanly
 - [x] Shift while drawing: straight line from the start point
 - [x] Touch on the whiteboard pans with inertia
@@ -75,7 +75,7 @@ Ticked items were checked in the running app, with simulated pen and touch input
 - [x] Buttons: pointer, pen, highlighter, laser, eraser | undo, redo, clear, show/hide ink | board background (whiteboard only), whiteboard, grid, full screen
 - [x] Separators between groups; the colour bar under each tool shows its colour; disabled look on undo/redo/clear when nothing to do
 - [x] Dock adapts on dark cover slides (`onhero`) and dark boards (`wbdark`)
-- [ ] Keyed reconcile: showing, hiding, reordering buttons animates, survives fast toggling, keeps hover and focus
+- [x] Keyed reconcile: showing, hiding, reordering buttons animates, survives fast toggling, keeps hover and focus
 - [x] Whiteboard mode hides pointer, hide-ink and grid and shows board background, animated
 - [x] Icon swap animations; small wiggle on undo, redo, clear
 - [x] First-run hint toast; tool name toast; "Nothing to undo/redo" toasts
@@ -92,7 +92,7 @@ Ticked items were checked in the running app, with simulated pen and touch input
 - [x] Colour presets: pen #e5352b #1f6fe5 #10222b #35aac5 · highlighter #ffe14a #7df09a #ff8fc8 #7fdcf0 · laser #ff2b2b #2bff6a #3d8bff #e9ece0
 - [x] Nothing is shared between tools
 - [x] Popover: live stroke preview, Reset for that tool, 4 presets, "Your colours", size presets + slider, anchored to the button, follows the dock (about 700 ms), one at a time, never covers the dock, scrolls inside instead
-- [ ] Your colours: 3 saved per tool, newest first, oldest drops off
+- [x] Your colours: 3 saved per tool, newest first, oldest drops off
 - [x] Colour picker: separate popup beside the popover, saturation/value square, hue slider, hex field (Enter applies), "Save to my colours", live update. No eyedropper
 
 ## 7. Ink (M5)

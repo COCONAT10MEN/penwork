@@ -1825,6 +1825,13 @@ function bootSorter(){
   sorterCells();
   /* a size change, not only a window resize: the scroll bar appears once the list fills up */
   new ResizeObserver(sorterLayout).observe(ov);
+  /* the toolbar under the slide shrinks going down the list and comes back going up, past 40px as Google's does */
+  var scrollFrom=0;
+  ov.addEventListener('scroll',function(){
+    var y=ov.scrollTop;
+    if(Math.abs(y-scrollFrom)<40)return;
+    send('scrolled',{down:y>scrollFrom});scrollFrom=y;
+  },{passive:true});
   var cellOf=function(t){return t&&t.closest?t.closest('.cell'):null;},indexOf=function(c){return +c.getAttribute('data-i');};
   var drag=null,dropTo=-1,dragged=false;
   var clearDrop=function(){cells.forEach(function(c){c.el.classList.remove('dropb','dropa');});};

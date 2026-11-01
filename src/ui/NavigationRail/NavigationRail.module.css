@@ -114,6 +114,17 @@
 .railIcon {
   position: relative;
 }
+/* The picked icon pops in as its pill grows. */
+.stacked .item[data-active] .railIcon {
+  animation: icon-pop var(--md-sys-motion-spatial-fast-duration)
+    var(--md-sys-motion-spatial-fast-easing);
+}
+@keyframes icon-pop {
+  from {
+    scale: 0.7;
+    rotate: -14deg;
+  }
+}
 .stacked .label {
   max-width: 100%;
   font-size: var(--md-sys-typescale-label-medium-size);

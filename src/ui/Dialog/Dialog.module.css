@@ -74,30 +74,12 @@
 }
 
 .iconShape {
-  position: relative;
-  display: grid;
-  place-items: center;
   align-self: center;
-  width: 64px;
-  height: 64px;
-  fill: var(--md-sys-color-primary-container);
-  color: var(--md-sys-color-on-primary-container);
   /* The shape spins in behind the dialog, a touch after it, as Google's expressive icons do. */
   transition:
     scale var(--md-sys-motion-spatial-fast-duration) var(--md-sys-motion-spatial-fast-easing) 60ms,
     rotate var(--md-sys-motion-spatial-default-duration) var(--md-sys-motion-spatial-default-easing)
       60ms;
-}
-.iconShape[data-danger] {
-  fill: var(--md-sys-color-error-container);
-  color: var(--md-sys-color-on-error-container);
-}
-.iconShape > svg {
-  position: absolute;
-  inset: 0;
-}
-.icon {
-  position: relative;
 }
 
 .headline,

@@ -3,6 +3,16 @@
   gap: 2px;
 }
 
+.stretch {
+  display: flex;
+  width: 100%;
+}
+.stretch .segment {
+  flex: 1 1 0;
+  min-width: 0;
+  padding-inline: 10px;
+}
+
 /* Ends are marked in JS (data-first/last): tooltip wrappers would confuse :first-child. */
 
 .segment {

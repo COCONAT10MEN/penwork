@@ -13,6 +13,8 @@ export type RuntimeMessage =
   | { type: "menu"; slide: number; x: number; y: number }
   /** A slide was dragged, to land before the slide now at `to`. */
   | { type: "move"; slide: number; to: number }
+  /** The slide list scrolled far enough to count. */
+  | { type: "scrolled"; down: boolean }
   /** The End show button, or F. */
   | { type: "end" }
   /** Toolbar settings changed. fixAll in the page checks them again when they're loaded. */
@@ -51,6 +53,8 @@ export function parseRuntimeMessage(data: unknown): RuntimeMessage | null {
         : null;
     case "move":
       return isCount(p.slide) && isCount(p.to) ? { type, slide: p.slide, to: p.to } : null;
+    case "scrolled":
+      return typeof p.down === "boolean" ? { type, down: p.down } : null;
     case "end":
     case "importToolbar":
       return { type };

@@ -94,7 +94,7 @@
   margin: 4px 12px 14px;
   padding: 0 16px;
   gap: 6px;
-  --pw-rest-corner: var(--md-sys-shape-corner-large);
+  --pw-corner: var(--md-sys-shape-corner-large);
 }
 .sorterFrame {
   background: transparent;
@@ -113,18 +113,38 @@
 /* The largest 16:9 box that fits, whichever of width or height runs out first. */
 .stage {
   aspect-ratio: 16 / 9;
-  width: min(100cqw, calc((100cqh - 56px) * 16 / 9));
+  width: min(100cqw, calc((100cqh - 60px) * 16 / 9));
   overflow: hidden;
   border-radius: var(--pw-shape-stage);
   box-shadow: var(--pw-glass-shadow);
 }
 .status {
+  flex: none;
   display: flex;
-  gap: 14px;
-  padding: 8px 16px;
+  align-items: center;
+  height: 48px;
+  padding: 0 4px;
   border-radius: var(--md-sys-shape-corner-full);
   font-size: var(--pw-type-caption-size);
   line-height: var(--md-sys-typescale-body-medium-line-height);
+}
+.statusText {
+  display: flex;
+  gap: 14px;
+  padding: 0 14px;
+  white-space: nowrap;
+}
+.statusTools {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+.statusLine {
+  flex: none;
+  width: 1px;
+  height: 24px;
+  margin: 0 8px;
+  background: var(--md-sys-color-outline-variant);
 }
 .status b {
   font-weight: var(--md-sys-typescale-label-large-weight-emphasized);
@@ -198,12 +218,6 @@
 .main {
   animation: settle-in var(--md-sys-motion-spatial-slow-duration)
     var(--md-sys-motion-spatial-slow-easing);
-}
-.present {
-  transition: box-shadow var(--md-sys-motion-effects-duration) var(--md-sys-motion-effects-easing);
-}
-.present:hover {
-  box-shadow: 0 12px 26px -8px color-mix(in srgb, var(--md-sys-color-primary) 75%, transparent);
 }
 .layout {
   --pw-corner: var(--md-sys-shape-corner-large);

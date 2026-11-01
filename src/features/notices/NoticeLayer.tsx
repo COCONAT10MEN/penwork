@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { useReduceMotion, useSpring } from "../../theme/motion";
-import { Button, Dialog, Icon, Surface } from "../../ui";
+import { Button, Dialog, Icon, Shape, Surface } from "../../ui";
 import { answerQuestion, clearNotice, useNotices, type Question } from "./notices";
 import { TextMenu } from "./TextMenu";
 import styles from "./NoticeLayer.module.css";
@@ -42,9 +42,15 @@ function NoticeHost() {
             }
           >
             <Surface material="glass" strength="thick" floating className={styles.notice}>
-              <span className={styles.noticeIcon}>
+              <Shape
+                from="Circle"
+                name="Cookie7Sided"
+                size={36}
+                solid
+                className={styles.noticeIcon}
+              >
                 <Icon name={notice.icon} size={20} filled />
-              </span>
+              </Shape>
               {notice.message}
             </Surface>
           </motion.div>

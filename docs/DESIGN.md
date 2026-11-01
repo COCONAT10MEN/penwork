@@ -39,8 +39,10 @@ Starting token values: `design/tokens.css` (hand-matched; M1 replaces them with 
 - Chips 8, list items in panels 20, cards 24, side sheets/hero cards 28, buttons and toolbars full.
 - **Shape morphing:** toggle buttons and toolbar tools are rounded squares (16) when idle and become
   circles (full) when selected. Corners ease on an effects spring, so they never bounce.
-- Expressive shapes (cookie 9-point, clover 4-leaf) are SVG paths in `src/ui/shapes.ts`.
-  Use them sparingly: logo, selected color swatch, empty states, avatar.
+- **Expressive shapes:** Google's 35 shapes come from `material-shapes-ts`, through `src/ui/shapes.ts`. Draw them with
+  the `Shape` component: change `name` and it morphs on the spring.
+- **Where they go:** logo, dialog and notice icons, the drop zone, New presentation, and the Home hero. Colours are
+  cookies, and the picked one morphs into a flower with a tick (`ColorSwatches`, and the toolbar's pen settings).
 
 ## Typography — Roboto Flex
 
@@ -78,6 +80,13 @@ Compose's components. Motion's `damping` = ratio × 2 × √stiffness (mass 1).
 - **Tooltips and menus** start at 0.8 and grow from the control that opened them. A tooltip's wait is 150 ms, and none
   once one is showing.
 - **Navigation rail:** the pill grows out of its own centre on the destination. It doesn't slide across.
+- **Loading indicator:** Google's seven shapes, one morph every 650 ms at least, a quarter turn each, on a slow 4666 ms spin.
+- **FAB menu:** sits in the rail. Its actions open out one after another, nearest first.
+- **Split button:** Present in the edit view. The inner corners open up while pressed.
+- **Floating toolbar:** under the slide. It shrinks to the slide count going down the slide list, and comes back going up.
+- **Progress bars:** the wave is flat for the first 10% and last 5%, and moves one wavelength a second.
+- Connected button groups replace segmented buttons in Settings, as Expressive does. List rows connect into one block.
+- Big headlines use Roboto Flex's width axis at 112% (`--pw-type-expressive-width`).
 - Hover only tints (state layer). Nothing lifts or zooms.
 - Reduced motion (OS setting or app setting): replace spatial springs with a 150 ms opacity fade.
 

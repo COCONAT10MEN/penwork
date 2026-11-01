@@ -5,6 +5,7 @@ import { useReduceMotion, useSpring } from "../../theme/motion";
 import {
   AmbientBackground,
   Button,
+  FabMenu,
   LoadingIndicator,
   LogoTile,
   NavigationRail,
@@ -91,13 +92,30 @@ export function Home({ dragging }: { dragging: boolean }) {
           value={page}
           onChange={go}
           header={
-            <span className={styles.logo}>
-              {logo ? (
-                <LogoTile size={44} svg={logo.svg} label="Penwork" />
-              ) : (
-                <PenworkMark label="Penwork" />
-              )}
-            </span>
+            <>
+              <span className={styles.logo}>
+                {logo ? (
+                  <LogoTile size={44} svg={logo.svg} label="Penwork" />
+                ) : (
+                  <PenworkMark label="Penwork" />
+                )}
+              </span>
+              <span className={styles.create}>
+                <FabMenu
+                  label="Create"
+                  placement="side"
+                  items={[
+                    {
+                      label: "New presentation",
+                      icon: "add",
+                      onSelect: () => setNewDeckOpen(true),
+                    },
+                    { label: "Open presentation", icon: "folder", onSelect: () => void onOpen() },
+                    { label: "From a layout", icon: "grid_view", onSelect: () => go("layouts") },
+                  ]}
+                />
+              </span>
+            </>
           }
           footerItems={NAV_END}
         />

@@ -12,6 +12,12 @@
   gap: 4px;
 }
 
+.sideList {
+  position: fixed;
+  z-index: 900;
+  align-items: flex-start;
+}
+
 .item {
   display: inline-flex;
   align-items: center;
@@ -69,4 +75,23 @@
   border-radius: var(--md-sys-shape-corner-full);
   background: var(--md-sys-color-primary);
   color: var(--md-sys-color-on-primary);
+}
+.fab > span {
+  transition: rotate var(--md-sys-motion-spatial-fast-duration)
+    var(--md-sys-motion-spatial-fast-easing);
+}
+.fab[data-open] > span {
+  rotate: 90deg;
+}
+/* In the rail: the smaller FAB Google gives a navigation rail. */
+.root[data-side] {
+  align-items: center;
+}
+.root[data-side] .fab {
+  width: 56px;
+  height: 56px;
+  margin: 0;
+}
+.root[data-side] .fab:not([data-open]) {
+  border-radius: var(--md-sys-shape-corner-large);
 }

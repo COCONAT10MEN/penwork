@@ -126,3 +126,6 @@ colour from a seed) and the **tinted liquid-glass** look of the owner's toolbar.
 19. **Motion is Google's, not lookalike (2026-11-01).** The rest of the app takes its springs and behaviour from Compose's
     source. The old "panels and menus never bounce" rule is gone; it now covers the slide toolbar alone. Liquid Glass
     supplies how the material behaves (`docs/DESIGN-GLASS.md` §6).
+20. **As much of Material 3 Expressive as fits (2026-11-01).** Google's real shapes, morphing, loading indicator, FAB menu,
+    split button and floating toolbar are in, made of liquid glass. These go beyond the mockups, on the owner's request.
+    The toolbar's pen settings take the flower colours; the slide toolbar itself stays the template's (decision 18).

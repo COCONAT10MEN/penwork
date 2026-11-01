@@ -87,6 +87,8 @@ Dock and pills: full radius. Panels: 28–32. Cards on Home: 24–32. Selected t
   - It answers to the pointer: the rim catches the light, and a soft glow follows inside the surface (`--pw-light`).
   - A press lights up from under the pointer and spreads across the control. That glow stands in for Material's ripple.
   - Larger means thicker: panels get the stronger blur and deeper shadow.
+  - Shapes are tinted glass: see-through colour, a sheen across the top and a lit rim that moves as they morph.
+  - A press squashes and widens like gel, and wobbles back on the spring.
 - Real refraction at the edges isn't used. It needs a lighter blur than menus can read through, and a second layer
   can't refract inside a surface that already blurs.
 - Popovers grow from their anchor button and never cover the dock.

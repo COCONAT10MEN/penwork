@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import type { Ref } from "react";
 import { useSpring } from "../../theme/motion";
-import { Button, IconButton, Surface } from "../../ui";
+import { IconButton, SplitButton, Surface } from "../../ui";
 import styles from "./DeckView.module.css";
 
 export function EditHeader({
@@ -17,6 +17,7 @@ export function EditHeader({
   onSave,
   onSaveAs,
   onPresent,
+  onPresentFromStart,
 }: {
   title: string;
   dirty: boolean;
@@ -30,6 +31,7 @@ export function EditHeader({
   onSave: () => void;
   onSaveAs: () => void;
   onPresent: () => void;
+  onPresentFromStart: () => void;
 }) {
   const fade = useSpring("effectsDefault");
   const status = saving ? "Saving…" : dirty ? "Unsaved changes" : "All changes saved";
@@ -57,17 +59,21 @@ export function EditHeader({
         <IconButton size="compact" icon="save" label="Save" onClick={onSave} />
         <IconButton size="compact" icon="save_as" label="Save as" onClick={onSaveAs} />
       </div>
-      <Button
-        ref={presentRef}
+      <SplitButton
         size="compact"
+        label="Present"
         icon="play_arrow"
         iconFilled
-        className={styles.present}
-        aria-label="Present from this slide"
+        mainLabel="Present from this slide"
+        mainRef={presentRef}
         onClick={onPresent}
-      >
-        Present
-      </Button>
+        menuLabel="More ways to present"
+        menuMaterial="glass"
+        items={[
+          { label: "From the start", icon: "first_page", onSelect: onPresentFromStart },
+          { label: "From this slide", icon: "play_arrow", onSelect: onPresent },
+        ]}
+      />
     </Surface>
   );
 }

@@ -3,7 +3,17 @@ import { invoke } from "@tauri-apps/api/core";
 import { useState, type ReactNode } from "react";
 import { contrastRatio } from "../../lib/contrast";
 import { checkLogo } from "../../lib/logo";
-import { Button, ColorPicker, Dialog, LogoTile, SegmentedButton, Surface, Switch } from "../../ui";
+import {
+  Button,
+  ButtonGroup,
+  ColorPicker,
+  ColorSwatches,
+  Dialog,
+  LogoTile,
+  Shape,
+  Surface,
+  Switch,
+} from "../../ui";
 import type { ThemeMode, Transparency } from "../../theme/theme";
 import { showError } from "../notices/notices";
 import { logoColor } from "./appearance";
@@ -36,7 +46,7 @@ function ColorChoice({
   const [open, setOpen] = useState(false);
   return (
     <div className={styles.color}>
-      <span className={styles.swatch} style={{ background: value }} aria-hidden="true" />
+      <Shape name="Cookie9Sided" size={44} solid color={value} />
       <span className={styles.hex}>{value.toUpperCase()}</span>
       <Button variant="tonal" size="small" onClick={() => setOpen(true)}>
         {label}
@@ -122,6 +132,8 @@ const THEMES = [
   { value: "light", label: "Light" },
   { value: "dark", label: "Dark" },
 ];
+// Options to pick from, so these are data, not theme colours.
+const PRESET_COLORS = ["#00687A", "#3F5BD4", "#7A4FBF", "#B4287A", "#C2410C", "#2E7D32"];
 const COLORS = [
   { value: "penwork", label: "Penwork teal" },
   { value: "logo", label: "Sync with logo" },
@@ -146,7 +158,8 @@ export function Settings() {
       <h1 className={styles.heading}>Settings</h1>
       <div className={styles.columns}>
         <Section title="Theme">
-          <SegmentedButton
+          <ButtonGroup
+            stretch
             label="Theme"
             required
             options={THEMES}
@@ -162,13 +175,22 @@ export function Settings() {
               : undefined
           }
         >
-          <SegmentedButton
+          <ButtonGroup
+            stretch
             label="App colour"
             required
             options={COLORS}
             value={settings.colorSource}
             onChange={(colorSource) => update({ colorSource: colorSource as ColorSource })}
           />
+          {settings.colorSource === "custom" && (
+            <ColorSwatches
+              label="Choose a colour"
+              colors={PRESET_COLORS}
+              value={settings.customColor}
+              onChange={(customColor) => update({ customColor })}
+            />
+          )}
           {settings.colorSource === "custom" && (
             <ColorChoice
               label="Change colour"
@@ -182,7 +204,8 @@ export function Settings() {
           title="Transparency"
           hint="Reduced uses solid surfaces, which is easier on older laptops."
         >
-          <SegmentedButton
+          <ButtonGroup
+            stretch
             label="Transparency"
             required
             options={TRANSPARENCY}
@@ -191,7 +214,8 @@ export function Settings() {
           />
         </Section>
         <Section title="Last slide of a show">
-          <SegmentedButton
+          <ButtonGroup
+            stretch
             label="Last slide of a show"
             required
             options={END_OF_SHOW}

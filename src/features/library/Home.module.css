@@ -10,9 +10,13 @@
   flex: none;
   margin: 12px 0 12px 12px;
 }
-.logo {
+.logo,
+.create {
   display: grid;
   place-items: center;
+}
+.create {
+  margin-block: 12px 8px;
 }
 
 .main {
@@ -65,9 +69,11 @@
   font-size: var(--md-sys-typescale-display-medium-size);
   line-height: 1.05;
   font-weight: var(--md-sys-typescale-display-medium-weight-emphasized);
+  font-stretch: var(--pw-type-expressive-width);
   letter-spacing: var(--md-sys-typescale-display-medium-tracking);
 }
 .pageTitle {
+  font-stretch: var(--pw-type-expressive-width);
   font-size: var(--md-sys-typescale-display-small-size);
   line-height: var(--md-sys-typescale-display-small-line-height);
   font-weight: var(--md-sys-typescale-display-small-weight-emphasized);
@@ -86,8 +92,18 @@
 }
 
 /* Tinted with the primary container, so the one thing to do next stands out from the other glass. */
+/* The hero moment: one big glass shape turning slowly behind the words. */
+.heroShape.heroShape {
+  position: absolute;
+  z-index: 0;
+  right: -150px;
+  top: -190px;
+  opacity: 0.4;
+  pointer-events: none;
+}
 .continue.continue {
   flex: 2 1 0;
+  overflow: hidden;
   position: relative;
   display: flex;
   gap: 20px;
@@ -111,7 +127,11 @@
   border-radius: var(--pw-shape-hero-thumb);
   box-shadow: 0 10px 24px -10px rgb(0 0 0 / 0.6);
 }
+.continue .continueThumb {
+  z-index: 1;
+}
 .continueText {
+  z-index: 1;
   position: relative;
   flex: 1 1 0;
   display: flex;
@@ -278,6 +298,20 @@
 }
 .rail {
   animation-name: rise-side;
+}
+/* Cards arrive one after another. */
+.page section:nth-of-type(2) > :last-child > * {
+  animation: rise var(--md-sys-motion-spatial-slow-duration)
+    var(--md-sys-motion-spatial-slow-easing) backwards;
+}
+.page section:nth-of-type(2) > :last-child > :nth-child(2) {
+  animation-delay: 50ms;
+}
+.page section:nth-of-type(2) > :last-child > :nth-child(3) {
+  animation-delay: 100ms;
+}
+.page section:nth-of-type(2) > :last-child > :nth-child(4) {
+  animation-delay: 150ms;
 }
 @keyframes rise {
   from {

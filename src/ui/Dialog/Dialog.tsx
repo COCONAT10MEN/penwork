@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, type ReactNode } from "react";
 import { cx } from "../cx";
 import { Icon } from "../Icon";
-import { COOKIE_PATH } from "../shapes";
+import { Shape } from "../Shape/Shape";
 import { surfaceClass, type SurfaceMaterial } from "../Surface/Surface";
 import styles from "./Dialog.module.css";
 
@@ -75,12 +75,15 @@ export function Dialog({
     >
       <div className={styles.content}>
         {icon && (
-          <span className={styles.iconShape} data-danger={danger || undefined}>
-            <svg viewBox="0 0 100 100" width="64" height="64" aria-hidden="true">
-              <path d={COOKIE_PATH} />
-            </svg>
-            <Icon name={icon} size={28} filled className={styles.icon} />
-          </span>
+          // The shape morphs into place as the dialog opens, and back as it leaves.
+          <Shape
+            name={!open ? "Circle" : danger ? "SoftBurst" : "Cookie9Sided"}
+            size={72}
+            color={danger ? "var(--md-sys-color-error)" : undefined}
+            className={styles.iconShape}
+          >
+            <Icon name={icon} size={30} filled />
+          </Shape>
         )}
         <h2 id={titleId} className={icon ? styles.headlineCentered : styles.headline}>
           {headline}

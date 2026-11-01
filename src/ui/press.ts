@@ -68,6 +68,7 @@ function layOut({ items, widths }: Group): void {
     }
   });
   items.forEach((item, i) => {
+    item.style.flex = "none";
     item.style.minWidth = "0";
     item.style.width = `${(widths[i] ?? 0) + (extra.get(i) ?? 0)}px`;
   });
@@ -85,6 +86,7 @@ function settle(entry: Press): void {
   }
   // Back to the stylesheet's sizes, which a resize may have changed since.
   for (const item of group.items) {
+    item.style.removeProperty("flex");
     item.style.removeProperty("min-width");
     item.style.removeProperty("width");
   }

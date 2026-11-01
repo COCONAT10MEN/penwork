@@ -153,7 +153,9 @@ textarea {
     var(--pw-corner) + (var(--pw-pressed-corner) - var(--pw-corner)) * var(--pw-morph, 0)
   );
   border-radius: var(--pw-press-radius);
-  scale: calc(1 - var(--pw-press-depth) * var(--pw-press, 0));
+  /* Gel, not a stiff button: it squashes and widens, and wobbles back on the spring. */
+  scale: calc(1 + var(--pw-press-depth) * 0.4 * var(--pw-press, 0))
+    calc(1 - var(--pw-press-depth) * var(--pw-press, 0));
   transition: --pw-corner var(--md-sys-motion-effects-default-duration)
     var(--md-sys-motion-effects-default-easing);
 }

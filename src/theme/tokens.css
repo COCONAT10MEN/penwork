@@ -67,6 +67,9 @@
   --pw-glass-thick-blur: 32px;
   --pw-glass-saturate: 1.7;
 
+  /* On a colour the user picks, so it can't come from the theme. */
+  --pw-on-swatch: #ffffff;
+
   /* ---------- Logo ---------- */
   /* Behind the logo, closed. Black unless the user changes it; not part of the SVG. */
   --pw-logo-background: #00363f;
@@ -147,8 +150,10 @@
   /* Between Material's steps: the design's search box, subtitles and hints. */
   --pw-type-body-size: 15px;
   --pw-type-caption-size: 13px;
-  --pw-type-hero-title-size: 26px;
-  --pw-type-hero-title-line-height: 29px;
+  --pw-type-hero-title-size: 30px;
+  --pw-type-hero-title-line-height: 33px;
+  /* Roboto Flex's width axis: big headlines stand wider, as on Google's own screens. */
+  --pw-type-expressive-width: 112%;
   --pw-type-deck-title-size: 17px;
 
   --md-sys-typescale-label-large-size: 14px;

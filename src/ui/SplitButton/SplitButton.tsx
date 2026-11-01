@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type Ref } from "react";
 import { cx } from "../cx";
 import { Icon } from "../Icon";
 import { Menu, type MenuEntry } from "../Menu/Menu";
@@ -13,6 +13,11 @@ export interface SplitButtonProps {
   menuLabel: string;
   items: MenuEntry[];
   variant?: "filled" | "tonal";
+  size?: "small" | "compact";
+  iconFilled?: boolean;
+  /** For screen readers, when the main action needs more than its label. */
+  mainLabel?: string;
+  mainRef?: Ref<HTMLButtonElement>;
   menuMaterial?: SurfaceMaterial;
 }
 
@@ -24,14 +29,29 @@ export function SplitButton({
   menuLabel,
   items,
   variant = "filled",
+  size = "small",
+  iconFilled,
+  mainLabel,
+  mainRef,
   menuMaterial,
 }: SplitButtonProps) {
   const [open, setOpen] = useState(false);
   const [anchor, setAnchor] = useState<HTMLButtonElement | null>(null);
   return (
-    <div role="group" aria-label={label} className={cx(styles.group, styles[variant])}>
-      <button type="button" className={cx("pw-state", styles.main)} onClick={onClick}>
-        {icon && <Icon name={icon} size={20} />}
+    <div
+      role="group"
+      aria-label={label}
+      data-press-group
+      className={cx(styles.group, styles[variant], styles[size])}
+    >
+      <button
+        ref={mainRef}
+        type="button"
+        aria-label={mainLabel}
+        className={cx("pw-state pw-press", styles.main)}
+        onClick={onClick}
+      >
+        {icon && <Icon name={icon} size={20} filled={iconFilled} />}
         {label}
       </button>
       <button
@@ -41,7 +61,7 @@ export function SplitButton({
         aria-haspopup="menu"
         aria-expanded={open}
         data-open={open || undefined}
-        className={cx("pw-state", styles.arrow)}
+        className={cx("pw-state pw-press", styles.arrow)}
         onClick={() => setOpen((o) => !o)}
       >
         <Icon name="keyboard_arrow_down" size={20} className={styles.chevron} />

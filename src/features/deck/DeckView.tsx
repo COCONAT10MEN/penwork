@@ -2,13 +2,15 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useStore } from "zustand";
 import { useApp } from "../../appStore";
 import type { RuntimeMessage } from "../../lib/deck/bridge";
-import { wouldHide } from "../../lib/deck/slideOps";
-import { AmbientBackground, Button, Surface } from "../../ui";
+import { isHidden, wouldHide } from "../../lib/deck/slideOps";
+import { AmbientBackground } from "../../ui";
 import { cx } from "../../ui/cx";
 import { createDeckStore, noteInk } from "./deckStore";
 import { EditHeader } from "./EditHeader";
+import { EditToolbar } from "./EditToolbar";
 import { LayoutGallery } from "./LayoutGallery";
 import type { OpenDeck } from "./openDeck";
+import { SlideListPanel } from "./SlideListPanel";
 import { SlideMenu, type SlideMenuTarget } from "./SlideMenu";
 import { useDeckSave } from "./useDeckSave";
 import { useFrameChrome } from "./useFrameChrome";
@@ -52,6 +54,7 @@ export function DeckView({
   const canRedo = useStore(store, (doc) => doc.future.length > 0);
   const slides = useStore(store, (doc) => doc.slides);
   const [gallery, setGallery] = useState(false);
+  const [shrunk, setShrunk] = useState(false);
   const [menu, setMenu] = useState<SlideMenuTarget | null>(null);
   const [syncs, setSyncs] = useState(0);
   const sorterBox = useRef<HTMLDivElement>(null);
@@ -179,6 +182,8 @@ export function DeckView({
       ink.send(sorter);
     } else if (message.type === "key") {
       onFrameKey(message);
+    } else if (message.type === "scrolled") {
+      setShrunk(message.down);
     } else if (message.type === "pick" || message.type === "menu" || message.type === "move") {
       if (message.slide >= 0 && message.slide < slides.length) onSlidePicked(message);
     }
@@ -228,34 +233,24 @@ export function DeckView({
         onSave={() => void save()}
         onSaveAs={() => void save(true)}
         onPresent={() => present(slide)}
+        onPresentFromStart={() =>
+          present(
+            Math.max(
+              0,
+              slides.findIndex((s) => !isHidden(s)),
+            ),
+          )
+        }
       />
       <div className={styles.body}>
-        <Surface
-          material="glass"
-          className={styles.sorter}
-          role="complementary"
-          aria-label="Slides"
-        >
-          <div ref={sorterBox} className={styles.sorterList}>
-            <RuntimeFrame
-              ref={sorter}
-              token={deck.token}
-              title={deck.manifest.title}
-              view="sorter"
-              className={styles.sorterFrame}
-              onMessage={onSorterMessage}
-            />
-          </div>
-          <Button
-            size="compact"
-            variant="tonal"
-            icon="add"
-            className={styles.addSlide}
-            onClick={() => setGallery(true)}
-          >
-            Add slide
-          </Button>
-        </Surface>
+        <SlideListPanel
+          token={deck.token}
+          title={deck.manifest.title}
+          boxRef={sorterBox}
+          frameRef={sorter}
+          onMessage={onSorterMessage}
+          onAdd={() => setGallery(true)}
+        />
         <main className={styles.main}>
           <div className={styles.stage}>
             <RuntimeFrame
@@ -266,12 +261,19 @@ export function DeckView({
               onMessage={onStageMessage}
             />
           </div>
-          <Surface material="glass" className={styles.status} role="status">
-            <span>
-              <b>Slide {slide + 1}</b> of {total}
-            </span>
-            {steps > 0 && <span>{steps === 1 ? "1 step" : `${steps} steps`}</span>}
-          </Surface>
+          <EditToolbar
+            slide={slide}
+            total={slides.length}
+            steps={steps}
+            shrunk={shrunk}
+            canHide={editing.canHide()}
+            canRemove={editing.canRemove()}
+            onGo={(to) => editing.pick(to, { ctrl: false, shift: false })}
+            onDuplicate={() => editing.duplicate(slide)}
+            onHide={() => editing.hide(slide)}
+            onRemove={() => editing.remove(slide)}
+            onOpen={() => setShrunk(false)}
+          />
         </main>
       </div>
       <LayoutGallery open={gallery} onClose={() => setGallery(false)} onPick={editing.add} />

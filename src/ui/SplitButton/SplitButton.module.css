@@ -1,6 +1,12 @@
 .group {
   display: inline-flex;
   gap: 2px;
+  --pw-split-height: 40px;
+  --pw-split-end: var(--md-sys-shape-corner-large-increased);
+}
+.compact {
+  --pw-split-height: 48px;
+  --pw-split-end: var(--md-sys-shape-corner-extra-large);
 }
 
 .main,
@@ -8,8 +14,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 40px;
+  min-height: var(--pw-split-height);
   border: 0;
+  --pw-press-depth: 0;
   cursor: default;
   font-size: var(--md-sys-typescale-label-large-size);
   line-height: var(--md-sys-typescale-label-large-line-height);
@@ -21,21 +28,18 @@
 .main {
   gap: 8px;
   padding: 0 14px 0 16px;
-  /* Half the height, so the corners can animate (see IconButton). */
-  border-radius: var(--md-sys-shape-corner-large-increased) var(--md-sys-shape-corner-extra-small)
-    var(--md-sys-shape-corner-extra-small) var(--md-sys-shape-corner-large-increased);
+  /* The inner corners open up while pressed, so the two halves read as one button. */
+  --pw-inner: calc(var(--md-sys-shape-corner-extra-small) + 10px * var(--pw-morph, 0));
+  border-radius: var(--pw-split-end) var(--pw-inner) var(--pw-inner) var(--pw-split-end);
 }
 .arrow {
-  width: 40px;
-  border-radius: var(--md-sys-shape-corner-extra-small) var(--md-sys-shape-corner-large-increased)
-    var(--md-sys-shape-corner-large-increased) var(--md-sys-shape-corner-extra-small);
+  width: var(--pw-split-height);
+  --pw-inner: calc(var(--md-sys-shape-corner-extra-small) + 10px * var(--pw-morph, 0));
+  border-radius: var(--pw-inner) var(--pw-split-end) var(--pw-split-end) var(--pw-inner);
 }
 /* Open: the arrow morphs into its own circle. */
 .arrow[data-open] {
   border-radius: 50%;
-}
-.main:active {
-  border-radius: var(--md-sys-shape-corner-small);
 }
 
 .chevron {

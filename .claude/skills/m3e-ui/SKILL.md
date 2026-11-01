@@ -17,6 +17,7 @@ While building:
 - Motion only through the spring presets in `src/theme/motion.ts`; honor reduced motion. Press through `.pw-press` (`src/ui/press.ts`), never `:active`; hover only tints. The slide toolbar keeps the template's own look and timing.
 - Interactive elements: real `<button>`/`<a>`/`<input>`, `aria-label` on icon-only buttons,
   `:focus-visible` ring, hover/pressed state layer, target ≥ 40px.
+- Expressive shapes only through `Shape` and `src/ui/shapes.ts`: Google's own, never hand-drawn paths.
 - Selected toggles morph from rounded square to circle on an effects spring.
 - Both light and dark themes must look right.
 - No new UI libraries.

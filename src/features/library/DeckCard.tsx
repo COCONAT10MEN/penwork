@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { useApp } from "../../appStore";
-import { Card, COOKIE_PATH, Icon, IconButton, Menu } from "../../ui";
+import { Card, COOKIE_PATH, Icon, IconButton, Menu, Shape } from "../../ui";
 import { useThumb } from "../deck/thumbnail";
 import { notify } from "../notices/notices";
 import { slidesLabel, whenOpened } from "./greeting";
@@ -112,7 +112,9 @@ export function NewDeckCard({ onClick }: { onClick: () => void }) {
   return (
     <Card material="glass" actionLabel="New presentation" onClick={onClick} className={styles.deck}>
       <div className={styles.newThumb} aria-hidden="true">
-        <Icon name="add" size={28} />
+        <Shape from="Circle" name="Cookie4Sided" size={52} className={styles.newShape}>
+          <Icon name="add" size={28} />
+        </Shape>
         New presentation
       </div>
       <div className={styles.row}>

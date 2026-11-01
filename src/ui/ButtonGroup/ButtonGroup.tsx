@@ -24,6 +24,8 @@ export interface ButtonGroupProps<V extends string | string[]> {
   /** Multi-select only: keep at least one option selected. */
   required?: boolean;
   size?: "small" | "medium";
+  /** Fills the width it's given, with every option the same size. */
+  stretch?: boolean;
 }
 
 /**
@@ -40,6 +42,7 @@ export function ButtonGroup<V extends string | string[]>({
   onChange,
   required,
   size = "small",
+  stretch,
 }: ButtonGroupProps<V>) {
   const single = !Array.isArray(value);
   const groupRef = useRef<HTMLDivElement>(null);
@@ -65,7 +68,7 @@ export function ButtonGroup<V extends string | string[]>({
       role={single ? "radiogroup" : "group"}
       aria-label={label}
       data-press-group
-      className={cx(styles.group, styles[size])}
+      className={cx(styles.group, styles[size], stretch && styles.stretch)}
       onKeyDown={onKeyDown}
     >
       {options.map((option, index) => {

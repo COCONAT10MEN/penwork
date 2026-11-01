@@ -1,5 +1,6 @@
 import { useApp } from "../../appStore";
-import { Button, Card, CLOVER_PATH, Icon, Surface } from "../../ui";
+import { useState } from "react";
+import { Button, Card, Icon, Shape, Surface } from "../../ui";
 import { cx } from "../../ui/cx";
 import { DeckGrid, DeckMenu, DeckThumb, NewDeckCard, OPEN_BUTTON_ID } from "./DeckCard";
 import { greeting, slidesLabel, whenOpened } from "./greeting";
@@ -7,19 +8,23 @@ import type { LibraryDeck } from "./libraryFile";
 import styles from "./Home.module.css";
 
 function DropZone({ dragging }: { dragging: boolean }) {
+  const [hover, setHover] = useState(false);
   return (
     <Surface
       material="glass"
       strength="thin"
       className={styles.drop}
       data-dragging={dragging || undefined}
+      onPointerEnter={() => setHover(true)}
+      onPointerLeave={() => setHover(false)}
     >
-      <span className={styles.dropShape} aria-hidden="true">
-        <svg viewBox="0 0 100 100" width="72" height="72">
-          <path d={CLOVER_PATH} />
-        </svg>
-        <Icon name="download" size={32} className={styles.dropIcon} />
-      </span>
+      <Shape
+        name={dragging ? "Burst" : hover ? "Flower" : "Clover4Leaf"}
+        size={dragging ? 88 : 76}
+        className={styles.dropShape}
+      >
+        <Icon name="download" size={32} />
+      </Shape>
       <span className={styles.dropTitle}>Drop a presentation here</span>
       <span className={styles.dropHint}>.pwpptx files open straight away</span>
     </Surface>
@@ -36,6 +41,7 @@ function ContinueCard({ deck }: { deck: LibraryDeck }) {
   ].filter((tag) => typeof tag === "string");
   return (
     <Card material="glass" blur shape="hero" className={styles.continue}>
+      <Shape name="Sunny" size={420} spin className={styles.heroShape} />
       <DeckThumb deck={deck} className={styles.continueThumb} />
       <div className={styles.continueText}>
         <span className={styles.continueMore}>

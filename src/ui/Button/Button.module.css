@@ -9,8 +9,10 @@
   cursor: default;
   white-space: nowrap;
   font-weight: var(--md-sys-typescale-label-large-weight-emphasized);
-  transition: border-radius var(--md-sys-motion-spatial-fast-duration)
-    var(--md-sys-motion-spatial-fast-easing);
+  transition:
+    border-radius var(--md-sys-motion-spatial-fast-duration)
+      var(--md-sys-motion-spatial-fast-easing),
+    scale var(--md-sys-motion-spatial-fast-duration) var(--md-sys-motion-spatial-fast-easing);
 }
 
 /* Sizes (M3 Expressive: small 40, medium 56, large 96; compact 48 is the design's top-bar button). */
@@ -53,6 +55,7 @@
 
 .button:active:not(:disabled) {
   border-radius: var(--pw-pressed-corner);
+  scale: 0.97;
 }
 
 /* Variants */

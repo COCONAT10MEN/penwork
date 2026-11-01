@@ -44,36 +44,40 @@ pub fn prepare(app: &AppHandle) -> tauri::Result<()> {
 #[cfg(windows)]
 mod native {
     use tauri::WebviewWindow;
-    use webview2_com::ContextMenuRequestedEventHandler;
     use webview2_com::Microsoft::Web::WebView2::Win32::{
-        ICoreWebView2Settings3, ICoreWebView2Settings4, ICoreWebView2Settings5,
-        ICoreWebView2Settings6, ICoreWebView2_11,
+        ICoreWebView2PermissionRequestedEventArgs, ICoreWebView2Settings3, ICoreWebView2Settings4,
+        ICoreWebView2Settings5, ICoreWebView2Settings6, COREWEBVIEW2_PERMISSION_KIND,
+        COREWEBVIEW2_PERMISSION_KIND_CLIPBOARD_READ, COREWEBVIEW2_PERMISSION_STATE_ALLOW,
+        COREWEBVIEW2_PERMISSION_STATE_DENY,
     };
-    use windows::core::{Interface, BOOL, PWSTR};
+    use webview2_com::PermissionRequestedEventHandler;
+    use windows::core::{Interface, PWSTR};
 
-    /// What a right-click on a text box may offer. Everything else in the menu is about the web.
-    const TEXT_MENU: [&str; 4] = ["cut", "copy", "paste", "selectAll"];
+    /// The app's own page, in a release build and in `tauri dev`. Never a slide page.
+    const APP_PAGES: [&str; 2] = ["http://tauri.localhost", "http://localhost:1420"];
 
-    fn keep_text_items(
-        args: &webview2_com::Microsoft::Web::WebView2::Win32::ICoreWebView2ContextMenuRequestedEventArgs,
+    /// Paste in the app's own text menu needs the clipboard. Slides never get it.
+    fn answer_permission(
+        args: &ICoreWebView2PermissionRequestedEventArgs,
     ) -> windows::core::Result<()> {
-        // SAFETY: WebView2 calls this on the main thread with valid arguments, and the name it
+        // SAFETY: WebView2 calls this on the main thread with valid arguments, and the address it
         // returns is ours to read and free.
         unsafe {
-            let items = args.MenuItems()?;
-            let mut count = 0u32;
-            items.Count(&raw mut count)?;
-            for index in (0..count).rev() {
-                let item = items.GetValueAtIndex(index)?;
-                let mut name = PWSTR::null();
-                item.Name(&raw mut name)?;
-                let text = name.to_string().unwrap_or_default();
-                windows::Win32::System::Com::CoTaskMemFree(Some(name.0.cast()));
-                if !TEXT_MENU.contains(&text.as_str()) {
-                    items.RemoveValueAtIndex(index)?;
-                }
+            let mut kind = COREWEBVIEW2_PERMISSION_KIND::default();
+            args.PermissionKind(&raw mut kind)?;
+            if kind != COREWEBVIEW2_PERMISSION_KIND_CLIPBOARD_READ {
+                return Ok(());
             }
-            Ok(())
+            let mut uri = PWSTR::null();
+            args.Uri(&raw mut uri)?;
+            let address = uri.to_string().unwrap_or_default();
+            windows::Win32::System::Com::CoTaskMemFree(Some(uri.0.cast()));
+            let ours = APP_PAGES.iter().any(|page| address.starts_with(page));
+            args.SetState(if ours {
+                COREWEBVIEW2_PERMISSION_STATE_ALLOW
+            } else {
+                COREWEBVIEW2_PERMISSION_STATE_DENY
+            })
         }
     }
 
@@ -87,29 +91,22 @@ mod native {
                     settings.SetIsStatusBarEnabled(false)?;
                     settings.SetIsZoomControlEnabled(false)?;
                     settings.SetIsBuiltInErrorPageEnabled(false)?;
-                    settings.cast::<ICoreWebView2Settings3>()?.SetAreBrowserAcceleratorKeysEnabled(false)?;
+                    // Right-click menus are the app's own (features/notices/TextMenu.tsx).
+                    settings.SetAreDefaultContextMenusEnabled(false)?;
+                    settings
+                        .cast::<ICoreWebView2Settings3>()?
+                        .SetAreBrowserAcceleratorKeysEnabled(false)?;
                     let autofill = settings.cast::<ICoreWebView2Settings4>()?;
                     autofill.SetIsPasswordAutosaveEnabled(false)?;
                     autofill.SetIsGeneralAutofillEnabled(false)?;
                     settings.cast::<ICoreWebView2Settings5>()?.SetIsPinchZoomEnabled(false)?;
                     settings.cast::<ICoreWebView2Settings6>()?.SetIsSwipeNavigationEnabled(false)?;
 
-                    // Right-click: a text box keeps Cut, Copy and Paste, and nothing else has a menu.
-                    let handler = ContextMenuRequestedEventHandler::create(Box::new(|_, args| {
-                        let Some(args) = args else {
-                            return Ok(());
-                        };
-                        let target = args.ContextMenuTarget()?;
-                        let mut editable = BOOL::default();
-                        target.IsEditable(&raw mut editable)?;
-                        if editable.as_bool() {
-                            keep_text_items(&args)
-                        } else {
-                            args.SetHandled(true)
-                        }
+                    let handler = PermissionRequestedEventHandler::create(Box::new(|_, args| {
+                        args.map_or(Ok(()), |args| answer_permission(&args))
                     }));
                     let mut token = 0i64;
-                    webview.cast::<ICoreWebView2_11>()?.add_ContextMenuRequested(&handler, &raw mut token)
+                    webview.add_PermissionRequested(&handler, &raw mut token)
                 }
             };
             if let Err(error) = setup() {

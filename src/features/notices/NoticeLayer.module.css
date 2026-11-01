@@ -1,0 +1,40 @@
+/* Above the edit view's status pill, so neither covers the other. */
+.region {
+  position: fixed;
+  inset: auto 0 68px;
+  z-index: 950;
+  display: flex;
+  justify-content: center;
+  padding: 0 16px;
+  pointer-events: none;
+}
+
+.notice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 560px;
+  min-height: 48px;
+  padding: 6px 20px 6px 8px;
+  border-radius: var(--md-sys-shape-corner-full);
+  font-size: var(--pw-type-body-size);
+  line-height: var(--md-sys-typescale-body-medium-line-height);
+  font-weight: var(--md-sys-typescale-body-medium-weight-emphasized);
+}
+.noticeIcon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+}
+
+.point {
+  position: fixed;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}

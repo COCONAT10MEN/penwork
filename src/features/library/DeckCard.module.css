@@ -5,6 +5,27 @@
 }
 
 .deck {
+  transition:
+    translate var(--md-sys-motion-spatial-default-duration)
+      var(--md-sys-motion-spatial-default-easing),
+    box-shadow var(--md-sys-motion-effects-duration) var(--md-sys-motion-effects-easing),
+    scale var(--md-sys-motion-spatial-fast-duration) var(--md-sys-motion-spatial-fast-easing);
+}
+.deck:hover {
+  translate: 0 -3px;
+  box-shadow: var(--pw-glass-rim-top), var(--pw-glass-shadow);
+}
+.deck:active {
+  scale: 0.985;
+}
+.picture {
+  transition: scale var(--md-sys-motion-spatial-slow-duration)
+    var(--md-sys-motion-spatial-slow-easing);
+}
+.deck:hover .picture {
+  scale: 1.04;
+}
+.deck {
   position: relative;
   display: flex;
   flex-direction: column;

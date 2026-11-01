@@ -1,4 +1,6 @@
+import { AnimatePresence, motion } from "motion/react";
 import type { Ref } from "react";
+import { useSpring } from "../../theme/motion";
 import { Button, IconButton, Surface } from "../../ui";
 import styles from "./DeckView.module.css";
 
@@ -29,13 +31,24 @@ export function EditHeader({
   onSaveAs: () => void;
   onPresent: () => void;
 }) {
+  const fade = useSpring("effectsDefault");
+  const status = saving ? "Saving…" : dirty ? "Unsaved changes" : "All changes saved";
   return (
     <Surface material="glass" floating className={styles.header}>
       <IconButton icon="arrow_back" label="Back to Home" onClick={onBack} />
       <div className={styles.titles}>
         <h1 className={styles.title}>{title}</h1>
         <p className={styles.saved} data-dirty={dirty || undefined}>
-          {saving ? "Saving…" : dirty ? "Unsaved changes" : "All changes saved"}
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.span
+              key={status}
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0, transition: fade }}
+              exit={{ opacity: 0, y: -5, transition: fade }}
+            >
+              {status}
+            </motion.span>
+          </AnimatePresence>
         </p>
       </div>
       <div className={styles.history} role="group" aria-label="Undo and save">

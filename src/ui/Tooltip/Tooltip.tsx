@@ -55,7 +55,7 @@ export function Tooltip({
   text,
   placement = "top",
   describes = true,
-  material = "tonal",
+  material = "glass",
   children,
 }: TooltipProps) {
   const id = useId();
@@ -139,7 +139,7 @@ export function Tooltip({
             className={cx(
               styles.tooltip,
               material === "tonal" && styles.tonal,
-              surfaceClass({ material, strength: "thick", solid: true }),
+              surfaceClass({ material, strength: "thick", floating: true }),
             )}
             style={coords ?? { visibility: "hidden", left: 0, top: 0 }}
           >

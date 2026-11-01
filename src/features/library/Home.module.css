@@ -32,6 +32,12 @@
   outline-offset: -6px;
 }
 
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
 .top {
   display: flex;
   align-items: center;
@@ -261,4 +267,52 @@
   flex-direction: column;
   gap: 16px;
   min-width: min(400px, 70vw);
+}
+
+/* The first look at Home, and coming back to it. */
+.rail,
+.top,
+.page {
+  animation: rise var(--md-sys-motion-spatial-slow-duration)
+    var(--md-sys-motion-spatial-slow-easing);
+}
+.rail {
+  animation-name: rise-side;
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    translate: 0 14px;
+  }
+}
+@keyframes rise-side {
+  from {
+    opacity: 0;
+    translate: -14px 0;
+  }
+}
+.continueThumb img {
+  transition: scale var(--md-sys-motion-spatial-slow-duration)
+    var(--md-sys-motion-spatial-slow-easing);
+}
+.continue:hover .continueThumb img {
+  scale: 1.03;
+}
+.continueActions .present {
+  transition:
+    box-shadow var(--md-sys-motion-effects-duration) var(--md-sys-motion-effects-easing),
+    border-radius var(--md-sys-motion-spatial-fast-duration)
+      var(--md-sys-motion-spatial-fast-easing),
+    scale var(--md-sys-motion-spatial-fast-duration) var(--md-sys-motion-spatial-fast-easing);
+}
+.continueActions .present:hover {
+  box-shadow: 0 14px 30px -8px color-mix(in srgb, var(--md-sys-color-primary) 75%, transparent);
+}
+.drop.drop {
+  transition:
+    border-color var(--md-sys-motion-effects-duration) var(--md-sys-motion-effects-easing),
+    scale var(--md-sys-motion-spatial-default-duration) var(--md-sys-motion-spatial-default-easing);
+}
+.drop[data-dragging] {
+  scale: 1.02;
 }

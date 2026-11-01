@@ -39,6 +39,8 @@ export function Menu({ open, onClose, anchor, label, items, material = "tonal" }
   const spring = useSpring("spatialCalm");
   const fade = useSpring("effectsFast");
   const reduce = useReduceMotion();
+  // Inside a dialog it needs the top layer, or the dialog's glass would be what it's placed against.
+  const lifted = anchor?.closest("dialog") != null;
 
   // Kept in a ref: a parent re-render passes a new onClose, which must not re-run the effect
   // below and pull focus back to the first item.
@@ -49,6 +51,7 @@ export function Menu({ open, onClose, anchor, label, items, material = "tonal" }
 
   useLayoutEffect(() => {
     if (!open || !anchor || !ref.current) return;
+    if (lifted) ref.current.showPopover();
     const a = anchor.getBoundingClientRect();
     // The opening animation has it scaled down right now, so its on-screen box is too small.
     const height = ref.current.offsetHeight;
@@ -56,7 +59,7 @@ export function Menu({ open, onClose, anchor, label, items, material = "tonal" }
     const up = a.bottom + GAP + height > window.innerHeight && a.top - GAP - height > 0;
     const left = Math.min(Math.max(8, a.left), window.innerWidth - width - 8);
     setPos({ left, top: up ? a.top - GAP - height : a.bottom + GAP, up });
-  }, [open, anchor, items.length]);
+  }, [open, anchor, items.length, lifted]);
 
   // The position is recomputed in the layout effect above before each opening is painted.
   useEffect(() => {
@@ -82,19 +85,24 @@ export function Menu({ open, onClose, anchor, label, items, material = "tonal" }
           ref={ref}
           role="menu"
           aria-label={label}
+          popover={lifted ? "manual" : undefined}
           className={cx(
             styles.menu,
             material === "tonal" && styles.tonal,
-            surfaceClass({ material, strength: "thick", floating: true, solid: true }),
+            surfaceClass({ material, strength: "thick", floating: true }),
           )}
           // Until measured it sits off-screen, not visibility:hidden, so the first item can take focus.
           style={
             pos
-              ? { left: pos.left, top: pos.top, transformOrigin: pos.up ? "bottom" : "top" }
+              ? {
+                  left: pos.left,
+                  top: pos.top,
+                  transformOrigin: pos.up ? "left bottom" : "left top",
+                }
               : { left: -10000, top: 0 }
           }
-          initial={reduce ? { opacity: 0 } : { opacity: 0, scaleY: 0.85 }}
-          animate={{ opacity: 1, scaleY: 1, transition: spring }}
+          initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.88 }}
+          animate={{ opacity: 1, scale: 1, transition: spring }}
           exit={{ opacity: 0, transition: fade }}
           onKeyDown={(e) => {
             if (handleMenuKeys(e, ref.current)) return;

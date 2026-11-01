@@ -72,7 +72,7 @@ html.sorter #ov::-webkit-scrollbar-button {
 html.sorter #ov::-webkit-scrollbar-thumb {
   border: 3px solid transparent;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--pw-text, #e6f6fb) 30%, transparent) padding-box;
+  background: var(--pw-scroll-thumb) padding-box;
 }
 html.sorter,
 html.sorter body {
@@ -330,4 +330,52 @@ html,
 body {
   user-select: none;
   overscroll-behavior: none;
+}
+
+/* Tooltips and the slide list move like the rest of the app. */
+#tip {
+  background: var(--pw-dock-fill);
+  -webkit-backdrop-filter: blur(24px) saturate(1.8);
+  backdrop-filter: blur(24px) saturate(1.8);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow:
+    0 10px 24px -10px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  border-radius: 12px;
+  color: var(--pw-dock-text);
+  scale: 0.86;
+  transition:
+    opacity 0.12s,
+    scale 0.28s cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+#tip.on {
+  scale: 1;
+}
+html.sorter #ov .th {
+  transition:
+    translate 0.3s cubic-bezier(0.2, 0, 0, 1),
+    outline-offset 0.3s cubic-bezier(0.3, 1.5, 0.5, 1),
+    border-radius 0.3s cubic-bezier(0.2, 0, 0, 1),
+    box-shadow 0.15s;
+}
+html.sorter #ov .cell:hover .th {
+  translate: 0 -2px;
+}
+html.sorter #ov .cell:active .th {
+  translate: 0 0;
+}
+html.sorter #ov {
+  transition: --pw-scroll-thumb 0.25s;
+}
+html.sorter #ov:hover {
+  --pw-scroll-thumb: color-mix(in srgb, var(--pw-accent, #82d3e6) 40%, transparent);
+}
+@property --pw-scroll-thumb {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+body.still #ov .th,
+body.still #tip {
+  transition: none !important;
 }

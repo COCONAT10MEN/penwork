@@ -78,8 +78,16 @@
 .stacked .item::before {
   content: none;
 }
+.stacked .iconWrap {
+  transition:
+    background-color var(--md-sys-motion-effects-duration) var(--md-sys-motion-effects-easing),
+    scale var(--md-sys-motion-spatial-fast-duration) var(--md-sys-motion-spatial-fast-easing);
+}
 .stacked .item:hover .iconWrap {
   background: color-mix(in srgb, var(--md-sys-color-on-surface) 8%, transparent);
+}
+.stacked .item:active .iconWrap {
+  scale: 0.92;
 }
 .stacked .item[data-active] {
   background: transparent;
@@ -92,8 +100,16 @@
   border-radius: var(--md-sys-shape-corner-large);
 }
 .stacked .item[data-active] .iconWrap {
-  background: var(--md-sys-color-primary-container);
   color: var(--md-sys-color-on-primary-container);
+}
+.pill {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--md-sys-shape-corner-large);
+  background: var(--md-sys-color-primary-container);
+}
+.railIcon {
+  position: relative;
 }
 .stacked .label {
   max-width: 100%;

@@ -8,8 +8,10 @@
   border-radius: 50%;
   background: transparent;
   cursor: default;
-  transition: border-radius var(--md-sys-motion-spatial-fast-duration)
-    var(--md-sys-motion-spatial-fast-easing);
+  transition:
+    border-radius var(--md-sys-motion-spatial-fast-duration)
+      var(--md-sys-motion-spatial-fast-easing),
+    scale var(--md-sys-motion-spatial-fast-duration) var(--md-sys-motion-spatial-fast-easing);
 }
 .small {
   width: 40px;
@@ -19,6 +21,12 @@
   width: 44px;
   height: 44px;
   border-radius: var(--pw-shape-tool);
+}
+.compact:hover:not(:disabled) {
+  border-radius: 50%;
+}
+.button:active:not(:disabled) {
+  scale: 0.92;
 }
 .medium {
   width: 56px;

@@ -57,10 +57,27 @@ svg {
 ::-webkit-scrollbar-thumb {
   border: 3px solid transparent;
   border-radius: var(--md-sys-shape-corner-full);
-  background: color-mix(in srgb, var(--md-sys-color-on-surface) 30%, transparent) padding-box;
+  background: var(--pw-scroll-thumb) padding-box;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: color-mix(in srgb, var(--md-sys-color-on-surface) 50%, transparent) padding-box;
+  background: color-mix(in srgb, var(--md-sys-color-primary) 60%, transparent) padding-box;
+}
+/* Registered, so the colour can be animated: the bar fades in over its area and out again. */
+@property --pw-scroll-thumb {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+main,
+dialog,
+[data-scroll] {
+  transition: --pw-scroll-thumb var(--md-sys-motion-effects-slow-duration)
+    var(--md-sys-motion-effects-slow-easing);
+}
+main:hover,
+dialog:hover,
+[data-scroll]:hover {
+  --pw-scroll-thumb: color-mix(in srgb, var(--md-sys-color-primary) 35%, transparent);
 }
 /*
   The app shell owns all scrolling (panes scroll, the page never does). Absolutely positioned

@@ -22,7 +22,7 @@ import {
   setThumb,
   type Library,
 } from "./features/library/libraryFile";
-import { showError, showWarning } from "./lib/windowsDialog";
+import { showError, showWarning } from "./features/notices/notices";
 import type { DeckParts } from "./lib/deck/deckParts";
 import type { DeckFacts } from "./lib/deck/facts";
 

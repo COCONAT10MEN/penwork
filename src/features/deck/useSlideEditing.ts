@@ -18,13 +18,14 @@ import {
   withNewId,
   type DeckSlide,
 } from "../../lib/deck/slideOps";
-import { showError, showWarning } from "../../lib/windowsDialog";
+import { notify, showError, showWarning } from "../notices/notices";
 import { commit, redo as redoStore, undo as undoStore, type DeckStore } from "./deckStore";
 import type { OpenDeck } from "./openDeck";
 import type { RuntimeFrameHandle } from "./RuntimeFrame";
 
 type Frame = RefObject<RuntimeFrameHandle | null>;
 
+const NOTHING_TO_SHOW = "At least one slide has to stay in the show.";
 const IMAGES_NOT_COPIED = "Some images couldn't be copied with the slides.";
 
 /** Lives outside any one presentation, so slides can be pasted into the next one opened. */
@@ -142,9 +143,15 @@ export function useSlideEditing(options: {
     (slide?: number) => {
       const { slides } = store.getState();
       const picked = pickedFor(slide);
-      // The menu greys this out, and the Delete key simply does nothing here.
+      // The menu greys this out, but the Delete key can still ask.
       const left = removeSlides(slides, picked);
-      if (leavesNoShow(left)) return;
+      if (leavesNoShow(left)) {
+        notify(
+          left.length === 0 ? "A presentation needs at least one slide." : NOTHING_TO_SHOW,
+          "info",
+        );
+        return;
+      }
       edit(left, picked[0] ?? 0);
     },
     [store, pickedFor, edit],
@@ -154,7 +161,10 @@ export function useSlideEditing(options: {
     (slide?: number) => {
       const picked = pickedFor(slide);
       const toggled = toggleHidden(store.getState().slides, picked);
-      if (leavesNoShow(toggled)) return;
+      if (leavesNoShow(toggled)) {
+        notify(NOTHING_TO_SHOW, "info");
+        return;
+      }
       edit(toggled, slideRef.current, picked);
     },
     [store, pickedFor, edit, slideRef],
@@ -202,6 +212,10 @@ export function useSlideEditing(options: {
           () => showWarning(IMAGES_NOT_COPIED),
         );
       }
+      notify(
+        copied.length === 1 ? "Slide copied" : `${copied.length} slides copied`,
+        "content_copy",
+      );
     },
     [deck.token, store, pickedFor],
   );

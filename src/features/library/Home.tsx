@@ -1,5 +1,7 @@
+import { AnimatePresence, motion } from "motion/react";
 import { useRef, useState } from "react";
 import { useApp } from "../../appStore";
+import { useReduceMotion, useSpring } from "../../theme/motion";
 import {
   AmbientBackground,
   Button,
@@ -35,6 +37,9 @@ export function Home({ dragging }: { dragging: boolean }) {
   const [query, setQuery] = useState("");
   const [newDeckOpen, setNewDeckOpen] = useState(false);
   const main = useRef<HTMLElement>(null);
+  const glide = useSpring("spatialCalm");
+  const fade = useSpring("effectsDefault");
+  const reduce = useReduceMotion();
 
   const onOpen = async () => {
     const path = await pickDeck();
@@ -117,7 +122,17 @@ export function Home({ dragging }: { dragging: boolean }) {
             Open presentation
           </Button>
         </div>
-        {content()}
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={query ? "search" : page}
+            className={styles.page}
+            initial={reduce ? { opacity: 0 } : { opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0, transition: glide }}
+            exit={{ opacity: 0, transition: fade }}
+          >
+            {content()}
+          </motion.div>
+        </AnimatePresence>
       </main>
       <NewDeckDialog open={newDeckOpen} onClose={() => setNewDeckOpen(false)} />
     </div>

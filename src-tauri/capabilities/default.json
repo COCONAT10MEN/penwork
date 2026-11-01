@@ -12,7 +12,6 @@
     "core:window:allow-destroy",
     "dialog:allow-open",
     "dialog:allow-save",
-    "dialog:allow-message",
     "allow-get-accent-color",
     "allow-take-pending-open",
     "allow-read-app-file",

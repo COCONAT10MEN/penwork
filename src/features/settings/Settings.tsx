@@ -5,7 +5,7 @@ import { contrastRatio } from "../../lib/contrast";
 import { checkLogo } from "../../lib/logo";
 import { Button, ColorPicker, Dialog, LogoTile, SegmentedButton, Surface, Switch } from "../../ui";
 import type { ThemeMode, Transparency } from "../../theme/theme";
-import { showError } from "../../lib/windowsDialog";
+import { showError } from "../notices/notices";
 import { logoColor } from "./appearance";
 import type { ColorSource, Settings as SavedSettings } from "./settingsFile";
 import { useSettings } from "./settingsStore";

@@ -2,7 +2,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { isTauri } from "@tauri-apps/api/core";
 import { useCallback, useEffect, useRef } from "react";
 import { useApp } from "../../appStore";
-import { askThreeWay } from "../../lib/windowsDialog";
+import { askThreeWay } from "../notices/notices";
 
 /** Asks about unsaved work before the presentation goes, whichever way it's leaving. */
 export function useLeaveGuard(options: {
@@ -22,6 +22,7 @@ export function useLeaveGuard(options: {
       yes: "Save",
       no: "Don't save",
       cancel: "Cancel",
+      icon: "save",
     });
     if (answer === "no") await discard();
     return answer === "yes" ? save() : answer === "no";

@@ -1,12 +1,14 @@
 .menu {
   position: fixed;
+  inset: auto;
   z-index: 900;
+  margin: 0;
   display: flex;
   flex-direction: column;
   min-width: 200px;
   max-width: 320px;
-  padding: 4px;
-  border-radius: var(--md-sys-shape-corner-large);
+  padding: 6px;
+  border-radius: var(--md-sys-shape-corner-large-increased);
   color: var(--md-sys-color-on-surface);
 }
 .tonal {
@@ -21,13 +23,18 @@
   min-height: 44px;
   padding: 0 12px;
   border: 0;
-  border-radius: var(--md-sys-shape-corner-medium);
+  border-radius: var(--pw-shape-tool);
   background: transparent;
   cursor: default;
   text-align: start;
+  transition: border-radius var(--md-sys-motion-spatial-fast-duration)
+    var(--md-sys-motion-spatial-fast-easing);
   font-size: var(--md-sys-typescale-label-large-size);
   line-height: var(--md-sys-typescale-label-large-line-height);
   letter-spacing: var(--md-sys-typescale-label-large-tracking);
+}
+.item:hover:not([aria-disabled="true"]) {
+  border-radius: var(--md-sys-shape-corner-large-increased);
 }
 .item[aria-disabled="true"] {
   cursor: default;

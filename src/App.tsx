@@ -6,6 +6,7 @@ import { useApp } from "./appStore";
 import { DeckView } from "./features/deck/DeckView";
 import { RecoveryPrompt } from "./features/deck/RecoveryPrompt";
 import { useFileOpening } from "./features/deck/useFileOpening";
+import { NoticeLayer } from "./features/notices/NoticeLayer";
 import { Home } from "./features/library/Home";
 import { useSettings } from "./features/settings/settingsStore";
 
@@ -80,6 +81,7 @@ function App() {
     // Motion ignores the OS setting unless told otherwise.
     <MotionConfig reducedMotion={reduceMotion ? "always" : "user"}>
       <Screens />
+      <NoticeLayer />
     </MotionConfig>
   );
 }

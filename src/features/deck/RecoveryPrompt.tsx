@@ -1,7 +1,7 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import { useEffect } from "react";
 import { useApp } from "../../appStore";
-import { askThreeWay } from "../../lib/windowsDialog";
+import { askThreeWay } from "../notices/notices";
 
 /** After a crash, unsaved work is waiting in a recovery copy. The user's file wasn't touched. */
 export function RecoveryPrompt() {
@@ -27,6 +27,7 @@ export function RecoveryPrompt() {
           yes: "Recover",
           no: "Discard",
           cancel: "Not now",
+          icon: "history",
         });
         if (answer === "yes") {
           await useApp.getState().recoverDeck(id, entry.path);

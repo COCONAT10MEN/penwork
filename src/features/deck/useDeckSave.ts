@@ -6,7 +6,7 @@ import { useApp } from "../../appStore";
 import { deckFacts } from "../../lib/deck/facts";
 import type { InkBySlide } from "../../lib/deck/ink";
 import { joinSlides, type DeckSlide } from "../../lib/deck/slideOps";
-import { askGoAhead, showError, showWarning } from "../../lib/windowsDialog";
+import { askGoAhead, notify, showError, showWarning } from "../notices/notices";
 import { isDirty, markSaved, type DeckStore } from "./deckStore";
 import type { OpenDeck } from "./openDeck";
 
@@ -47,6 +47,7 @@ export function useDeckSave(options: {
       text: `Penwork removed this when opening the file: ${deck.removed.join(", ")}. Saving makes that permanent.`,
       ok: "Save",
       cancel: "Cancel",
+      icon: "cleaning_services",
     });
     return cleanedOk.current;
   }, [deck.removed]);
@@ -88,6 +89,8 @@ export function useDeckSave(options: {
         if (deck.draft) void invoke("delete_draft", { path: deck.path });
         if (saved.imagesLost) {
           showWarning("Saved, but images from the original file are missing because it has moved.");
+        } else {
+          notify("Saved");
         }
         return true;
       } catch (error) {

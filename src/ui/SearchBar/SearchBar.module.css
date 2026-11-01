@@ -12,9 +12,15 @@
   background: var(--md-sys-color-surface-container-high);
 }
 /* The whole pill shows the keyboard focus ring, not just the text field inside it. */
-.bar:has(.input:focus-visible) {
-  outline: var(--md-sys-focus-ring-width) solid var(--md-sys-focus-ring-color);
-  outline-offset: var(--md-sys-focus-ring-offset);
+.bar {
+  transition: box-shadow var(--md-sys-motion-effects-slow-duration)
+    var(--md-sys-motion-effects-slow-easing);
+}
+.bar:has(.input:focus) {
+  box-shadow:
+    var(--pw-glass-rim-top),
+    0 0 0 2px var(--md-sys-color-primary),
+    0 0 24px -4px color-mix(in srgb, var(--md-sys-color-primary) 60%, transparent);
 }
 
 .leading {

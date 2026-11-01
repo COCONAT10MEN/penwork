@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { useApp } from "../../appStore";
 import { Card, COOKIE_PATH, Icon, IconButton, Menu } from "../../ui";
 import { useThumb } from "../deck/thumbnail";
+import { notify } from "../notices/notices";
 import { slidesLabel, whenOpened } from "./greeting";
 import type { LibraryDeck } from "./libraryFile";
 import { matchSnippet } from "./librarySearch";
@@ -60,6 +61,7 @@ export function DeckMenu({ deck, onRemoved }: { deck: LibraryDeck; onRemoved?: (
             onSelect: () => {
               remove(deck.id);
               onRemoved?.();
+              notify("Removed from recents. The file wasn't touched.", "playlist_remove");
             },
           },
         ]}

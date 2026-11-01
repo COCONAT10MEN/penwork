@@ -4,14 +4,16 @@
   min-width: 280px;
   max-width: min(560px, calc(100vw - 48px));
   padding: 0;
-  border-radius: var(--md-sys-shape-corner-extra-large);
+  border-radius: var(--md-sys-shape-corner-extra-large-increased);
   color: var(--md-sys-color-on-surface);
   opacity: 0;
   scale: 0.9;
+  translate: 0 16px;
   transition:
     opacity var(--md-sys-motion-effects-default-duration)
       var(--md-sys-motion-effects-default-easing),
     scale var(--md-sys-motion-spatial-calm-duration) var(--md-sys-motion-spatial-calm-easing),
+    translate var(--md-sys-motion-spatial-calm-duration) var(--md-sys-motion-spatial-calm-easing),
     overlay var(--md-sys-motion-effects-default-duration) allow-discrete,
     display var(--md-sys-motion-effects-default-duration) allow-discrete;
 }
@@ -23,6 +25,7 @@
 .dialog[open] {
   opacity: 1;
   scale: 1;
+  translate: 0 0;
 }
 @starting-style {
   .tonal {
@@ -32,11 +35,26 @@
   .dialog[open] {
     opacity: 0;
     scale: 0.9;
+    translate: 0 16px;
+  }
+  .dialog[open]::backdrop {
+    opacity: 0;
   }
 }
 
+/* The app softens behind the dialog, so the glass has something to sit over. */
 .dialog::backdrop {
   background: color-mix(in srgb, var(--md-sys-color-scrim) 32%, transparent);
+  -webkit-backdrop-filter: blur(6px) saturate(1.2);
+  backdrop-filter: blur(6px) saturate(1.2);
+  opacity: 0;
+  transition:
+    opacity var(--md-sys-motion-effects-slow-duration) var(--md-sys-motion-effects-slow-easing),
+    overlay var(--md-sys-motion-effects-slow-duration) allow-discrete,
+    display var(--md-sys-motion-effects-slow-duration) allow-discrete;
+}
+.dialog[open]::backdrop {
+  opacity: 1;
 }
 
 .content {
@@ -46,9 +64,26 @@
   padding: 24px;
 }
 
-.icon {
+.iconShape {
+  position: relative;
+  display: grid;
+  place-items: center;
   align-self: center;
-  color: var(--md-sys-color-secondary);
+  width: 64px;
+  height: 64px;
+  fill: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+}
+.iconShape[data-danger] {
+  fill: var(--md-sys-color-error-container);
+  color: var(--md-sys-color-on-error-container);
+}
+.iconShape > svg {
+  position: absolute;
+  inset: 0;
+}
+.icon {
+  position: relative;
 }
 
 .headline,
@@ -56,12 +91,15 @@
   margin: 0;
   font-size: var(--md-sys-typescale-headline-small-size);
   line-height: var(--md-sys-typescale-headline-small-line-height);
-  font-weight: var(--md-sys-typescale-headline-small-weight);
+  font-weight: var(--md-sys-typescale-headline-small-weight-emphasized);
 }
 .headlineCentered {
   text-align: center;
 }
 
+.headlineCentered + .body {
+  text-align: center;
+}
 .body {
   color: var(--md-sys-color-on-surface-variant);
   font-size: var(--md-sys-typescale-body-medium-size);

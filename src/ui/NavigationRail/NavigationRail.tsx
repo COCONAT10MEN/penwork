@@ -1,4 +1,6 @@
-import type { ReactNode } from "react";
+import { motion } from "motion/react";
+import { useId, type ReactNode } from "react";
+import { useSpring } from "../../theme/motion";
 import { cx } from "../cx";
 import { surfaceClass, type SurfaceMaterial } from "../Surface/Surface";
 import { Icon } from "../Icon";
@@ -46,6 +48,8 @@ export function NavigationRail({
   footerItems = [],
   material = "tonal",
 }: NavigationRailProps) {
+  const pill = useId();
+  const slide = useSpring("spatialDefault");
   const entry = (item: RailItem) => {
     const active = item.id === value;
     const button = (
@@ -64,7 +68,10 @@ export function NavigationRail({
         onClick={() => onChange(item.id)}
       >
         <span className={styles.iconWrap}>
-          <Icon name={item.icon} filled={active} />
+          {active && layout === "stacked" && (
+            <motion.span layoutId={pill} className={styles.pill} transition={slide} />
+          )}
+          <Icon name={item.icon} filled={active} className={styles.railIcon} />
           {!!item.badge && (
             <span className={styles.badge} aria-hidden="true">
               {item.badge > 99 ? "99+" : item.badge}

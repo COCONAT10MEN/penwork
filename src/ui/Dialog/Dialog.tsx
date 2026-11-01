@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, type ReactNode } from "react";
 import { cx } from "../cx";
 import { Icon } from "../Icon";
+import { COOKIE_PATH } from "../shapes";
 import { surfaceClass, type SurfaceMaterial } from "../Surface/Surface";
 import styles from "./Dialog.module.css";
 
@@ -13,8 +14,9 @@ export interface DialogProps {
   children: ReactNode;
   /** Buttons along the bottom, usually text buttons with the main action last. */
   actions?: ReactNode;
-  /** Dialogs need full attention, so glass ones are opaque too. */
   material?: SurfaceMaterial;
+  /** Something went wrong: the icon takes the error colour. */
+  danger?: boolean;
 }
 
 /**
@@ -29,6 +31,7 @@ export function Dialog({
   children,
   actions,
   material = "tonal",
+  danger,
 }: DialogProps) {
   const ref = useRef<HTMLDialogElement>(null);
   // Only a press that both starts and ends on the scrim closes it, so selecting text inside
@@ -40,7 +43,10 @@ export function Dialog({
   useEffect(() => {
     const dialog = ref.current;
     if (!dialog) return;
-    if (open && !dialog.open) dialog.showModal();
+    if (open && !dialog.open) {
+      dialog.showModal();
+      dialog.querySelector<HTMLElement>("[data-autofocus]")?.focus();
+    }
     if (!open && dialog.open) dialog.close();
   }, [open]);
 
@@ -50,7 +56,7 @@ export function Dialog({
       className={cx(
         styles.dialog,
         material === "tonal" && styles.tonal,
-        surfaceClass({ material, strength: "thick", floating: true, solid: true }),
+        surfaceClass({ material, strength: "thick", floating: true }),
       )}
       aria-labelledby={titleId}
       aria-describedby={bodyId}
@@ -68,7 +74,14 @@ export function Dialog({
       }}
     >
       <div className={styles.content}>
-        {icon && <Icon name={icon} className={styles.icon} />}
+        {icon && (
+          <span className={styles.iconShape} data-danger={danger || undefined}>
+            <svg viewBox="0 0 100 100" width="64" height="64" aria-hidden="true">
+              <path d={COOKIE_PATH} />
+            </svg>
+            <Icon name={icon} size={28} filled className={styles.icon} />
+          </span>
+        )}
         <h2 id={titleId} className={icon ? styles.headlineCentered : styles.headline}>
           {headline}
         </h2>

@@ -54,6 +54,8 @@
   line-height: var(--md-sys-typescale-body-small-line-height);
 }
 .saved::before {
+  transition: background-color var(--md-sys-motion-effects-slow-duration)
+    var(--md-sys-motion-effects-slow-easing);
   content: "";
   flex: none;
   width: 8px;
@@ -182,4 +184,59 @@
   line-height: var(--md-sys-typescale-label-large-line-height);
   font-weight: var(--md-sys-typescale-label-large-weight-emphasized);
   cursor: default;
+}
+
+/* The edit view arrives as one piece: the bar from above, the list from the side, the slide last. */
+.header {
+  animation: drop-in var(--md-sys-motion-spatial-slow-duration)
+    var(--md-sys-motion-spatial-slow-easing);
+}
+.sorter {
+  animation: slide-in var(--md-sys-motion-spatial-slow-duration)
+    var(--md-sys-motion-spatial-slow-easing);
+}
+.main {
+  animation: settle-in var(--md-sys-motion-spatial-slow-duration)
+    var(--md-sys-motion-spatial-slow-easing);
+}
+.present {
+  transition:
+    box-shadow var(--md-sys-motion-effects-duration) var(--md-sys-motion-effects-easing),
+    border-radius var(--md-sys-motion-spatial-fast-duration)
+      var(--md-sys-motion-spatial-fast-easing),
+    scale var(--md-sys-motion-spatial-fast-duration) var(--md-sys-motion-spatial-fast-easing);
+}
+.present:hover {
+  box-shadow: 0 12px 26px -8px color-mix(in srgb, var(--md-sys-color-primary) 75%, transparent);
+}
+.layout {
+  transition:
+    translate var(--md-sys-motion-spatial-default-duration)
+      var(--md-sys-motion-spatial-default-easing),
+    background-color var(--md-sys-motion-effects-duration) var(--md-sys-motion-effects-easing);
+}
+.layout:hover {
+  translate: 0 -3px;
+  background: var(--md-sys-color-secondary-container);
+}
+.layout:active {
+  translate: 0 0;
+}
+@keyframes drop-in {
+  from {
+    opacity: 0;
+    translate: 0 -14px;
+  }
+}
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    translate: -14px 0;
+  }
+}
+@keyframes settle-in {
+  from {
+    opacity: 0;
+    scale: 0.985;
+  }
 }

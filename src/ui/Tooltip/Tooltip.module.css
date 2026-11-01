@@ -7,14 +7,16 @@
   position: fixed;
   z-index: 1000;
   max-width: 240px;
-  padding: 4px 8px;
-  border-radius: var(--md-sys-shape-corner-extra-small);
+  padding: 6px 12px;
+  border-radius: var(--md-sys-shape-corner-medium);
   font-size: var(--md-sys-typescale-body-small-size);
   line-height: var(--md-sys-typescale-body-small-line-height);
-  letter-spacing: var(--md-sys-typescale-body-small-tracking);
+  font-weight: var(--md-sys-typescale-body-small-weight-emphasized);
   pointer-events: none;
-  animation: fade-in var(--md-sys-motion-effects-default-duration)
-    var(--md-sys-motion-effects-default-easing);
+  animation:
+    fade-in var(--md-sys-motion-effects-default-duration)
+      var(--md-sys-motion-effects-default-easing),
+    pop-in var(--md-sys-motion-spatial-fast-duration) var(--md-sys-motion-spatial-fast-easing);
 }
 
 .tonal {
@@ -25,5 +27,10 @@
 @keyframes fade-in {
   from {
     opacity: 0;
+  }
+}
+@keyframes pop-in {
+  from {
+    scale: 0.86;
   }
 }

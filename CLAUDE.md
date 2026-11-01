@@ -75,9 +75,9 @@ The app must work **fully offline**. Never load scripts, fonts or icons from the
   - `src-tauri/` — Rust: file access, dialogs, open-with/file associations, app data paths
 - **Deck ink:** store strokes in stage units (1920×1080) per slide, never in screen pixels.
 - **Say "presentation" to the user, never "deck".** Every word on screen. `deck` stays in code, file names and `.pwpptx`.
-- **Native feel:** it must never feel like a web page. No snackbars, toasts or browser tooltips. Routine results show
-  in the app's own status, blocked actions are greyed out, and what needs attention is a real Windows dialog
-  (`src/lib/windowsDialog.ts`). See `docs/PIVOT.md` decision 16.
+- **Our own design for everything:** nothing may look like a web page or like Windows. Dialogs, notices, right-click menus
+  and tooltips are all glass with spring motion. Tell the user things with `src/features/notices/notices.ts`.
+  See `docs/PIVOT.md` decision 16.
 - **No raw `.html` files.** Penwork never opens, imports or registers for `.html`; that is why `.pwpptx` exists.
 - **Never overwrite the owner's files silently.** A `.pwpptx` is written only on
   Save or Save as; autosave goes to a separate recovery file.

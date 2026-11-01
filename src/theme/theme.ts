@@ -207,7 +207,7 @@ function block(selector: string, colors: ColorRoles, scheme: "light" | "dark"): 
     ([name, value]) => `  --pw-glass-${name}: ${value};`,
   );
   // The focus ring is a color, so it needs the same treatment: forced panels get their own.
-  const ring = `  --md-sys-focus-ring-color: ${colors.secondary};`;
+  const ring = `  --md-sys-focus-ring-color: ${colors.primary};`;
   return `${selector} {\n  color-scheme: ${scheme};\n${[...color, ...glass, ring].join("\n")}\n}`;
 }
 

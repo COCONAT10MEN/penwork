@@ -143,8 +143,9 @@ html.sorter #ov .cell.cur .th {
 }
 /* After the rule above: the current slide's ring must not hide that the keyboard is on it. */
 html.sorter #ov .cell:focus-visible .th {
-  outline: 3px solid var(--pw-text, #e6f6fb);
+  outline: 2px solid var(--pw-accent, var(--acc));
   outline-offset: 2px;
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--pw-accent, #82d3e6) 30%, transparent);
 }
 html.sorter #ov .num b {
   margin-left: 6px;

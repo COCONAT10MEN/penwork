@@ -33,6 +33,11 @@
   line-height: var(--md-sys-typescale-label-large-line-height);
   letter-spacing: var(--md-sys-typescale-label-large-tracking);
 }
+/* The highlighted item is the focus: a soft fill, as a ring on every opening looks like a web form. */
+.item:focus-visible {
+  outline: none;
+  background: color-mix(in srgb, var(--md-sys-color-primary) 16%, transparent);
+}
 .item:hover:not([aria-disabled="true"]) {
   border-radius: var(--md-sys-shape-corner-large-increased);
 }

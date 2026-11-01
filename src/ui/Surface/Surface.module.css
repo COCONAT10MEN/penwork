@@ -14,8 +14,6 @@
   border: var(--pw-glass-rim);
   box-shadow: var(--pw-glass-rim-top);
   color: var(--md-sys-color-on-surface);
-  /* The secondary ring is too faint on glass over a busy slide. */
-  --md-sys-focus-ring-color: var(--md-sys-color-on-surface);
   /* Secondary text inside glass (subtitles, placeholders). */
   --md-sys-color-on-surface-variant: var(--pw-glass-on-variant);
 }

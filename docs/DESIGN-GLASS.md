@@ -49,6 +49,8 @@ Glass needs colour behind it to look like glass.
   colour. This echoes the deck's background blobs. **They are still by default**: moving blobs make every glass panel
   re-blur on every frame, even when the app is idle. Drifting can come back only if measured to be cheap, and must
   pause when the window isn't focused.
+- **Dialogs, menus, notices and tooltips are real blurred glass** (tested in the real window, 2026-11-01). Thick glass keeps
+  their text readable. The app blurs softly behind a dialog.
 - **Mica is not in M1.** It needs a transparent window, text contrast would depend on the wallpaper, and the blobs
   mostly cover it. Optional in M7 if it proves worthwhile.
 - **Present:** the slide itself is the background. Dock/popovers use regular/thick glass so they stay readable on

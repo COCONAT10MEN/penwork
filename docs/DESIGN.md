@@ -98,7 +98,7 @@ when selected. Bundle the font locally.
 - Hero "Continue" card (primary-container, radius 28) + pinned card (tertiary-container).
 - Recent grid of cards (surface-container, radius 24) with page thumbnails.
 - FAB menu bottom-right: Import PDF / New notebook / Quick note.
-- Import progress uses the wavy linear progress in the screen it belongs to, never a pop-up.
+- Import progress uses the wavy linear progress in a glass notice.
 
 ### PDF viewer + annotate (`pdf-desktop.html`)
 - Top app bar: back, file name, subtitle, search, page chip, Sign (tonal tertiary), Save copy (filled).

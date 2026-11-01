@@ -5,6 +5,7 @@ import {
   parseLibrary,
   recordOpen,
   removeDeck,
+  renameDeck,
   setLastSlide,
 } from "./libraryFile";
 
@@ -83,5 +84,13 @@ describe("removeDeck and markMissing", () => {
 
   it("marks a deck that couldn't be found", () => {
     expect(markMissing(open(), "c:\\decks\\waves.pwpptx").decks[0]?.missing).toBe(true);
+  });
+});
+
+describe("renameDeck", () => {
+  it("keeps one row when a draft is saved over a file already listed", () => {
+    const lib = open(open(), "C:\\Drafts\\New.pwpptx");
+    const renamed = renameDeck(lib, "C:\\Drafts\\New.pwpptx", "c:\\decks\\waves.pwpptx");
+    expect(renamed.decks.map((d) => d.path)).toEqual(["c:\\decks\\waves.pwpptx"]);
   });
 });

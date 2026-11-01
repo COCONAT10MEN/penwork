@@ -42,7 +42,7 @@ export function EditHeader({
           </span>
         </p>
       </div>
-      <div className={styles.history} role="group" aria-label="History">
+      <div className={styles.history} role="group" aria-label="Undo and save">
         <IconButton icon="undo" label="Undo" disabled={!canUndo} onClick={onUndo} />
         <IconButton icon="redo" label="Redo" disabled={!canRedo} onClick={onRedo} />
         <IconButton icon="save" label="Save" onClick={onSave} />

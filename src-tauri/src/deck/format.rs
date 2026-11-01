@@ -214,9 +214,10 @@ pub struct DeckWrite<'a> {
     pub assets: &'a [(&'a str, &'a [u8])],
 }
 
+/// Unique, so two writes at once can't end up publishing each other's half-written file.
 fn temp_path(path: &Path) -> PathBuf {
     let mut name = path.as_os_str().to_owned();
-    name.push(".tmp");
+    name.push(format!(".{}.tmp", uuid::Uuid::new_v4().simple()));
     PathBuf::from(name)
 }
 
@@ -279,10 +280,13 @@ fn write_zip(temp: &Path, deck: &DeckWrite) -> Result<(), DeckError> {
     Ok(())
 }
 
-/// Writes next to the target, then renames over it, so a crash can't leave half a deck.
+/// Writes next to the target, then renames over it, so a crash can't leave half a deck. The copy is
+/// read back first: a file over the limits, or one Penwork couldn't open, never replaces the old one.
 pub fn write_deck(path: &Path, deck: &DeckWrite) -> Result<(), DeckError> {
     let temp = temp_path(path);
-    let result = write_zip(&temp, deck).and_then(|()| fs::rename(&temp, path).map_err(Into::into));
+    let result = write_zip(&temp, deck)
+        .and_then(|()| read_deck(&temp).map(|_| ()))
+        .and_then(|()| fs::rename(&temp, path).map_err(Into::into));
     if result.is_err() {
         let _ = fs::remove_file(&temp);
     }
@@ -382,7 +386,20 @@ mod tests {
         assert_eq!(read_asset(&path, "assets/pic.png").unwrap(), b"PNGDATA");
         let mut zip = open_zip(&path).unwrap();
         assert!(zip.by_name("future/thing.bin").is_ok());
-        assert!(!temp_path(&path).exists());
+        assert_eq!(fs::read_dir(&dir.0).unwrap().count(), 1, "no temporary file left behind");
+    }
+
+    #[test]
+    fn a_deck_too_big_to_reopen_is_not_saved() {
+        let dir = TempDir::new("limit");
+        let path = dir.file("a.pwpptx");
+        write_new(&path);
+        let before = fs::read(&path).unwrap();
+        let mut c = content();
+        c.slides_html = "<section class=\"slide\"></section>".repeat(MAX_SLIDES + 1);
+        let saved = write_deck(&path, &DeckWrite { content: &c, source: None, assets: &[] });
+        assert_eq!(saved.unwrap_err().code(), "too-large");
+        assert_eq!(fs::read(&path).unwrap(), before);
     }
 
     #[test]
@@ -447,6 +464,6 @@ mod tests {
         let c = content();
         assert!(write_deck(&path, &DeckWrite { content: &c, source: Some(&missing), assets: &[] }).is_err());
         assert_eq!(fs::read(&path).unwrap(), before);
-        assert!(!temp_path(&path).exists());
+        assert_eq!(fs::read_dir(&dir.0).unwrap().count(), 1, "no temporary file left behind");
     }
 }

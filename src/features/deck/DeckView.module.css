@@ -42,7 +42,7 @@
   margin-inline-end: 8px;
 }
 .saved[data-dirty] {
-  font-weight: var(--md-sys-typescale-body-small-weight-emphasized, 700);
+  font-weight: var(--md-sys-typescale-body-small-weight-emphasized);
   color: var(--md-sys-color-on-surface);
 }
 .saved[data-dirty]::before {

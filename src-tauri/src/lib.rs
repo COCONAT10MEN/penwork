@@ -4,7 +4,8 @@ pub mod deck;
 mod files;
 mod window;
 
-use deck::session::{self, Sessions, SlideClipboard};
+use deck::saving::{self, SlideClipboard};
+use deck::session::{self, Sessions};
 use std::sync::Mutex;
 use tauri::{Emitter, Manager};
 use tauri_plugin_window_state::StateFlags;
@@ -71,21 +72,19 @@ pub fn run() {
             files::delete_thumb,
             files::export_toolbar,
             files::read_toolbar_file,
-            files::read_ink,
-            files::write_ink,
-            files::delete_ink,
             session::open_deck,
             session::create_deck_session,
             session::add_deck_asset,
-            session::write_draft,
-            session::save_deck,
-            session::write_recovery,
-            session::list_recovery,
-            session::delete_recovery,
-            session::open_recovery,
-            session::delete_draft,
-            session::copy_slide_assets,
-            session::paste_slide_assets,
+            saving::write_draft,
+            saving::save_deck,
+            saving::write_recovery,
+            saving::list_recovery,
+            saving::delete_recovery,
+            saving::recovery_is_newer,
+            saving::open_recovery,
+            saving::delete_draft,
+            saving::copy_slide_assets,
+            saving::paste_slide_assets,
             session::set_deck_slides,
             session::close_deck,
         ])

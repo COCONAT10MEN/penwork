@@ -1,14 +1,11 @@
-import { isTauri } from "@tauri-apps/api/core";
-import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useStore } from "zustand";
 import { useApp } from "../../appStore";
 import type { RuntimeMessage } from "../../lib/deck/bridge";
-import { isHidden } from "../../lib/deck/slideOps";
+import { wouldHide } from "../../lib/deck/slideOps";
 import { AmbientBackground, Button, Surface } from "../../ui";
 import { cx } from "../../ui/cx";
-import { useSettings } from "../settings/settingsStore";
-import { createDeckStore } from "./deckStore";
+import { createDeckStore, noteInk } from "./deckStore";
 import { EditHeader } from "./EditHeader";
 import { LayoutGallery } from "./LayoutGallery";
 import type { OpenDeck } from "./openDeck";
@@ -16,8 +13,9 @@ import { SlideMenu, type SlideMenuTarget } from "./SlideMenu";
 import { useChoice } from "./useChoice";
 import { useDeckSave } from "./useDeckSave";
 import { useFrameChrome } from "./useFrameChrome";
+import { useShow } from "./useShow";
 import { useLeaveGuard } from "./useLeaveGuard";
-import { useEditKeys } from "./useEditKeys";
+import { useEditKeys, type KeyPress } from "./useEditKeys";
 import { useSlideEditing } from "./useSlideEditing";
 import { exportToolbar, importToolbar, loadToolbar, saveToolbar } from "./toolbarFile";
 import { useDeckInk } from "./useDeckInk";
@@ -27,10 +25,6 @@ import styles from "./DeckView.module.css";
 
 /** Long enough for the slide to be drawn after it appears. */
 const CAPTURE_DELAY = 500;
-
-function setFullscreen(on: boolean): Promise<void> {
-  return isTauri() ? getCurrentWindow().setFullscreen(on) : Promise.resolve();
-}
 
 /**
  * A presentation on screen: the edit view, or the full-screen show. Both are the same slide page,
@@ -53,9 +47,6 @@ export function DeckView({
   const [slide, setSlide] = useState(start);
   const [steps, setSteps] = useState(0);
   const [total, setTotal] = useState(deck.slideCount);
-  const [presenting, setPresenting] = useState(presentOnOpen);
-  // For code that runs outside a render: a show can start while the page is still being set up.
-  const showing = useRef(presentOnOpen);
   const latestSlide = useRef(start);
   const [store] = useState(() => createDeckStore(deck.slides, deck.recovered));
   const canUndo = useStore(store, (doc) => doc.past.length > 0);
@@ -66,12 +57,12 @@ export function DeckView({
   const [syncs, setSyncs] = useState(0);
   const sorterBox = useRef<HTMLDivElement>(null);
   const { dialog, ask } = useChoice();
-  const inkChanged = useCallback(() => store.setState({ inkChanged: true }), [store]);
-  const ink = useDeckInk(deck, sorter, inkChanged);
+  const inkDrawn = useCallback(() => noteInk(store), [store]);
+  const ink = useDeckInk(deck, sorter, inkDrawn);
   const { send } = ink;
   const afterSync = useCallback(() => {
-    void send(stage);
-    void send(sorter);
+    send(stage);
+    send(sorter);
     setSyncs((n) => n + 1);
   }, [send]);
   const editing = useSlideEditing({
@@ -89,45 +80,13 @@ export function DeckView({
   const guard = useLeaveGuard({ dirty, title: deck.manifest.title, ask, save, discard });
 
   const { postChrome, postLogo } = useFrameChrome(stage, sorter);
-  const presentButton = useRef<HTMLButtonElement>(null);
-  const wasPresenting = useRef(presenting);
+  const { presenting, present, endShow, modeMessage, showing, presentButton } = useShow(
+    stage,
+    latestSlide,
+    presentOnOpen,
+  );
 
-  // The button that ended the show is gone, so focus needs somewhere sensible to land.
-  useEffect(() => {
-    if (wasPresenting.current && !presenting) presentButton.current?.focus();
-    wasPresenting.current = presenting;
-  }, [presenting]);
-
-  const modeMessage = (mode: "edit" | "present", from: number) => {
-    const { reduceMotion, endOfShow } = useSettings.getState().settings;
-    return { mode, slide: from, reduced: reduceMotion, loop: endOfShow === "loop" };
-  };
-
-  const present = useCallback((from: number) => {
-    showing.current = true;
-    setPresenting(true);
-    // The show starts once the window is full size, so its opening isn't seen at the old size.
-    void setFullscreen(true).then(() => {
-      stage.current?.post("mode", modeMessage("present", from));
-      stage.current?.focus();
-    });
-  }, []);
-
-  const endShow = useCallback(() => {
-    showing.current = false;
-    stage.current?.post("mode", modeMessage("edit", latestSlide.current));
-    setPresenting(false);
-    void setFullscreen(false);
-  }, []);
-
-  // A show must not leave the window full screen if the app moves on without ending it.
-  useEffect(() => {
-    if (presentOnOpen) void setFullscreen(true);
-    return () => {
-      clearTimeout(captureTimer.current);
-      void setFullscreen(false);
-    };
-  }, [presentOnOpen]);
+  useEffect(() => () => clearTimeout(captureTimer.current), []);
 
   const showSlide = useCallback(
     (next: number) => {
@@ -174,9 +133,18 @@ export function DeckView({
     const toolbar = await loadToolbar();
     if (toolbar) stage.current?.post("toolbar", toolbar);
     postLogo();
-    await ink.send(stage);
+    ink.send(stage);
     if (showing.current) present(from);
     else stage.current?.post("mode", modeMessage("edit", from));
+  };
+
+  /**
+   * A slide page can post anything, but only real typing makes the browser count the user as
+   * active, so a page's script can't write to the user's file on its own.
+   */
+  const onFrameKey = (press: KeyPress) => {
+    const save = press.ctrl && press.key.toLowerCase() === "s";
+    if (!save || navigator.userActivation.isActive) onKey(press);
   };
 
   const onStageMessage = (message: RuntimeMessage) => {
@@ -192,7 +160,7 @@ export function DeckView({
       setSelected((now) => (now.includes(message.slide) ? now : [message.slide]));
       thumbOnFirstSlide(message.slide);
     } else if (message.type === "key") {
-      onKey(message);
+      onFrameKey(message);
     } else if (message.type === "end") {
       endShow();
     } else if (message.type === "toolbar") {
@@ -210,11 +178,20 @@ export function DeckView({
     if (message.type === "ready") {
       postChrome();
       sorter.current?.post("select", { slide, selected });
-      void ink.send(sorter);
-    } else if (message.type === "pick") {
+      ink.send(sorter);
+    } else if (message.type === "key") {
+      onFrameKey(message);
+    } else if (message.type === "pick" || message.type === "menu" || message.type === "move") {
+      if (message.slide >= 0 && message.slide < slides.length) onSlidePicked(message);
+    }
+  };
+
+  const onSlidePicked = (message: RuntimeMessage) => {
+    if (message.type === "pick") {
+      setMenu(null);
       editing.pick(message.slide, message);
     } else if (message.type === "move") {
-      editing.move(message.slide, message.to);
+      if (message.to >= 0 && message.to <= slides.length) editing.move(message.slide, message.to);
     } else if (message.type === "menu") {
       const box = sorterBox.current?.getBoundingClientRect();
       setSelected((now) => (now.includes(message.slide) ? now : [message.slide]));
@@ -223,15 +200,19 @@ export function DeckView({
         x: (box?.left ?? 0) + message.x,
         y: (box?.top ?? 0) + message.y,
       });
-    } else if (message.type === "key") {
-      onKey(message);
     }
   };
+
+  const closeMenu = useCallback(() => {
+    setMenu(null);
+    sorter.current?.focus();
+    sorter.current?.post("focusList");
+  }, []);
+  const menuAway = useCallback(() => setMenu(null), []);
 
   const leave = async () => {
     if (await guard()) closeDeck();
   };
-  const menuSlide = slides[menu?.slide ?? -1];
 
   return (
     <div className={styles.view} data-presenting={presenting || undefined}>
@@ -298,10 +279,11 @@ export function DeckView({
       <LayoutGallery open={gallery} onClose={() => setGallery(false)} onPick={editing.add} />
       <SlideMenu
         target={menu}
-        hidden={menuSlide ? isHidden(menuSlide) : false}
+        hides={wouldHide(slides, selected)}
         canPaste={editing.hasCopied()}
         count={selected.length}
-        onClose={() => setMenu(null)}
+        onClose={closeMenu}
+        onAway={menuAway}
         on={editing}
       />
       {dialog}

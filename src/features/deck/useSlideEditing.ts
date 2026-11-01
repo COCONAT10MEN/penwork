@@ -5,11 +5,14 @@ import { sanitizeSlides } from "../../lib/deck/sanitize";
 import {
   assetNames,
   insertAt,
+  isHidden,
   joinSlides,
+  MAX_SLIDES,
   moveSlides,
   nextSelection,
   nudgeSlides,
   removeSlides,
+  renameAssets,
   splitSlides,
   toggleHidden,
   withNewId,
@@ -22,8 +25,13 @@ import type { RuntimeFrameHandle } from "./RuntimeFrame";
 
 type Frame = RefObject<RuntimeFrameHandle | null>;
 
+const NOTHING_TO_SHOW = "At least one slide has to stay in the show.";
+const IMAGES_NOT_COPIED = "Some images couldn't be copied with the slides.";
+
 /** Lives outside any one presentation, so slides can be pasted into the next one opened. */
 let copied: DeckSlide[] = [];
+/** Their images, on the way to the app's clipboard. */
+let copying: Promise<unknown> = Promise.resolve();
 
 export function useSlideEditing(options: {
   deck: OpenDeck;
@@ -62,15 +70,30 @@ export function useSlideEditing(options: {
     [store, show],
   );
 
-  const undo = useCallback(() => {
-    const slides = undoStore(store);
-    if (slides) show(slides, slideRef.current, [Math.min(slideRef.current, slides.length - 1)]);
-  }, [store, show, slideRef]);
+  /** Stays on the same slide, wherever the step moved it. */
+  const step = useCallback(
+    (go: (doc: DeckStore) => DeckSlide[] | null) => {
+      const id = store.getState().slides[slideRef.current]?.id;
+      const slides = go(store);
+      if (!slides) return;
+      const at = slides.findIndex((slide) => slide.id === id);
+      const focus = at >= 0 ? at : Math.min(slideRef.current, slides.length - 1);
+      show(slides, focus, [focus]);
+    },
+    [store, show, slideRef],
+  );
+  const undo = useCallback(() => step(undoStore), [step]);
+  const redo = useCallback(() => step(redoStore), [step]);
 
-  const redo = useCallback(() => {
-    const slides = redoStore(store);
-    if (slides) show(slides, slideRef.current, [Math.min(slideRef.current, slides.length - 1)]);
-  }, [store, show, slideRef]);
+  /** Saving past the limit would make a file Penwork refuses to open. */
+  const fits = useCallback(
+    (adding: number) => {
+      if (store.getState().slides.length + adding <= MAX_SLIDES) return true;
+      notify({ message: `A presentation can have up to ${MAX_SLIDES} slides.` });
+      return false;
+    },
+    [store, notify],
+  );
 
   /** The slides an action applies to: the selection, or the one right-clicked outside it. */
   const pickedFor = useCallback(
@@ -83,19 +106,21 @@ export function useSlideEditing(options: {
 
   const add = useCallback(
     (layout: SlideLayout) => {
+      if (!fits(1)) return;
       const { slides } = store.getState();
       const at = slideRef.current + 1;
       const html = layoutSlide(layout, brandOf(deck.manifest.raw, deck.manifest.title), at);
       const added = splitSlides(sanitizeSlides(html).html).map(withNewId);
       edit(insertAt(slides, at, added), at);
     },
-    [deck.manifest, store, slideRef, edit],
+    [deck.manifest, store, slideRef, edit, fits],
   );
 
   const duplicate = useCallback(
     (slide?: number) => {
       const { slides } = store.getState();
       const picked = pickedFor(slide);
+      if (!fits(picked.length)) return;
       const at = (picked[picked.length - 1] ?? 0) + 1;
       const copies = picked.flatMap((i) => {
         const original = slides[i];
@@ -107,7 +132,7 @@ export function useSlideEditing(options: {
         copies.map((_, i) => at + i),
       );
     },
-    [store, pickedFor, edit],
+    [store, pickedFor, edit, fits],
   );
 
   const remove = useCallback(
@@ -118,7 +143,12 @@ export function useSlideEditing(options: {
         notify({ message: "A presentation needs at least one slide." });
         return;
       }
-      edit(removeSlides(slides, picked), picked[0] ?? 0);
+      const left = removeSlides(slides, picked);
+      if (left.every(isHidden)) {
+        notify({ message: NOTHING_TO_SHOW });
+        return;
+      }
+      edit(left, picked[0] ?? 0);
     },
     [store, pickedFor, edit, notify],
   );
@@ -126,15 +156,23 @@ export function useSlideEditing(options: {
   const hide = useCallback(
     (slide?: number) => {
       const picked = pickedFor(slide);
-      edit(toggleHidden(store.getState().slides, picked), slideRef.current, picked);
+      const toggled = toggleHidden(store.getState().slides, picked);
+      if (toggled.every(isHidden)) {
+        notify({ message: NOTHING_TO_SHOW });
+        return;
+      }
+      edit(toggled, slideRef.current, picked);
     },
-    [store, pickedFor, edit, slideRef],
+    [store, pickedFor, edit, slideRef, notify],
   );
 
   const move = useCallback(
     (slide: number, to: number) => {
       const picked = pickedFor(slide);
-      const moved = moveSlides(store.getState().slides, picked, to);
+      const { slides } = store.getState();
+      const moved = moveSlides(slides, picked, to);
+      // Dropped where it already was: nothing to undo.
+      if (moved.slides.every((s, i) => s === slides[i])) return;
       const places = picked.map((_, i) => moved.first + i);
       edit(moved.slides, moved.first, places);
     },
@@ -142,8 +180,8 @@ export function useSlideEditing(options: {
   );
 
   const nudge = useCallback(
-    (direction: -1 | 1) => {
-      const picked = pickedFor();
+    (direction: -1 | 1, slide?: number) => {
+      const picked = pickedFor(slide);
       const moved = nudgeSlides(store.getState().slides, picked, direction);
       if (!moved) return;
       const places = picked.map((_, i) => moved.first + i);
@@ -160,7 +198,15 @@ export function useSlideEditing(options: {
         return original ? [original] : [];
       });
       if (isTauri()) {
-        void invoke("copy_slide_assets", { token: deck.token, names: assetNames(copied) });
+        copying = invoke<string[]>("copy_slide_assets", {
+          token: deck.token,
+          names: assetNames(copied),
+        }).then(
+          (failed) => {
+            if (failed.length > 0) notify({ message: IMAGES_NOT_COPIED });
+          },
+          () => notify({ message: IMAGES_NOT_COPIED }),
+        );
       }
       notify({
         message: copied.length === 1 ? "Slide copied." : `${copied.length} slides copied.`,
@@ -169,17 +215,23 @@ export function useSlideEditing(options: {
     [deck.token, store, pickedFor, notify],
   );
 
-  const paste = useCallback(async () => {
-    if (copied.length === 0) return;
-    if (isTauri()) await invoke("paste_slide_assets", { token: deck.token });
-    const at = slideRef.current + 1;
-    const added = copied.map(withNewId);
-    edit(
-      insertAt(store.getState().slides, at, added),
-      at,
-      added.map((_, i) => at + i),
-    );
-  }, [deck.token, store, slideRef, edit]);
+  const paste = useCallback(
+    async (after?: number) => {
+      if (copied.length === 0 || !fits(copied.length)) return;
+      await copying;
+      const renames = isTauri()
+        ? await invoke<[string, string][]>("paste_slide_assets", { token: deck.token })
+        : [];
+      const at = (after ?? slideRef.current) + 1;
+      const added = renameAssets(copied, renames).map(withNewId);
+      edit(
+        insertAt(store.getState().slides, at, added),
+        at,
+        added.map((_, i) => at + i),
+      );
+    },
+    [deck.token, store, slideRef, edit, fits],
+  );
 
   const pick = useCallback(
     (slide: number, keys: { ctrl: boolean; shift: boolean }) => {

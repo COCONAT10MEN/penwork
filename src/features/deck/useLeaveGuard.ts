@@ -10,7 +10,7 @@ export function useLeaveGuard(options: {
   title: string;
   ask: <T extends string>(question: ChoiceOptions<T>) => Promise<T | null>;
   save: () => Promise<boolean>;
-  discard: () => void;
+  discard: () => Promise<void>;
 }): () => Promise<boolean> {
   const { dirty, title, ask, save, discard } = options;
 
@@ -27,7 +27,7 @@ export function useLeaveGuard(options: {
         { value: "save", label: "Save" },
       ],
     });
-    if (answer === "discard") discard();
+    if (answer === "discard") await discard();
     return answer === "save" ? save() : answer === "discard";
   }, [dirty, ask, title, save, discard]);
 

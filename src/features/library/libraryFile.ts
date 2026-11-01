@@ -119,14 +119,14 @@ export function setFavorite(library: Library, id: string, favorite: boolean): Li
 /** A draft that was saved somewhere real is the same presentation, so it keeps its place. */
 export function renameDeck(library: Library, oldPath: string, path: string): Library {
   const key = oldPath.toLowerCase();
+  // Saved over a file already listed: that row is now this presentation.
+  const taken = path.toLowerCase();
   return {
     ...library,
-    decks: library.decks.map((d) => (d.path.toLowerCase() === key ? { ...d, path } : d)),
+    decks: library.decks
+      .filter((d) => d.path.toLowerCase() !== taken)
+      .map((d) => (d.path.toLowerCase() === key ? { ...d, path } : d)),
   };
-}
-
-export function setInkFlag(library: Library, id: string, ink: boolean): Library {
-  return { ...library, decks: library.decks.map((d) => (d.id === id ? { ...d, ink } : d)) };
 }
 
 export function setThumb(library: Library, id: string, stamp: string): Library {

@@ -11,7 +11,9 @@ export interface DeckDoc {
   future: DeckSlide[][];
   /** The list that's in the file. Undoing back to it means there's nothing to save. */
   saved: DeckSlide[] | null;
-  inkChanged: boolean;
+  /** Counted, so a stroke drawn while a Save is running still shows as unsaved afterwards. */
+  inkEdits: number;
+  savedInk: number;
 }
 
 export type DeckStore = ReturnType<typeof createDeckStore>;
@@ -23,12 +25,13 @@ export function createDeckStore(slides: DeckSlide[], recovered = false) {
     past: [],
     future: [],
     saved: recovered ? null : slides,
-    inkChanged: recovered,
+    inkEdits: 0,
+    savedInk: 0,
   }));
 }
 
 export function isDirty(doc: DeckDoc): boolean {
-  return doc.inkChanged || doc.slides !== doc.saved;
+  return doc.inkEdits !== doc.savedInk || doc.slides !== doc.saved;
 }
 
 export function commit(store: DeckStore, slides: DeckSlide[]): void {
@@ -55,6 +58,11 @@ export function redo(store: DeckStore): DeckSlide[] | null {
   return next;
 }
 
-export function markSaved(store: DeckStore): void {
-  store.setState((doc) => ({ saved: doc.slides, inkChanged: false }));
+export function noteInk(store: DeckStore): void {
+  store.setState((doc) => ({ inkEdits: doc.inkEdits + 1 }));
+}
+
+/** Takes what went into the file, not what's on screen now: edits can land while a Save runs. */
+export function markSaved(store: DeckStore, slides: DeckSlide[], inkEdits: number): void {
+  store.setState({ saved: slides, savedInk: inkEdits });
 }

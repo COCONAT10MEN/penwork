@@ -89,43 +89,6 @@ pub fn read_toolbar_file(path: String) -> Result<String, String> {
     fs::read_to_string(file).map_err(|e| e.to_string())
 }
 
-/// A presentation's ink, kept in the app's folder until Save writes it into the file (M4).
-fn ink_path(app: &AppHandle, id: &str) -> Result<PathBuf, String> {
-    if id.is_empty() || !id.chars().all(|c| c.is_ascii_alphanumeric() || c == '-') {
-        return Err(format!("not a deck id: {id}"));
-    }
-    let dir = app.path().app_data_dir().map_err(|e| e.to_string())?.join("ink");
-    fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
-    Ok(dir.join(format!("{id}.json")))
-}
-
-#[tauri::command]
-pub fn read_ink(app: AppHandle, id: String) -> Result<Option<String>, String> {
-    match fs::read_to_string(ink_path(&app, &id)?) {
-        Ok(text) => Ok(Some(text)),
-        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(None),
-        Err(e) => Err(e.to_string()),
-    }
-}
-
-/// After Save the ink is in the file, so the working copy can go.
-#[tauri::command]
-pub fn delete_ink(app: AppHandle, id: String) -> Result<(), String> {
-    let _ = fs::remove_file(ink_path(&app, &id)?);
-    Ok(())
-}
-
-#[tauri::command]
-pub fn write_ink(app: AppHandle, id: String, text: String) -> Result<(), String> {
-    let path = ink_path(&app, &id)?;
-    let temp = path.with_extension("json.tmp");
-    fs::write(&temp, text).map_err(|e| e.to_string())?;
-    fs::rename(&temp, &path).map_err(|e| {
-        let _ = fs::remove_file(&temp);
-        e.to_string()
-    })
-}
-
 /// Ids come from library.json, so they are checked before they become part of a path.
 fn thumb_path(app: &AppHandle, id: &str) -> Result<PathBuf, String> {
     if id.is_empty() || !id.chars().all(|c| c.is_ascii_alphanumeric() || c == '-') {

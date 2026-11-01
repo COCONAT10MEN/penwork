@@ -4,7 +4,7 @@
 //! a srcdoc page inherits the app's security policy (deck scripts wouldn't run), and blob
 //! URLs fail inside a sandbox. Each response carries its own policy (docs/ARCHITECTURE-DECKS.md).
 
-use super::format::{read_asset, read_deck, write_deck, DeckContent, DeckError, DeckWrite};
+use super::format::{read_asset, read_deck, DeckContent, DeckError};
 use serde::Serialize;
 use serde_json::Value;
 use std::collections::HashMap;
@@ -29,46 +29,36 @@ const FREEHAND_JS: &str = concat!(
     "\n;window.__pf=module.exports;})();"
 );
 
-struct Session {
+pub(super) struct Session {
     /// The `.pwpptx` assets are read from. None for a deck that exists only in memory so far.
-    source: Option<PathBuf>,
+    pub(super) source: Option<PathBuf>,
     /// Where Save writes. It differs from `source` after recovering unsaved work.
-    target: Option<PathBuf>,
-    manifest: Value,
-    notes: Option<Value>,
+    pub(super) target: Option<PathBuf>,
+    pub(super) manifest: Value,
+    pub(super) notes: Option<Value>,
     /// Sanitised by the frontend before it reaches this page.
-    slides_html: String,
-    theme_css: String,
-    widgets_js: String,
+    pub(super) slides_html: String,
+    pub(super) theme_css: String,
+    pub(super) widgets_js: String,
     lang: String,
     dir: String,
     /// Images pulled out of the slides by the frontend. Checked before `source`.
-    assets: HashMap<String, Vec<u8>>,
+    pub(super) assets: HashMap<String, Vec<u8>>,
 }
 
 #[derive(Default)]
-pub struct Sessions(Mutex<HashMap<String, Session>>);
-
-/// Images of the slides on the app's own clipboard, so they survive the source deck being closed.
-#[derive(Default)]
-pub struct SlideClipboard(Mutex<Vec<(String, Vec<u8>)>>);
+pub struct Sessions(pub(super) Mutex<HashMap<String, Session>>);
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct OpenedDeck {
-    token: String,
-    path: String,
+    pub(super) token: String,
+    pub(super) path: String,
     /// Changes when the file does, so a cached thumbnail can tell it is out of date.
-    stamp: String,
+    pub(super) stamp: String,
     /// Kept in the app's own folder, so it needs Save as before it has a home of its own.
-    draft: bool,
-    content: DeckContent,
-}
-
-#[derive(Serialize)]
-pub struct SavedDeck {
-    path: String,
-    stamp: String,
+    pub(super) draft: bool,
+    pub(super) content: DeckContent,
 }
 
 fn manifest_text(manifest: &Value, key: &str, fallback: &str) -> String {
@@ -81,7 +71,7 @@ fn manifest_text(manifest: &Value, key: &str, fallback: &str) -> String {
     }
 }
 
-fn file_stamp(path: &Path) -> String {
+pub(super) fn file_stamp(path: &Path) -> String {
     let modified = fs::metadata(path).and_then(|m| m.modified()).ok();
     let age = modified.and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok());
     age.map_or_else(String::new, |d| d.as_millis().to_string())
@@ -102,7 +92,7 @@ fn new_session(source: Option<PathBuf>, manifest: Value, theme_css: String, widg
     }
 }
 
-fn app_folder(app: &AppHandle, name: &str) -> Result<PathBuf, DeckError> {
+pub(super) fn app_folder(app: &AppHandle, name: &str) -> Result<PathBuf, DeckError> {
     let dir = app
         .path()
         .app_data_dir()
@@ -112,13 +102,13 @@ fn app_folder(app: &AppHandle, name: &str) -> Result<PathBuf, DeckError> {
     Ok(dir)
 }
 
-async fn read_in_background(file: PathBuf) -> Result<DeckContent, DeckError> {
+pub(super) async fn read_in_background(file: PathBuf) -> Result<DeckContent, DeckError> {
     tauri::async_runtime::spawn_blocking(move || read_deck(&file))
         .await
         .map_err(|e| DeckError::Damaged(e.to_string()))?
 }
 
-fn start_session(
+pub(super) fn start_session(
     sessions: &Sessions,
     source: PathBuf,
     target: PathBuf,
@@ -137,7 +127,7 @@ fn start_session(
     token
 }
 
-fn is_draft(app: &AppHandle, file: &Path) -> bool {
+pub(super) fn is_draft(app: &AppHandle, file: &Path) -> bool {
     let drafts = app_folder(app, "drafts").ok();
     drafts.is_some_and(|dir| file.parent() == Some(dir.as_path()))
 }
@@ -152,183 +142,6 @@ pub async fn open_deck(
     let content = read_in_background(file.clone()).await?;
     let token = start_session(&sessions, file.clone(), file.clone(), &content);
     Ok(OpenedDeck { token, stamp: file_stamp(&file), draft: is_draft(&app, &file), path, content })
-}
-
-/// Everything Save needs, copied out so the file can be written without holding up the slide page.
-struct Snapshot {
-    content: DeckContent,
-    source: Option<PathBuf>,
-    assets: Vec<(String, Vec<u8>)>,
-}
-
-fn snapshot(session: &Session, ink: Option<Value>) -> Snapshot {
-    let optional = |text: &str| (!text.is_empty()).then(|| text.to_string());
-    Snapshot {
-        content: DeckContent {
-            manifest: session.manifest.clone(),
-            slides_html: session.slides_html.clone(),
-            theme_css: optional(&session.theme_css),
-            widgets_js: optional(&session.widgets_js),
-            notes: session.notes.clone(),
-            ink,
-        },
-        source: session.source.clone(),
-        assets: session.assets.iter().map(|(name, bytes)| (name.clone(), bytes.clone())).collect(),
-    }
-}
-
-async fn write_snapshot(snap: Snapshot, target: PathBuf) -> Result<(), DeckError> {
-    tauri::async_runtime::spawn_blocking(move || {
-        let assets: Vec<(&str, &[u8])> =
-            snap.assets.iter().map(|(name, bytes)| (name.as_str(), bytes.as_slice())).collect();
-        let write = DeckWrite {
-            content: &snap.content,
-            source: snap.source.as_deref(),
-            assets: &assets,
-        };
-        write_deck(&target, &write)
-    })
-    .await
-    .map_err(|e| DeckError::Damaged(e.to_string()))?
-}
-
-/// Save, or Save as when there's a `path`. This is the only way a user's `.pwpptx` is ever written.
-#[tauri::command]
-pub async fn save_deck(
-    token: String,
-    path: Option<String>,
-    manifest: Value,
-    ink: Option<Value>,
-    sessions: State<'_, Sessions>,
-) -> Result<SavedDeck, DeckError> {
-    let (snap, target) = {
-        let mut guard = sessions.0.lock().unwrap();
-        let session = guard
-            .get_mut(&token)
-            .ok_or_else(|| DeckError::Damaged("this presentation is no longer open".into()))?;
-        session.manifest = manifest;
-        let target = path.map(PathBuf::from).or_else(|| session.target.clone());
-        let target = target.ok_or_else(|| DeckError::Damaged("there is nowhere to save to".into()))?;
-        (snapshot(session, ink), target)
-    };
-    write_snapshot(snap, target.clone()).await?;
-    if let Some(session) = sessions.0.lock().unwrap().get_mut(&token) {
-        session.source = Some(target.clone());
-        session.target = Some(target.clone());
-    }
-    Ok(SavedDeck { stamp: file_stamp(&target), path: target.to_string_lossy().into_owned() })
-}
-
-/// Recovery files are named by library id, so these ids become part of a path.
-fn recovery_path(app: &AppHandle, id: &str) -> Result<PathBuf, DeckError> {
-    if id.is_empty() || !id.chars().all(|c| c.is_ascii_alphanumeric() || c == '-') {
-        return Err(DeckError::Damaged(format!("not a deck id: {id}")));
-    }
-    Ok(app_folder(app, "recovery")?.join(format!("{id}.pwpptx")))
-}
-
-/// Autosave. Never touches the user's file: it goes to a separate copy in the app's folder.
-#[tauri::command]
-pub async fn write_recovery(
-    token: String,
-    id: String,
-    ink: Option<Value>,
-    app: AppHandle,
-    sessions: State<'_, Sessions>,
-) -> Result<(), DeckError> {
-    let target = recovery_path(&app, &id)?;
-    let snap = {
-        let guard = sessions.0.lock().unwrap();
-        let session = guard
-            .get(&token)
-            .ok_or_else(|| DeckError::Damaged("this presentation is no longer open".into()))?;
-        snapshot(session, ink)
-    };
-    write_snapshot(snap, target).await
-}
-
-#[tauri::command]
-pub fn list_recovery(app: AppHandle) -> Result<Vec<String>, DeckError> {
-    let mut ids = Vec::new();
-    for entry in fs::read_dir(app_folder(&app, "recovery")?)? {
-        let path = entry?.path();
-        let is_deck = path.extension().is_some_and(|e| e == "pwpptx");
-        if let (true, Some(stem)) = (is_deck, path.file_stem().and_then(|s| s.to_str())) {
-            ids.push(stem.to_string());
-        }
-    }
-    Ok(ids)
-}
-
-#[tauri::command]
-pub fn delete_recovery(id: String, app: AppHandle) -> Result<(), DeckError> {
-    let _ = fs::remove_file(recovery_path(&app, &id)?);
-    Ok(())
-}
-
-/// Opens the recovery copy, but Save still writes to the deck's own file.
-#[tauri::command]
-pub async fn open_recovery(
-    id: String,
-    path: String,
-    app: AppHandle,
-    sessions: State<'_, Sessions>,
-) -> Result<OpenedDeck, DeckError> {
-    let copy = recovery_path(&app, &id)?;
-    let file = PathBuf::from(&path);
-    let content = read_in_background(copy.clone()).await?;
-    let token = start_session(&sessions, copy, file.clone(), &content);
-    Ok(OpenedDeck { token, stamp: file_stamp(&file), draft: is_draft(&app, &file), path, content })
-}
-
-/// A draft that was just saved somewhere real. Only ever a file in the app's own drafts folder.
-#[tauri::command]
-pub fn delete_draft(path: String, app: AppHandle) -> Result<(), DeckError> {
-    let file = PathBuf::from(path);
-    if is_draft(&app, &file) {
-        let _ = fs::remove_file(file);
-    }
-    Ok(())
-}
-
-/// Copying slides takes their images along, so they can be pasted into another deck later.
-#[tauri::command]
-pub fn copy_slide_assets(
-    token: String,
-    names: Vec<String>,
-    sessions: State<'_, Sessions>,
-    clipboard: State<'_, SlideClipboard>,
-) -> Result<(), DeckError> {
-    let mut copied = Vec::new();
-    let guard = sessions.0.lock().unwrap();
-    let session = guard
-        .get(&token)
-        .ok_or_else(|| DeckError::Damaged("this presentation is no longer open".into()))?;
-    for name in names {
-        let bytes = match (session.assets.get(&name), &session.source) {
-            (Some(bytes), _) => Some(bytes.clone()),
-            (None, Some(source)) => read_asset(source, &name).ok(),
-            (None, None) => None,
-        };
-        if let Some(bytes) = bytes {
-            copied.push((name, bytes));
-        }
-    }
-    *clipboard.0.lock().unwrap() = copied;
-    Ok(())
-}
-
-#[tauri::command]
-pub fn paste_slide_assets(
-    token: String,
-    sessions: State<'_, Sessions>,
-    clipboard: State<'_, SlideClipboard>,
-) {
-    if let Some(session) = sessions.0.lock().unwrap().get_mut(&token) {
-        for (name, bytes) in clipboard.0.lock().unwrap().iter() {
-            session.assets.insert(name.clone(), bytes.clone());
-        }
-    }
 }
 
 /// A new deck. It has no file of its own yet, so its images stay in memory.
@@ -363,34 +176,6 @@ pub fn add_deck_asset(request: tauri::ipc::Request<'_>, sessions: State<'_, Sess
         session.assets.insert(name, bytes.clone());
     }
     Ok(())
-}
-
-/// A new deck has no file yet, so it is kept in the app's own folder until it is saved somewhere,
-/// so closing it doesn't lose it.
-#[tauri::command]
-pub fn write_draft(token: String, app: AppHandle, sessions: State<'_, Sessions>) -> Result<String, DeckError> {
-    let dir = app_folder(&app, "drafts")?;
-    let path = dir.join(format!("{}.pwpptx", uuid::Uuid::new_v4().simple()));
-
-    let mut guard = sessions.0.lock().unwrap();
-    let session = guard
-        .get_mut(&token)
-        .ok_or_else(|| DeckError::Damaged("this presentation is no longer open".into()))?;
-    let optional = |text: &str| (!text.is_empty()).then(|| text.to_string());
-    let content = DeckContent {
-        manifest: session.manifest.clone(),
-        slides_html: session.slides_html.clone(),
-        theme_css: optional(&session.theme_css),
-        widgets_js: optional(&session.widgets_js),
-        notes: None,
-        ink: None,
-    };
-    let assets: Vec<(&str, &[u8])> =
-        session.assets.iter().map(|(name, bytes)| (name.as_str(), bytes.as_slice())).collect();
-    write_deck(&path, &DeckWrite { content: &content, source: None, assets: &assets })?;
-    session.source = Some(path.clone());
-    session.target = Some(path.clone());
-    Ok(path.to_string_lossy().into_owned())
 }
 
 /// The frontend sanitises the slides and hands them back, so nothing unsanitised is ever served.

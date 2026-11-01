@@ -110,7 +110,7 @@ The whiteboard uses the key `"wb"` in place of a slide id.
 - Write to `<name>.pwpptx.tmp` in the same folder, flush, then rename over the original (atomic on NTFS).
 - Keep `mimetype` first and uncompressed, then the other files deflated.
 - Autosave goes to a **recovery file** in app data every ~5 s while there are unsaved changes, never to the
-  user's file. On launch, offer to recover if a recovery file is newer than the deck.
+  user's file. On launch, offer to recover; if the file changed after the recovery copy was written, say so.
 
 ## 9. Authoring kit for AI (built in milestone M4, see roadmap)
 

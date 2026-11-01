@@ -9,6 +9,9 @@ export interface DeckSlide {
   html: string;
 }
 
+/** The most Penwork opens (docs/DECK-FORMAT.md), so the most it may save. */
+export const MAX_SLIDES = 500;
+
 function parsed(html: string): DocumentFragment {
   const template = document.createElement("template");
   template.innerHTML = html;
@@ -68,12 +71,16 @@ export function removeSlides(slides: readonly DeckSlide[], picked: readonly numb
   return slides.filter((_, i) => !gone.has(i));
 }
 
-/** Hides them, unless they're all hidden already: then it shows them again. */
-export function toggleHidden(slides: readonly DeckSlide[], picked: readonly number[]): DeckSlide[] {
-  const hide = picked.some((i) => {
+/** Hide hides them, unless they're all hidden already: then it shows them again. */
+export function wouldHide(slides: readonly DeckSlide[], picked: readonly number[]): boolean {
+  return picked.some((i) => {
     const slide = slides[i];
     return slide !== undefined && !isHidden(slide);
   });
+}
+
+export function toggleHidden(slides: readonly DeckSlide[], picked: readonly number[]): DeckSlide[] {
+  const hide = wouldHide(slides, picked);
   const chosen = new Set(picked);
   return slides.map((slide, i) => (chosen.has(i) ? setHiddenOn(slide, hide) : slide));
 }
@@ -108,15 +115,34 @@ export function nudgeSlides(
   return moveSlides(slides, sorted, direction < 0 ? low - 1 : high + 2);
 }
 
+/** A style attribute comes back from the browser with its quotes written as &quot;. */
+function plainQuotes(html: string): string {
+  return html.replaceAll("&quot;", '"').replaceAll("&#39;", "'").replaceAll("&amp;", "&");
+}
+
 /** The deck images a slide uses, so that a copy can take them along. */
 export function assetNames(slides: readonly DeckSlide[]): string[] {
   const names = new Set<string>();
   for (const slide of slides) {
-    for (const match of slide.html.matchAll(/["'(](assets\/[^"')]+)["')]/g)) {
+    for (const match of plainQuotes(slide.html).matchAll(/["'(](assets\/[^"')]+)["')]/g)) {
       if (match[1]) names.add(match[1]);
     }
   }
   return [...names];
+}
+
+/** Points slides at new image names, for an image that clashed with one already in the deck. */
+export function renameAssets(
+  slides: readonly DeckSlide[],
+  renames: readonly (readonly [string, string])[],
+): DeckSlide[] {
+  return slides.map((slide) => ({
+    ...slide,
+    html: renames.reduce((html, [from, to]) => {
+      const name = from.replaceAll("&", "&amp;").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      return html.replace(new RegExp(`${name}(?=["')&])`, "g"), () => to);
+    }, slide.html),
+  }));
 }
 
 /** What the slide list selects after a click, with Ctrl and Shift as in any file list. */

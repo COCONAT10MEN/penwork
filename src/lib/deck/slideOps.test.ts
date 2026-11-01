@@ -9,9 +9,11 @@ import {
   nextSelection,
   nudgeSlides,
   removeSlides,
+  renameAssets,
   splitSlides,
   toggleHidden,
   withNewId,
+  wouldHide,
   type DeckSlide,
 } from "./slideOps";
 
@@ -107,6 +109,34 @@ describe("assetNames", () => {
       `<img src="assets/one.png"><i style="background:url(assets/two.jpg)"></i><img src="assets/one.png">`,
     );
     expect(assetNames([withImages])).toEqual(["assets/one.png", "assets/two.jpg"]);
+  });
+
+  it("reads names with escaped quotes and ampersands", () => {
+    const escaped = slide("a", `<i style="background:url(&quot;assets/a&amp;b.png&quot;)"></i>`);
+    expect(assetNames([escaped])).toEqual(["assets/a&b.png"]);
+  });
+});
+
+describe("renameAssets", () => {
+  it("renames an image everywhere it's used, and nothing else", () => {
+    const html = `<img src="assets/a.png"><img src="assets/a.png.bak"><i style="background:url(&quot;assets/a.png&quot;)"></i>`;
+    const [renamed] = renameAssets([slide("x", html)], [["assets/a.png", "assets/new.png"]]);
+    expect(assetNames(renamed ? [renamed] : [])).toEqual(["assets/new.png", "assets/a.png.bak"]);
+  });
+
+  it("copes with characters that mean something to a pattern", () => {
+    const [renamed] = renameAssets(
+      [slide("x", `<img src="assets/a&amp;(1).png">`)],
+      [["assets/a&(1).png", "assets/new.png"]],
+    );
+    expect(renamed?.html).toContain("assets/new.png");
+  });
+});
+
+describe("wouldHide", () => {
+  it("says what Hide is about to do", () => {
+    expect(wouldHide(abcd, [0, 1])).toBe(true);
+    expect(wouldHide(toggleHidden(abcd, [0]), [0])).toBe(false);
   });
 });
 

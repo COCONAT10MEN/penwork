@@ -62,8 +62,8 @@ runtime, so it can forge any runtime message.
 - The page sends each slide's strokes to the app, which checks them (`src/lib/deck/ink.ts`) before saving or showing them.
 - Strokes are stored in stage units per slide id (format in `DECK-FORMAT.md` §6), with per-slide snapshot history
   (max 60), highlighter multiply compositing, and a laser trail that is never stored. See handoff §3.7.
-- Goes **into the deck** (`ink.json`) on Save, so it travels with the file. Until Save arrives in M4 it is kept in app data,
-  `<AppData>/ink/<library id>.json`, on top of any ink already in the file. A slide's empty list means its ink was erased.
+- Goes **into the deck** (`ink.json`) on Save, so it travels with the file. Until then it lives in the recovery copy, like
+  every other unsaved change, so "Don't save" really does drop it.
 - The whiteboard's ink uses the key `wb` in the same store.
 
 ## 5. Thumbnails

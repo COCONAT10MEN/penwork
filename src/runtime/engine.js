@@ -1771,20 +1771,25 @@ function setSlides(p){
   ink=move(ink);hist=move(hist);redoS=move(redoS);
   if(window.__ui)window.__ui.ink=ink;
   texAll(stage);
+  relist=ov.contains(document.activeElement);
   cells=[];ov.innerHTML='';
   if(SORTER)sorterCells();
   else preview(Math.max(0,Math.min(N-1,p.slide|0)));
 }
 
 /* ---------- the slide list in the edit view: the same thumbnails as the grid, in a column ---------- */
+var relist=false; /* the list was rebuilt while it had focus, so it gets it back */
 function sorterSelect(i,sel){
   /* focus moves with the selection only if it's already in the list: the big slide keeps its own */
-  var inside=ov.contains(document.activeElement);
+  var inside=relist||ov.contains(document.activeElement);
+  relist=false;
   selCell(i,inside);
   cells.forEach(function(c,k){
     c.el.tabIndex=k===ovSel?0:-1; /* one Tab stop for the whole list, not one per slide */
     if(k===ovSel)c.el.setAttribute('aria-current','true');else c.el.removeAttribute('aria-current');
-    c.el.classList.toggle('sel',!!sel&&sel.indexOf(k)>=0&&sel.length>1);
+    var on=!!sel&&sel.indexOf(k)>=0;
+    c.el.classList.toggle('sel',on&&sel.length>1);
+    c.el.setAttribute('aria-pressed',on?'true':'false');
   });
   if(cells[ovSel])cells[ovSel].el.scrollIntoView({block:'nearest'});
 }
@@ -1800,7 +1805,8 @@ function sorterCells(){
     if(hiddenSlide(i)){var h=document.createElement('b');h.textContent='Hidden';n.appendChild(h);}
     c.el.insertBefore(n,c.th);c.el.setAttribute('role','button');
     c.el.tabIndex=-1;c.tin.inert=true; /* a thumbnail's own buttons and sliders aren't real controls */
-    c.el.setAttribute('aria-label','Slide '+(i+1)+(hiddenSlide(i)?', hidden':''));
+    var title=slides[i].getAttribute('data-title');
+    c.el.setAttribute('aria-label','Slide '+(i+1)+(title?', '+title:'')+(hiddenSlide(i)?', hidden':''));
   });
   sorterLayout();
   /* built a few at a time, so a long presentation doesn't hold up the window */
@@ -1878,6 +1884,7 @@ addEventListener('message',function(e){
       if(p.key)window.dispatchEvent(new KeyboardEvent('keydown',{key:p.key,shiftKey:!!p.shift,ctrlKey:!!p.ctrl,altKey:!!p.alt,bubbles:true,cancelable:true}));
       break;
     case 'select':if(SORTER)sorterSelect(p.slide|0,p.selected);break;
+    case 'focusList':if(SORTER&&cells[ovSel])cells[ovSel].el.focus();break;
     case 'slides':if(typeof p.html==='string')setSlides(p);break;
     case 'ink':setInk(p.slides||{});break;
     case 'toolbar':

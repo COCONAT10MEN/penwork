@@ -7,6 +7,8 @@ export interface ChoiceOptions<T extends string> {
   icon?: string;
   /** Left to right, the last being the main action. */
   actions: { value: T; label: string }[];
+  /** Where Enter lands. By default that's the first action. */
+  focus?: T;
 }
 
 /** A question that code can wait on: await ask(...) gives the answer, or null if it was dismissed. */
@@ -18,6 +20,8 @@ export function useChoice(): {
   const answer = useRef<(value: string | null) => void>(() => {});
 
   const ask = useCallback(<T extends string>(options: ChoiceOptions<T>) => {
+    // Only one question fits on screen, so an earlier one counts as dismissed.
+    answer.current(null);
     setQuestion(options);
     return new Promise<T | null>((done) => {
       answer.current = (value) => done(value as T | null);
@@ -42,6 +46,7 @@ export function useChoice(): {
           key={action.value}
           size="medium"
           variant={i === actions.length - 1 ? "filled" : "text"}
+          data-autofocus={action.value === question?.focus || undefined}
           onClick={() => finish(action.value)}
         >
           {action.label}

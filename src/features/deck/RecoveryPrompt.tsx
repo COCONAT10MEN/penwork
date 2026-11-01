@@ -16,22 +16,29 @@ export function RecoveryPrompt() {
       const ids = await invoke<string[]>("list_recovery").catch(() => []);
       for (const id of ids) {
         const entry = useApp.getState().library.decks.find((d) => d.id === id);
-        const answer = entry
-          ? await ask({
-              headline: "Recover unsaved work?",
-              text: `Penwork closed with unsaved changes in "${entry.title}".`,
-              icon: "history",
-              actions: [
-                { value: "discard", label: "Discard" },
-                { value: "recover", label: "Recover" },
-              ],
-            })
-          : null;
-        if (answer === "recover" && entry) {
+        // Nothing to name it by, but it's still someone's work, so the copy stays where it is.
+        if (!entry) continue;
+        const newer = await invoke<boolean>("recovery_is_newer", {
+          id,
+          path: entry.path,
+        }).catch(() => true);
+        const answer = await ask({
+          headline: "Recover unsaved work?",
+          text: newer
+            ? `Penwork closed with unsaved changes in "${entry.title}".`
+            : `Penwork closed with unsaved changes in "${entry.title}", but the file has changed since. Saving what you recover would replace those changes.`,
+          icon: "history",
+          actions: [
+            { value: "discard", label: "Discard" },
+            { value: "recover", label: "Recover" },
+          ],
+          focus: "recover",
+        });
+        if (answer === "recover") {
           await useApp.getState().recoverDeck(id, entry.path, notify);
           return;
         }
-        if (answer === "discard" || !entry) await invoke("delete_recovery", { id });
+        if (answer === "discard") await invoke("delete_recovery", { id });
       }
     })();
   }, [ready, ask, notify]);

@@ -18,7 +18,6 @@ import {
   removeDeck,
   renameDeck,
   setFavorite,
-  setInkFlag,
   setLastSlide,
   setThumb,
   type Library,
@@ -65,7 +64,6 @@ interface AppState {
   removeFromRecents: (id: string) => void;
   toggleFavorite: (id: string) => void;
   thumbSaved: (id: string, stamp: string) => void;
-  inkSaved: (id: string, ink: boolean) => void;
 }
 
 function persist(library: Library): void {
@@ -90,8 +88,6 @@ export const useApp = create<AppState>((set, get) => {
   const show = (deck: OpenDeck, notify: Notify, present = false) => {
     const previous = get().deck;
     if (previous) closeDeckFile(previous.token);
-    const key = deck.path.toLowerCase();
-    const known = get().library.decks.find((d) => d.path.toLowerCase() === key);
     const library = recordOpen(
       get().library,
       {
@@ -100,8 +96,7 @@ export const useApp = create<AppState>((set, get) => {
         slides: deck.slideCount,
         quizzes: deck.facts.quizzes,
         interactive: deck.facts.interactive,
-        // Ink can also be waiting in the app's folder, for a presentation not saved since.
-        ink: deck.hasInk || known?.ink === true,
+        ink: deck.hasInk,
         text: deck.facts.text,
       },
       new Date().toISOString(),
@@ -155,6 +150,7 @@ export const useApp = create<AppState>((set, get) => {
     },
 
     recoverDeck: async (id, path, notify) => {
+      if (!(await leaving())) return;
       set({ opening: true });
       try {
         show(await openRecoveryFile(id, path), notify);
@@ -212,7 +208,5 @@ export const useApp = create<AppState>((set, get) => {
     },
 
     thumbSaved: (id, stamp) => commit(setThumb(get().library, id, stamp)),
-
-    inkSaved: (id, ink) => commit(setInkFlag(get().library, id, ink)),
   };
 });

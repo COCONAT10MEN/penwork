@@ -30,17 +30,15 @@
     "allow-capture-view",
     "allow-export-toolbar",
     "allow-read-toolbar-file",
-    "allow-read-ink",
-    "allow-write-ink",
     "allow-save-deck",
     "allow-write-recovery",
     "allow-list-recovery",
     "allow-delete-recovery",
+    "allow-recovery-is-newer",
     "allow-open-recovery",
     "allow-delete-draft",
     "allow-copy-slide-assets",
-    "allow-paste-slide-assets",
-    "allow-delete-ink"
+    "allow-paste-slide-assets"
   ],
   "local": true
 }

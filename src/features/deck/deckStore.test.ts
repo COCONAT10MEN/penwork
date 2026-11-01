@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { commit, createDeckStore, isDirty, markSaved, redo, undo } from "./deckStore";
+import { commit, createDeckStore, isDirty, markSaved, noteInk, redo, undo } from "./deckStore";
 
 const list = (id: string) => [{ id, html: `<section data-id="${id}"></section>` }];
 
@@ -43,7 +43,7 @@ describe("deck history", () => {
   it("stays unsaved when undoing past a save", () => {
     const store = createDeckStore(list("a"));
     commit(store, list("b"));
-    markSaved(store);
+    markSaved(store, store.getState().slides, 0);
     expect(isDirty(store.getState())).toBe(false);
     undo(store);
     expect(isDirty(store.getState())).toBe(true);
@@ -51,10 +51,22 @@ describe("deck history", () => {
 
   it("counts changed ink as unsaved", () => {
     const store = createDeckStore(list("a"));
-    store.setState({ inkChanged: true });
+    noteInk(store);
     expect(isDirty(store.getState())).toBe(true);
-    markSaved(store);
+    markSaved(store, store.getState().slides, 1);
     expect(isDirty(store.getState())).toBe(false);
+  });
+
+  it("stays unsaved when an edit lands during a save", () => {
+    const store = createDeckStore(list("a"));
+    commit(store, list("b"));
+    const inFile = store.getState().slides;
+    commit(store, list("c"));
+    noteInk(store);
+    markSaved(store, inFile, 0);
+    expect(isDirty(store.getState())).toBe(true);
+    undo(store);
+    expect(isDirty(store.getState())).toBe(true); // the ink still isn't in the file
   });
 
   it("keeps 200 steps", () => {

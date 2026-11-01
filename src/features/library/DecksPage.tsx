@@ -27,14 +27,14 @@ export function DecksPage({
   const found = findDecks(decks, query, filter);
   const empty =
     decks.length === 0
-      ? "No decks yet. Open one to see it here."
+      ? "No presentations yet. Open one to see it here."
       : query
         ? `Nothing found for “${query}”.`
-        : "No decks match this filter.";
+        : "No presentations match this filter.";
   return (
     <>
       <h1 className={styles.pageTitle}>{title}</h1>
-      <div className={styles.chips} role="group" aria-label="Filter decks">
+      <div className={styles.chips} role="group" aria-label="Filter presentations">
         {FILTERS.map(({ id, label }) => (
           <Chip
             key={id}

@@ -74,6 +74,7 @@ The app must work **fully offline**. Never load scripts, fonts or icons from the
   - `src/lib/` — pure helpers (geometry, coordinate transforms, file formats) — unit-test these
   - `src-tauri/` — Rust: file access, dialogs, open-with/file associations, app data paths
 - **Deck ink:** store strokes in stage units (1920×1080) per slide, never in screen pixels.
+- **Say "presentation" to the user, never "deck".** Every word on screen. `deck` stays in code, file names and `.pwpptx`.
 - **No raw `.html` files.** Penwork never opens, imports or registers for `.html`; that is why `.pwpptx` exists.
 - **Never overwrite the owner's files silently.** A `.pwpptx` is written only on
   Save or Save as; autosave goes to a separate recovery file.

@@ -31,13 +31,13 @@ const KNOWN_ENTRIES: [&str; 7] = [
 
 #[derive(Debug, thiserror::Error)]
 pub enum DeckError {
-    #[error("This file isn't a Penwork deck.")]
+    #[error("This file isn't a Penwork presentation.")]
     NotADeck,
-    #[error("This deck is damaged: {0}")]
+    #[error("This presentation is damaged: {0}")]
     Damaged(String),
-    #[error("This deck was made by a newer Penwork. Update Penwork to open it.")]
+    #[error("This presentation was made by a newer Penwork. Update Penwork to open it.")]
     NewerFormat,
-    #[error("This deck is too large: {0}")]
+    #[error("This presentation is too large: {0}")]
     TooLarge(String),
     #[error("Couldn't read or write the file: {0}")]
     Io(#[from] std::io::Error),

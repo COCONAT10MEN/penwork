@@ -106,3 +106,4 @@ colour from a seed) and the **tinted liquid-glass** look of the owner's toolbar.
 11. **No raw `.html` files (2026-10-31).** Penwork never opens, imports or registers for `.html`, by any route, because raw
     HTML can cause problems and that is the reason `.pwpptx` exists. This replaces every mention of an `.html` importer.
     Paste from AI on Home is removed too (2026-10-31). A `.pwpptx` file and New deck are the only ways a deck gets in.
+12. **Everything on screen says "presentation", never "deck" (2026-11-01).** The code keeps the word `deck`.

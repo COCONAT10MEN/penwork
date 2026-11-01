@@ -202,7 +202,7 @@ export function ShowcaseChipsSearch() {
         <Chip label="Disabled" icon="block" disabled />
       </div>
       <SearchBar
-        label="Search decks and slides"
+        label="Search presentations and slides"
         material={material}
         value={query}
         onChange={setQuery}

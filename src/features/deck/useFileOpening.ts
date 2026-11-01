@@ -11,7 +11,7 @@ export async function pickDeck(): Promise<string | null> {
   const path = await open({
     multiple: false,
     directory: false,
-    filters: [{ name: "Penwork decks", extensions: ["pwpptx"] }],
+    filters: [{ name: "Penwork presentations", extensions: ["pwpptx"] }],
   });
   return typeof path === "string" ? path : null;
 }

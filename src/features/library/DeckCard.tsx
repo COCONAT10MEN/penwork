@@ -113,10 +113,10 @@ export function DeckCard({
 
 export function NewDeckCard({ onClick }: { onClick: () => void }) {
   return (
-    <Card material="glass" actionLabel="New deck" onClick={onClick} className={styles.deck}>
+    <Card material="glass" actionLabel="New presentation" onClick={onClick} className={styles.deck}>
       <div className={styles.newThumb} aria-hidden="true">
         <Icon name="add" size={28} />
-        New deck
+        New presentation
       </div>
       <div className={styles.row}>
         <div className={styles.text}>

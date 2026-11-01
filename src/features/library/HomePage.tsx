@@ -19,7 +19,7 @@ function DropZone({ dragging }: { dragging: boolean }) {
         </svg>
         <Icon name="download" size={32} className={styles.dropIcon} />
       </span>
-      <span className={styles.dropTitle}>Drop a deck here</span>
+      <span className={styles.dropTitle}>Drop a presentation here</span>
       <span className={styles.dropHint}>.pwpptx files open straight away</span>
     </Surface>
   );
@@ -100,7 +100,9 @@ export function HomePage({
       <header className={styles.header}>
         <h1 className={styles.greeting}>{greeting(new Date().getHours())}</h1>
         <p className={styles.sub}>
-          {latest ? "Ready to teach? Pick up where you left off." : "Open a deck to get started."}
+          {latest
+            ? "Ready to teach? Pick up where you left off."
+            : "Open a presentation to get started."}
         </p>
       </header>
       <section className={styles.hero} aria-label="Start here">
@@ -110,7 +112,7 @@ export function HomePage({
       <section aria-labelledby="recent-heading">
         <div className={styles.headingRow}>
           <h2 id="recent-heading" className={styles.heading}>
-            Recent decks
+            Recent presentations
           </h2>
           {others.length > 3 && (
             <Button variant="text" size="small" onClick={onSeeAll}>

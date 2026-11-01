@@ -133,7 +133,7 @@ const THEMES = [
 ];
 const COLORS = [
   { value: "logo", label: "Sync with logo" },
-  { value: "deck", label: "Match the deck" },
+  { value: "deck", label: "Match the presentation" },
   { value: "custom", label: "Custom" },
 ];
 const TRANSPARENCY = [
@@ -162,7 +162,7 @@ export function Settings() {
           title="App colour"
           hint={
             settings.colorSource === "deck"
-              ? "The app takes the deck's main colour while a deck is open."
+              ? "The app takes the presentation's main colour while one is open."
               : undefined
           }
         >

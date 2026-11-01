@@ -58,7 +58,7 @@ function quiz(title: string): string {
 }
 
 export function newDeck(rawTitle: string, layout: StartLayout): DeckParts {
-  const name = rawTitle.trim() || "Untitled deck";
+  const name = rawTitle.trim() || "Untitled presentation";
   const title = escaped(name);
   const slides = [cover(title)];
   if (layout === "columns") slides.push(columns(title));

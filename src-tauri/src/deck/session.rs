@@ -146,7 +146,7 @@ pub fn write_draft(token: String, app: AppHandle, sessions: State<'_, Sessions>)
     let mut guard = sessions.0.lock().unwrap();
     let session = guard
         .get_mut(&token)
-        .ok_or_else(|| DeckError::Damaged("this deck is no longer open".into()))?;
+        .ok_or_else(|| DeckError::Damaged("this presentation is no longer open".into()))?;
     let optional = |text: &str| (!text.is_empty()).then(|| text.to_string());
     let content = DeckContent {
         manifest: session.manifest.clone(),

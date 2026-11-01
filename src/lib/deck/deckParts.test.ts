@@ -36,7 +36,7 @@ describe("newDeck", () => {
   });
 
   it("names an empty deck", () => {
-    expect(newDeck("  ", "cover").title).toBe("Untitled deck");
+    expect(newDeck("  ", "cover").title).toBe("Untitled presentation");
   });
 });
 

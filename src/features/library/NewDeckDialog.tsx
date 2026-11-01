@@ -26,7 +26,7 @@ export function NewDeckDialog({ open, onClose }: { open: boolean; onClose: () =>
     <Dialog
       open={open}
       onClose={onClose}
-      headline="New deck"
+      headline="New presentation"
       icon="add"
       material="glass"
       actions={
@@ -42,7 +42,7 @@ export function NewDeckDialog({ open, onClose }: { open: boolean; onClose: () =>
     >
       <div className={styles.dialogBody}>
         <TextField
-          label="Deck name"
+          label="Presentation name"
           value={title}
           onChange={setTitle}
           onKeyDown={(e) => {

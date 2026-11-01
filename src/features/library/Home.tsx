@@ -22,7 +22,7 @@ import styles from "./Home.module.css";
 
 const NAV: RailItem[] = [
   { id: "home", label: "Home", icon: "home" },
-  { id: "decks", label: "Decks", icon: "co_present" },
+  { id: "decks", label: "Presentations", icon: "co_present" },
   { id: "layouts", label: "Layouts", icon: "grid_view" },
   { id: "favorites", label: "Favorites", icon: "star" },
 ];
@@ -60,7 +60,7 @@ export function Home({ dragging }: { dragging: boolean }) {
           />
         );
       case "decks":
-        return <DecksPage key="decks" query="" title="Decks" />;
+        return <DecksPage key="decks" query="" title="Presentations" />;
       case "favorites":
         return <DecksPage key="favorites" query="" title="Favorites" start="favorites" />;
       case "settings":
@@ -112,20 +112,20 @@ export function Home({ dragging }: { dragging: boolean }) {
           <div className={styles.search}>
             <SearchBar
               material="glass"
-              label="Search decks and slides"
+              label="Search presentations and slides"
               value={query}
               onChange={setQuery}
             />
           </div>
           <span className={styles.spacer} />
-          {opening && <LoadingIndicator label="Opening deck" size={40} />}
+          {opening && <LoadingIndicator label="Opening presentation" size={40} />}
           <Button
             id={OPEN_BUTTON_ID}
             size="medium"
             icon="folder_open"
             onClick={() => void onOpen()}
           >
-            Open deck
+            Open presentation
           </Button>
         </div>
         {content()}

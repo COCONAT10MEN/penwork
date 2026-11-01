@@ -52,7 +52,7 @@ function persist(library: Library): void {
 }
 
 function reportError(error: unknown, notify: Notify): void {
-  const message = isDeckError(error) ? error.message : "This deck couldn't be opened.";
+  const message = isDeckError(error) ? error.message : "This presentation couldn't be opened.";
   notify({ message, duration: 10_000 });
 }
 
@@ -109,7 +109,7 @@ export const useApp = create<AppState>((set, get) => {
 
     openPath: async (path, notify) => {
       if (!isDeckPath(path)) {
-        notify({ message: "Penwork opens .pwpptx decks only." });
+        notify({ message: "Penwork opens .pwpptx presentations only." });
         return;
       }
       set({ opening: true });

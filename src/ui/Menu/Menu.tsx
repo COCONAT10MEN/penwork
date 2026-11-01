@@ -50,10 +50,12 @@ export function Menu({ open, onClose, anchor, label, items, material = "tonal" }
   useLayoutEffect(() => {
     if (!open || !anchor || !ref.current) return;
     const a = anchor.getBoundingClientRect();
-    const m = ref.current.getBoundingClientRect();
-    const up = a.bottom + GAP + m.height > window.innerHeight && a.top - GAP - m.height > 0;
-    const left = Math.min(Math.max(8, a.left), window.innerWidth - m.width - 8);
-    setPos({ left, top: up ? a.top - GAP - m.height : a.bottom + GAP, up });
+    // The opening animation has it scaled down right now, so its on-screen box is too small.
+    const height = ref.current.offsetHeight;
+    const width = ref.current.offsetWidth;
+    const up = a.bottom + GAP + height > window.innerHeight && a.top - GAP - height > 0;
+    const left = Math.min(Math.max(8, a.left), window.innerWidth - width - 8);
+    setPos({ left, top: up ? a.top - GAP - height : a.bottom + GAP, up });
   }, [open, anchor, items.length]);
 
   // The position is recomputed in the layout effect above before each opening is painted.

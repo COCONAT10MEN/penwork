@@ -19,6 +19,10 @@ fn main() {
         "read_thumb",
         "delete_thumb",
         "capture_view",
+        "export_toolbar",
+        "read_toolbar_file",
+        "read_ink",
+        "write_ink",
     ]);
     tauri_build::try_build(tauri_build::Attributes::new().app_manifest(manifest))
         .expect("failed to run the Tauri build script");

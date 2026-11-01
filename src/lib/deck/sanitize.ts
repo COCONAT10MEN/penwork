@@ -39,9 +39,14 @@ function inventory(root: DocumentFragment): Map<string, number> {
   return counts;
 }
 
-function newSlideId(): string {
-  const id = Math.random().toString(36).slice(2, 10).padEnd(8, "0");
-  return `s-${id}`;
+/** From the slide's content, so a slide with no id gets the same one each time: ink is keyed by it. */
+function newSlideId(html: string, taken: Set<string>): string {
+  for (let salt = 0; ; salt++) {
+    let hash = 0x811c9dc5 ^ salt;
+    for (let i = 0; i < html.length; i++) hash = Math.imul(hash ^ html.charCodeAt(i), 0x01000193);
+    const id = `s-${(hash >>> 0).toString(36).padStart(8, "0")}`;
+    if (!taken.has(id)) return id;
+  }
 }
 
 function cleanInline(text: string): string {
@@ -141,7 +146,7 @@ export function sanitizeSlides(input: string): SanitizeResult {
     // Notes, ink and thumbnails are keyed by this id, so an existing one is never changed.
     let id = slide.getAttribute("data-id");
     if (!id || seen.has(id)) {
-      id = newSlideId();
+      id = newSlideId(slide.outerHTML, seen);
       slide.setAttribute("data-id", id);
     }
     seen.add(id);

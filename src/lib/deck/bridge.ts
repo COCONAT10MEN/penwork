@@ -9,9 +9,16 @@ export type RuntimeMessage =
   | { type: "key"; key: string; ctrl: boolean; shift: boolean; alt: boolean }
   /** A slide was clicked in the edit view's slide list. */
   | { type: "pick"; slide: number }
-  /** The overview grid opened or closed. */
-  | { type: "grid"; open: boolean };
+  /** The End show button, or F. */
+  | { type: "end" }
+  /** Toolbar settings changed. fixAll in the page checks them again when they're loaded. */
+  | { type: "toolbar"; settings: Record<string, unknown> }
+  | { type: "exportToolbar"; text: string }
+  | { type: "importToolbar" }
+  /** A slide's ink changed. The strokes are still unchecked here: see lib/deck/ink. */
+  | { type: "ink"; id: string; strokes: unknown };
 
+const MAX_SETTINGS = 256 * 1024;
 const isCount = (v: unknown): v is number => Number.isInteger(v) && (v as number) >= 0;
 
 export function parseRuntimeMessage(data: unknown): RuntimeMessage | null {
@@ -32,8 +39,19 @@ export function parseRuntimeMessage(data: unknown): RuntimeMessage | null {
         : null;
     case "pick":
       return isCount(p.slide) ? { type, slide: p.slide } : null;
-    case "grid":
-      return typeof p.open === "boolean" ? { type, open: p.open } : null;
+    case "end":
+    case "importToolbar":
+      return { type };
+    case "toolbar":
+      return { type, settings: p };
+    case "exportToolbar":
+      return typeof p.text === "string" && p.text.length <= MAX_SETTINGS
+        ? { type, text: p.text }
+        : null;
+    case "ink":
+      return typeof p.id === "string" && p.id.length <= 64
+        ? { type, id: p.id, strokes: p.strokes }
+        : null;
     default:
       return null;
   }

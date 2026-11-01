@@ -16,6 +16,7 @@ import {
   recordOpen,
   removeDeck,
   setFavorite,
+  setInkFlag,
   setLastSlide,
   setThumb,
   type Library,
@@ -46,6 +47,7 @@ interface AppState {
   removeFromRecents: (id: string) => void;
   toggleFavorite: (id: string) => void;
   thumbSaved: (id: string, stamp: string) => void;
+  inkSaved: (id: string, ink: boolean) => void;
 }
 
 function persist(library: Library): void {
@@ -160,5 +162,7 @@ export const useApp = create<AppState>((set, get) => {
     },
 
     thumbSaved: (id, stamp) => commit(setThumb(get().library, id, stamp)),
+
+    inkSaved: (id, ink) => commit(setInkFlag(get().library, id, ink)),
   };
 });

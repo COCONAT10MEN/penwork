@@ -36,7 +36,9 @@ function appPage(): string {
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Slides</title>
     <style>${file("engine.css")}</style><style>${file("app.css")}</style><style>${theme}</style></head><body>
     <div id="stage"><div id="bgl"><div class="blob b0"></div><div class="blob b1"></div>
-    <div class="blob b2"></div><div class="blob b3"></div></div>${slides}</div><div id="ov"></div>
+    <div class="blob b2"></div><div class="blob b3"></div></div>${slides}</div>
+    <div id="wb"><div id="wbg"></div><div id="wbbar"><i></i></div></div><div id="inkwrap"></div>
+    <div id="dock"></div><div id="ov"></div><div id="toast"></div>
     <script>${file("engine.js")}</script></body></html>`;
 }
 

@@ -22,6 +22,12 @@ const SOURCES: &str = "http://penwork-deck.localhost penwork-deck:";
 const ENGINE_CSS: &str = include_str!("../../../src/runtime/engine.css");
 const APP_CSS: &str = include_str!("../../../src/runtime/app.css");
 const ENGINE_JS: &str = include_str!("../../../src/runtime/engine.js");
+/// perfect-freehand, wrapped so a plain script can use it. The page has no module loader.
+const FREEHAND_JS: &str = concat!(
+    "(function(){var module={exports:{}},exports=module.exports;\n",
+    include_str!("../../../node_modules/perfect-freehand/dist/cjs/index.js"),
+    "\n;window.__pf=module.exports;})();"
+);
 
 struct Session {
     /// The `.pwpptx` assets are read from. None for a deck that exists only in memory so far.
@@ -184,8 +190,10 @@ fn page(session: &Session) -> String {
          <link rel=\"stylesheet\" href=\"app.css\">\
          <link rel=\"stylesheet\" href=\"theme.css\"></head><body>\
          <div id=\"stage\"><div id=\"bgl\"><div class=\"blob b0\"></div><div class=\"blob b1\"></div>\
-         <div class=\"blob b2\"></div><div class=\"blob b3\"></div></div>{}</div><div id=\"ov\"></div>\
-         <script src=\"engine.js\"></script><script src=\"widgets.js\"></script></body></html>",
+         <div class=\"blob b2\"></div><div class=\"blob b3\"></div></div>{}</div>\
+         <div id=\"wb\"><div id=\"wbg\"></div><div id=\"wbbar\"><i></i></div></div><div id=\"inkwrap\"></div>\
+         <div id=\"dock\"></div><div id=\"ov\"></div><div id=\"toast\"></div>\
+         <script src=\"freehand.js\"></script><script src=\"engine.js\"></script><script src=\"widgets.js\"></script></body></html>",
         session.lang, session.dir, session.slides_html
     )
 }
@@ -258,6 +266,7 @@ pub fn handle(sessions: &Sessions, request: &Request<Vec<u8>>) -> Response<Vec<u
         "theme.css" => text("text/css; charset=utf-8", &session.theme_css),
         "app.css" => text("text/css; charset=utf-8", APP_CSS),
         "engine.js" => text("text/javascript; charset=utf-8", ENGINE_JS),
+        "freehand.js" => text("text/javascript; charset=utf-8", FREEHAND_JS),
         "widgets.js" => text("text/javascript; charset=utf-8", &session.widgets_js),
         name if name.starts_with("assets/") => {
             if let Some(bytes) = session.assets.get(name) {

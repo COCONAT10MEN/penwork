@@ -116,6 +116,10 @@ export function setFavorite(library: Library, id: string, favorite: boolean): Li
   return { ...library, decks: library.decks.map((d) => (d.id === id ? { ...d, favorite } : d)) };
 }
 
+export function setInkFlag(library: Library, id: string, ink: boolean): Library {
+  return { ...library, decks: library.decks.map((d) => (d.id === id ? { ...d, ink } : d)) };
+}
+
 export function setThumb(library: Library, id: string, stamp: string): Library {
   return {
     ...library,

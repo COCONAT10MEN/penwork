@@ -14,7 +14,12 @@ describe("parseRuntimeMessage", () => {
       total: 8,
     });
     expect(parseRuntimeMessage(msg("pick", { slide: 4 }))).toEqual({ type: "pick", slide: 4 });
-    expect(parseRuntimeMessage(msg("grid", { open: true }))).toEqual({ type: "grid", open: true });
+    expect(parseRuntimeMessage(msg("end", {}))).toEqual({ type: "end" });
+    expect(parseRuntimeMessage(msg("ink", { id: "s-1", strokes: [] }))).toEqual({
+      type: "ink",
+      id: "s-1",
+      strokes: [],
+    });
     expect(parseRuntimeMessage(msg("key", { key: "Escape", ctrl: true }))).toEqual({
       type: "key",
       key: "Escape",
@@ -37,7 +42,8 @@ describe("parseRuntimeMessage", () => {
       msg("state", { slide: 1.5, step: 0, steps: 0, total: 8 }),
       msg("state", { slide: 1, total: 8 }),
       msg("pick", { slide: "1" }),
-      msg("grid", { open: "yes" }),
+      msg("ink", { id: 5 }),
+      msg("exportToolbar", { text: 5 }),
       msg("key", { key: 5 }),
       msg("key", { key: "x".repeat(33) }),
       msg("deleteEverything", {}),

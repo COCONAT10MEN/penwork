@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-write-ink"
+description = "Enables the write_ink command without any pre-configured scope."
+commands.allow = ["write_ink"]
+
+[[permission]]
+identifier = "deny-write-ink"
+description = "Denies the write_ink command without any pre-configured scope."
+commands.deny = ["write_ink"]

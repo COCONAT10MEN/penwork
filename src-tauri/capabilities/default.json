@@ -9,6 +9,7 @@
     "core:default",
     "core:window:allow-set-fullscreen",
     "dialog:allow-open",
+    "dialog:allow-save",
     "dialog:allow-message",
     "allow-get-accent-color",
     "allow-take-pending-open",
@@ -25,7 +26,11 @@
     "allow-write-thumb",
     "allow-read-thumb",
     "allow-delete-thumb",
-    "allow-capture-view"
+    "allow-capture-view",
+    "allow-export-toolbar",
+    "allow-read-toolbar-file",
+    "allow-read-ink",
+    "allow-write-ink"
   ],
   "local": true
 }

@@ -19,6 +19,8 @@ export interface OpenDeck {
   /** Changes when the file does, so a cached thumbnail knows it's out of date. */
   stamp: string;
   hasInk: boolean;
+  /** ink.json from the file, unchecked. */
+  ink: unknown;
 }
 
 interface OpenedFromRust {
@@ -69,6 +71,7 @@ export async function openDeckFile(path: string): Promise<OpenDeck> {
     accent: deckAccent(opened.content.themeCss ?? ""),
     stamp: opened.stamp,
     hasInk: opened.content.ink !== null,
+    ink: opened.content.ink,
   };
 }
 
@@ -88,6 +91,7 @@ async function openParts(deck: DeckParts, generator: string) {
     facts: deckFacts(slides.html),
     accent: deckAccent(deck.themeCss),
     hasInk: false,
+    ink: null,
   };
 }
 

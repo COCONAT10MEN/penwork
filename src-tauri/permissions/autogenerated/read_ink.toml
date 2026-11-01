@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-read-ink"
+description = "Enables the read_ink command without any pre-configured scope."
+commands.allow = ["read_ink"]
+
+[[permission]]
+identifier = "deny-read-ink"
+description = "Denies the read_ink command without any pre-configured scope."
+commands.deny = ["read_ink"]

@@ -324,19 +324,19 @@ body.wbfull #stage{visibility:hidden}
  transition:background-color .5s ease,padding .5s cubic-bezier(.3,.9,.2,1),box-shadow .5s ease,transform .75s cubic-bezier(.25,.9,.2,1)}
 #shell.rw{flex-direction:row}#shell.rr{flex-direction:row-reverse}#shell.cv{flex-direction:column}#shell.cr{flex-direction:column-reverse}
 #shell.rw #main{margin-left:5px}#shell.rr #main{margin-right:5px}#shell.cv #main{margin-top:5px}#shell.cr #main{margin-bottom:5px}
-#dock.open #shell{padding:5px;background-color:#35aac5;
+#dock.open #shell{padding:5px;background-color:var(--pw-dock-accent,#35aac5);
  box-shadow:0 18px 40px -14px rgba(0,16,26,.7)}
 #dock.open #main{box-shadow:inset 0 1px 0 rgba(255,255,255,.3)}
 #dock.open #main:before{opacity:.5}
 #logo{all:unset;box-sizing:border-box;position:relative;flex:none;width:var(--ls);height:var(--ls);border-radius:50%;display:grid;place-items:center;cursor:pointer;touch-action:none;
- -webkit-tap-highlight-color:transparent;color:#35aac5;background-color:rgba(11,14,17,.94);
+ -webkit-tap-highlight-color:transparent;color:var(--pw-dock-accent,#35aac5);background-color:rgba(11,14,17,.94);
  -webkit-backdrop-filter:blur(24px) saturate(1.8);backdrop-filter:blur(24px) saturate(1.8);
  box-shadow:0 14px 30px -12px rgba(0,16,26,.75),inset 0 0 0 1px rgba(255,255,255,.28),inset 0 1px 0 rgba(255,255,255,.42);
  transition:background-color .5s ease,color .5s ease,box-shadow .5s ease,transform .2s}
 #logo:before{content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,0) 50%)}
 #logo:hover{transform:scale(1.05)}#logo:active{transform:scale(.94)}
 #logo:focus-visible{outline:2px solid rgba(255,255,255,.85);outline-offset:2px}
-#dock.open #logo{background-color:#35aac5;color:#0b0e11;box-shadow:inset 0 0 0 0 rgba(255,255,255,0);-webkit-backdrop-filter:none;backdrop-filter:none}
+#dock.open #logo{background-color:var(--pw-dock-accent,#35aac5);color:var(--pw-dock-on,#0b0e11);box-shadow:inset 0 0 0 0 rgba(255,255,255,0);-webkit-backdrop-filter:none;backdrop-filter:none}
 #dock.open #logo:before{opacity:.35}
 #logo .lg{display:block;width:60%;height:70%;pointer-events:none;transition:transform .5s cubic-bezier(.3,1.5,.5,1)}
 #logo .lg svg{display:block;width:100%;height:100%;fill:currentColor;stroke:none}
@@ -400,7 +400,7 @@ html.tab #cpop .hx input{height:44px;font-size:16px}
 .pop .tg input{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}
 .pop .tk{flex:none;position:relative;width:46px;height:27px;border-radius:14px;background:rgba(255,255,255,.28);transition:background .25s}
 .pop .tk:after{content:"";position:absolute;left:3px;top:3px;width:21px;height:21px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.4);transition:transform .3s cubic-bezier(.3,1.5,.5,1)}
-.pop .tg input:checked+.tk{background:#35aac5}
+.pop .tg input:checked+.tk{background:var(--pw-dock-accent,#35aac5)}
 .pop .tg input:checked+.tk:after{transform:translateX(19px)}
 .pop .tg input:focus-visible+.tk{box-shadow:0 0 0 3px rgba(255,255,255,.6)}
 #setpop .tg{min-height:0}
@@ -411,7 +411,7 @@ html.tab .pop .tg input:checked+.tk:after{transform:translateX(22px)}
 /* our slider */
 .sl{--pad:16px;position:relative;display:block;height:44px;cursor:pointer;touch-action:none;outline:none;-webkit-tap-highlight-color:transparent;flex:none}
 .sl .trk{position:absolute;left:var(--pad);right:var(--pad);top:50%;height:9px;margin-top:-4.5px;border-radius:5px;background:rgba(255,255,255,.2);overflow:hidden;box-shadow:inset 0 1px 3px rgba(0,0,0,.4)}
-.sl .trk i{position:absolute;left:0;top:0;bottom:0;width:calc(var(--f)*100%);border-radius:5px;background:linear-gradient(90deg,#6fcfe4,#35aac5)}
+.sl .trk i{position:absolute;left:0;top:0;bottom:0;width:calc(var(--f)*100%);border-radius:5px;background:linear-gradient(90deg,#6fcfe4,var(--pw-dock-accent,#35aac5))}
 .sl b{position:absolute;top:50%;left:calc(var(--pad) + var(--f)*(100% - 2*var(--pad)));width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;background:linear-gradient(180deg,#fff,#dff3f9);
  box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 1px rgba(0,30,45,.3);transition:transform .18s cubic-bezier(.3,1.6,.5,1),box-shadow .18s;pointer-events:none}
 .sl.drag b{transform:scale(1.22);box-shadow:0 2px 10px rgba(0,0,0,.5),0 0 0 8px rgba(90,214,243,.3)}
@@ -434,13 +434,13 @@ html.tab #setpop{width:380px}
 #setpop .sn small{font-size:11.5px;opacity:.6;font-weight:400}
 #setpop .seg{display:flex;background:rgba(255,255,255,.1);border-radius:999px;padding:3px;gap:2px;flex:none}
 #setpop .seg button{all:unset;box-sizing:border-box;padding:0 13px;min-height:calc(var(--tapm) - 14px);border-radius:999px;font:600 12.5px/1 var(--sans);cursor:pointer;display:grid;place-items:center;color:rgba(255,255,255,.8);-webkit-tap-highlight-color:transparent;transition:background .2s,color .2s}
-#setpop .seg button.on{background:#35aac5;color:#0b0e11}
+#setpop .seg button.on{background:var(--pw-dock-accent,#35aac5);color:var(--pw-dock-on,#0b0e11)}
 html.tab #setpop .seg button{font-size:13.5px;padding:0 15px}
 #setpop .pg{display:grid;grid-template-columns:repeat(3,36px);grid-template-rows:repeat(2,30px);gap:5px;flex:none}
 html.tab #setpop .pg{grid-template-columns:repeat(3,46px);grid-template-rows:repeat(2,38px)}
 #setpop .pg button{all:unset;box-sizing:border-box;border-radius:9px;background:rgba(255,255,255,.1);display:grid;place-items:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
 #setpop .pg button i{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.45)}
-#setpop .pg button.on{background:#35aac5}#setpop .pg button.on i{background:#0b0e11}
+#setpop .pg button.on{background:var(--pw-dock-accent,#35aac5)}#setpop .pg button.on i{background:var(--pw-dock-on,#0b0e11)}
 #setpop .pg button:disabled{opacity:.25;cursor:default}
 #setpop .ro{display:flex;align-items:center;gap:6px;min-height:calc(var(--tapm) - 2px);padding:0 4px 0 6px;border-radius:14px;background:rgba(255,255,255,.06)}
 #setpop .ro+.ro{margin-top:3px}
@@ -460,7 +460,7 @@ body.ovopen #cfgpop,body.ovopen #setpop,body.ovanim #cfgpop,body.ovanim #setpop,
 html.tab #bgpop button{width:var(--bs);height:var(--bs)}
 
 /* ===== logo colours · gestures · ink effects · thumbnails ===== */
-:root{--lg:#35aac5;--lg2:#6fcfe4;--cream:#e9ece0;--blk:#0b0e11}
+:root{--lg:var(--pw-dock-accent,#35aac5);--lg2:#6fcfe4;--cream:#e9ece0;--blk:var(--pw-dock-on,#0b0e11)}
 body.notr #stage,body.notr #stage *{transition:none!important;animation:none!important}
 #inkwrap .fx{will-change:opacity,transform,filter}
 #inkwrap .fxh{mix-blend-mode:multiply}
@@ -515,7 +515,7 @@ html.tab #setpop .sr.stk .pg{width:240px;grid-template-rows:repeat(2,46px)}
 #cfgpop,#cpop{overflow-y:auto;overflow-x:hidden}
 /* logo + frame are ONE body: the capsule is the logo's own colour and just grows */
 #shell{background-color:rgba(11,14,17,.94);transition:background-color var(--tD) ease,padding var(--tD) var(--tE),box-shadow var(--tD) ease,transform .75s cubic-bezier(.25,.9,.2,1)}
-#dock.open #shell{background-color:#35aac5}
+#dock.open #shell{background-color:var(--pw-dock-accent,#35aac5)}
 
 /* the toolbar pill's own glass fades with its width, so it never shows up as a separate piece next to the logo */
 @property --wf{syntax:'<number>';inherits:true;initial-value:1}

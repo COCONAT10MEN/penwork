@@ -56,3 +56,8 @@ export function wavyCirclePath(radius: number, amplitude: number, waves: number,
   }
   return `M${points.join("L")}Z`;
 }
+
+/** The Penwork mark as text, for the dock inside the sandboxed slide page. */
+export function penworkLogoSvg(): string {
+  return `<svg viewBox="0 0 100 100" aria-hidden="true"><mask id="pw-pen"><rect width="100" height="100" fill="white"/><path d="M32 66c8-3 13-10 18-20s10-16 20-18" fill="none" stroke="black" stroke-width="7" stroke-linecap="round"/></mask><path d="${COOKIE_PATH}" fill="currentColor" mask="url(#pw-pen)"/></svg>`;
+}

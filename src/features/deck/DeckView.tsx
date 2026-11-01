@@ -1,14 +1,16 @@
-import { getCurrentWindow } from "@tauri-apps/api/window";
 import { isTauri } from "@tauri-apps/api/core";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useApp } from "../../appStore";
 import type { RuntimeMessage } from "../../lib/deck/bridge";
-import { AmbientBackground, Button, IconButton, Surface } from "../../ui";
+import { AmbientBackground, Button, IconButton, penworkLogoSvg, Surface } from "../../ui";
 import { cx } from "../../ui/cx";
+import { logoColor } from "../settings/appearance";
 import { useSettings } from "../settings/settingsStore";
 import { slidesLabel } from "../library/greeting";
 import type { OpenDeck } from "./openDeck";
-import { PresentDock } from "./PresentDock";
+import { exportToolbar, importToolbar, loadToolbar, saveToolbar } from "./toolbarFile";
+import { useDeckInk } from "./useDeckInk";
 import { RuntimeFrame, type RuntimeFrameHandle } from "./RuntimeFrame";
 import { captureThumb } from "./thumbnail";
 import styles from "./DeckView.module.css";
@@ -42,7 +44,7 @@ export function DeckView({
   const [steps, setSteps] = useState(0);
   const [total, setTotal] = useState(deck.slideCount);
   const [presenting, setPresenting] = useState(presentOnOpen);
-  const [gridOpen, setGridOpen] = useState(false);
+  const ink = useDeckInk(deck, sorter);
   const systemSeed = useSettings((s) => s.systemSeed);
   const presentButton = useRef<HTMLButtonElement>(null);
   const wasPresenting = useRef(presenting);
@@ -91,7 +93,6 @@ export function DeckView({
       return current;
     });
     setPresenting(false);
-    setGridOpen(false);
     void setFullscreen(false);
   }, []);
 
@@ -116,7 +117,7 @@ export function DeckView({
       if (key === "F5") {
         present(shift ? slide : 0);
       } else if (presenting) {
-        if (key === "Escape" || key === "f" || key === "F") endShow();
+        if (key === "Escape") endShow();
       } else if (key === "ArrowRight" || key === "ArrowDown" || key === "PageDown") {
         showSlide(slide + 1);
       } else if (key === "ArrowLeft" || key === "ArrowUp" || key === "PageUp") {
@@ -134,13 +135,20 @@ export function DeckView({
     const listener = (e: KeyboardEvent) => {
       // F5 would otherwise reload the whole app.
       if (e.key === "F5") e.preventDefault();
-      if (e.ctrlKey || e.altKey || e.metaKey) return;
       if (e.key !== "F5" && e.target instanceof HTMLElement && e.target.closest("button")) {
         if (e.key === " " || e.key === "Enter") return;
       }
       // During a show the slide page owns the keys, even when focus is on a dock button.
-      if (presenting) stage.current?.post("key", { key: e.key, shift: e.shiftKey });
-      else onKey(e.key, e.shiftKey);
+      if (presenting) {
+        stage.current?.post("key", {
+          key: e.key,
+          shift: e.shiftKey,
+          ctrl: e.ctrlKey,
+          alt: e.altKey,
+        });
+      } else if (!e.ctrlKey && !e.altKey && !e.metaKey) {
+        onKey(e.key, e.shiftKey);
+      }
     };
     window.addEventListener("keydown", listener);
     return () => window.removeEventListener("keydown", listener);
@@ -162,12 +170,25 @@ export function DeckView({
     }, CAPTURE_DELAY);
   };
 
+  /** Everything the page needs before anything is shown: saved settings, the logo, the ink. */
+  const startStage = async (from: number) => {
+    const { settings, systemSeed: seed } = useSettings.getState();
+    const toolbar = await loadToolbar();
+    if (toolbar) stage.current?.post("toolbar", toolbar);
+    stage.current?.post("logo", {
+      svg: settings.logo?.svg ?? penworkLogoSvg(),
+      color: logoColor(settings, seed),
+      background: settings.logoBackground,
+    });
+    await ink.send(stage);
+    if (presentOnOpen) present(from);
+    else stage.current?.post("mode", modeMessage("edit", from));
+  };
+
   const onStageMessage = (message: RuntimeMessage) => {
     if (message.type === "ready") {
       setTotal(message.total);
-      const from = Math.min(start, Math.max(0, message.total - 1));
-      if (presentOnOpen) present(from);
-      else stage.current?.post("mode", modeMessage("edit", from));
+      void startStage(Math.min(start, Math.max(0, message.total - 1)));
     } else if (message.type === "state") {
       setSlide(message.slide);
       setSteps(message.steps);
@@ -177,8 +198,16 @@ export function DeckView({
       thumbOnFirstSlide(message.slide);
     } else if (message.type === "key" && !message.ctrl && !message.alt) {
       onKey(message.key, message.shift);
-    } else if (message.type === "grid") {
-      setGridOpen(message.open);
+    } else if (message.type === "end") {
+      endShow();
+    } else if (message.type === "toolbar") {
+      saveToolbar(message.settings);
+    } else if (message.type === "exportToolbar") {
+      void exportToolbar(message.text);
+    } else if (message.type === "importToolbar") {
+      void importToolbar((text) => stage.current?.post("toolbarFile", { text }));
+    } else if (message.type === "ink") {
+      ink.changed(message.id, message.strokes);
     }
   };
 
@@ -186,6 +215,7 @@ export function DeckView({
     if (message.type === "ready") {
       postChrome();
       sorter.current?.post("select", { slide });
+      void ink.send(sorter);
     } else if (message.type === "pick") {
       showSlide(message.slide);
     } else if (message.type === "key" && !message.ctrl && !message.alt) {
@@ -246,9 +276,6 @@ export function DeckView({
           </Surface>
         </main>
       </div>
-      {presenting && (
-        <PresentDock hidden={gridOpen} onGrid={() => stage.current?.post("grid")} onEnd={endShow} />
-      )}
     </div>
   );
 }

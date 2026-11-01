@@ -18,6 +18,7 @@ import {
   withNewId,
   type DeckSlide,
 } from "../../lib/deck/slideOps";
+import { setElementHtml } from "../../lib/deck/slideEdit";
 import { notify, showError, showWarning } from "../notices/notices";
 import { commit, redo as redoStore, undo as undoStore, type DeckStore } from "./deckStore";
 import type { OpenDeck } from "./openDeck";
@@ -238,6 +239,26 @@ export function useSlideEditing(options: {
     [deck.token, store, slideRef, edit, fits],
   );
 
+  /** Typing on the slide finished. Only the element typed in changes, in the clean copy. */
+  const setText = useCallback(
+    (at: number, n: number, tag: string, html: string) => {
+      const { slides } = store.getState();
+      const slide = slides[at];
+      const changed = slide ? setElementHtml(slide.html, n, tag, html) : null;
+      if (!slide || changed === null) {
+        notify("That edit couldn't be applied.", "info");
+        // The page is showing what was typed, so it has to be put back.
+        show(slides, at, [at]);
+        return;
+      }
+      edit(
+        slides.map((s, i) => (i === at ? { ...s, html: changed } : s)),
+        at,
+      );
+    },
+    [store, show, edit],
+  );
+
   const pick = useCallback(
     (slide: number, keys: { ctrl: boolean; shift: boolean }) => {
       setSelected((now) => nextSelection(now, slideRef.current, slide, keys));
@@ -271,6 +292,7 @@ export function useSlideEditing(options: {
     copy,
     paste,
     pick,
+    setText,
     hasCopied: () => copied.length > 0,
   };
 }

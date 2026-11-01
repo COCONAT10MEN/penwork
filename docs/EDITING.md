@@ -40,7 +40,11 @@ Leaving Edit returns to Present on the same slide and step.
   **Insert formula** (inserts a `<span class="tex">` chip that edits in the formula editor).
 - Paste is plain text (formatting from other apps is dropped).
 - In lists, Enter adds a bullet and Backspace on an empty bullet removes it. Alt+↑/↓ moves a bullet.
-- Esc or clicking outside ends editing. One editing session is one undo step.
+- Esc, Tab or clicking outside ends editing, and so does Enter outside a list (Shift+Enter makes a new line). One editing
+  session is one undo step.
+- Selecting and typing happen in the slide page. It sends back only the element's new contents, by number, and the app
+  applies them to its clean copy and sanitises the result (`src/lib/deck/slideEdit.ts`), so the page's word wrappers,
+  step classes and drawn formulas never reach the file.
 
 ## Components and their inspector fields
 

@@ -20,6 +20,7 @@ function makeMeta(){return slides.map(function(s){
   els.forEach(function(e){var a=e.getAttribute('data-st'); if(a==='='){} else k++; e._k=k;});
   return {els:els,max:k,step:0,init:false};
 });}
+if(!SORTER)stampAll();
 var meta=makeMeta();
 function $(s,r){return (r||document).querySelector(s);}
 function fit(){
@@ -1066,6 +1067,7 @@ function ovKey(e){
 
 /* ---------- keyboard ---------- */
 addEventListener('keydown',function(e){
+  if(layer&&mode==='edit'&&editKey(e))return;
   if(e.key==='F5'){e.preventDefault();keyUp(e);return;}
   var tg=e.target;if(tg&&((tg.tagName==='INPUT'&&tg.type!=='range'&&tg.type!=='checkbox')||tg.tagName==='TEXTAREA'||tg.isContentEditable))return;
   if(mode!=='present'){if(e.ctrlKey||e.altKey||(SORTER&&/^(Arrow|Page|Home|End)/.test(e.key)))e.preventDefault();keyUp(e);return;}
@@ -1717,8 +1719,9 @@ function setInk(all){
 
 /* Edit shows a slide whole and still. The show starts from nothing, like the template's first load. */
 function preview(i){
-  if(i!==cur)go(i,i>cur?1:-1,true,true);
+  if(i!==cur){endText();sel=null;hov=null;go(i,i>cur?1:-1,true,true);}
   else{cancelAll();cleanup();applyStep(cur,meta[cur].max);report();}
+  drawEdit();
 }
 function closeOvNow(){
   if(!ovOpen)return;
@@ -1735,11 +1738,13 @@ function leaveShow(){
   hideRing();
 }
 function setMode(p){
+  endText();sel=null;hov=null;
   REDUCED=OS_REDUCED||p.reduced===true;
   loop=p.loop!==false;
   mode=p.mode==='present'?'present':'edit';
   document.body.classList.toggle('still',mode==='edit'||REDUCED);
   document.body.classList.toggle('editing',mode==='edit');
+  document.body.classList.toggle('calm',REDUCED);
   var i=Math.max(0,Math.min(N-1,p.slide|0));
   if(mode==='edit'){leaveShow();preview(i);return;}
   if(hiddenSlide(i)){var a=shown(i,1);i=a>=0?a:shown(i,-1);}
@@ -1761,6 +1766,8 @@ function setSlides(p){
   var t=document.createElement('template');t.innerHTML=p.html;
   slides=Array.prototype.slice.call(t.content.querySelectorAll('.slide'));
   slides.forEach(function(s){stage.appendChild(s);});
+  if(!SORTER)stampAll();
+  ed=null;sel=null;hov=null;
   N=slides.length;meta=makeMeta();cur=-1;window.__n=N;
   /* ink and its undo are kept by position here, so they have to move with their slides */
   var move=function(o){
@@ -1774,7 +1781,14 @@ function setSlides(p){
   relist=ov.contains(document.activeElement);
   cells=[];ov.innerHTML='';
   if(SORTER)sorterCells();
-  else preview(Math.max(0,Math.min(N-1,p.slide|0)));
+  else{
+    preview(Math.max(0,Math.min(N-1,p.slide|0)));
+    /* the selection stays on what was just typed */
+    if(reselect>=0&&slides[cur]){
+      var again=slides[cur].querySelector('[data-pw="'+reselect+'"]');reselect=-1;
+      if(again)pick(again);
+    }
+  }
 }
 
 /* ---------- the slide list in the edit view: the same thumbnails as the grid, in a column ---------- */
@@ -1911,6 +1925,292 @@ document.addEventListener('pointerover',function(e){
 },true);
 document.addEventListener('pointerdown',tipOff,true);
 
+/* ---------- selecting and typing on the slide: the edit view only, never during a show ---------- */
+/*
+  Every element gets a number here, before anything changes the page. The app counts the elements of
+  its own clean copy the same way, so an edit can name an element without sending the running page's
+  word wrappers, step classes and drawn formulas back into the file.
+*/
+var KINDS=[['.cols','Columns'],['.card','Card'],['ul,ol','List'],['li','Bullet'],['.fbox','Formula'],['.m,.tex','Formula'],
+  ['table','Table'],['td,th','Cell'],['.svgbox','Diagram'],['img','Image'],['.ex','Worked example'],['.quiz','Quiz'],
+  ['h1,h2','Title'],['h3,h4','Heading'],['.cap','Caption'],['p','Text']];
+var STYLES=['soft','key','note','tips','vio'];
+var layer=null,hovBox=null,selBox=null,selTag=null,hov=null,sel=null,ed=null,holdFocus=false,reselect=-1,chip=null,barFrame=0;
+function stampAll(){
+  slides.forEach(function(s){
+    [s].concat(Array.prototype.slice.call(s.querySelectorAll('*'))).forEach(function(e,n){e.setAttribute('data-pw',n);});
+    s._src=s.cloneNode(true);
+  });
+}
+function stampOf(e){return e.hasAttribute('data-pw')?+e.getAttribute('data-pw'):-1;}
+function ownText(e){for(var c=e.firstChild;c;c=c.nextSibling)if(c.nodeType===3&&c.nodeValue.trim())return true;return false;}
+function kindOf(e){
+  for(var i=0;i<KINDS.length;i++)if(e.matches(KINDS[i][0]))return KINDS[i][1];
+  return ownText(e)&&getComputedStyle(e).display!=='inline'?'Text':'';
+}
+/* inside a drawing, a widget or a drawn formula there's nothing of ours to pick */
+function pickable(e){return !e.parentElement.closest('svg,.m,.quiz,[data-w]')&&!!kindOf(e);}
+function chainOf(t){
+  var s=slides[cur],c=[];
+  if(!s||!t||!s.contains(t)||t===s)return c;
+  for(var e=t;e&&e!==s;e=e.parentElement)if(stampOf(e)>=0&&pickable(e))c.unshift(e);
+  return c;
+}
+function nextIn(c){
+  var i=c.indexOf(sel);
+  if(i>=0)return c[Math.min(i+1,c.length-1)];
+  return c.filter(function(e){return !e.matches('.cols');})[0]||c[0];
+}
+function textIn(e){return e.matches('h1,h2,h3,h4,p,li,td,th')||(ownText(e)&&!e.matches('.m,.tex,ul,ol'));}
+function tagOf(e){
+  var k=kindOf(e),a=STYLES.filter(function(c){return e.classList.contains(c);})[0];
+  return a?k+' · '+a[0].toUpperCase()+a.slice(1):k;
+}
+function place(node,r,pad){
+  node.style.left=(r.left-pad)+'px';node.style.top=(r.top-pad)+'px';
+  node.style.width=(r.width+pad*2)+'px';node.style.height=(r.height+pad*2)+'px';
+}
+function drawSteps(){
+  Array.prototype.slice.call(layer.querySelectorAll('.sn')).forEach(function(n){n.remove();});
+  var m=meta[cur],last=0;if(!m)return;
+  m.els.forEach(function(e){
+    if(e._k===last)return;
+    var r=e.getBoundingClientRect();if(!r.width)return;
+    last=e._k;
+    var n=document.createElement('span');n.className='sn';n.textContent=e._k;
+    n.style.left=r.left+'px';n.style.top=r.top+'px';layer.appendChild(n);
+  });
+}
+function drawEdit(){
+  if(!layer||mode!=='edit')return;
+  drawSteps();
+  hovBox.classList.toggle('on',!!hov&&hov!==sel&&!ed);
+  if(hov&&hov!==sel)place(hovBox,hov.getBoundingClientRect(),2);
+  selBox.classList.toggle('on',!!sel);
+  if(sel){
+    place(selBox,sel.getBoundingClientRect(),4);
+    selTag.textContent=tagOf(sel);
+  }
+}
+function pick(e){
+  sel=e;hov=null;drawEdit();
+  send('picked',e?{slide:cur,n:stampOf(e),kind:tagOf(e)}:{slide:cur,n:-1,kind:''});
+}
+function comps(){
+  var s=slides[cur];if(!s)return [];
+  return Array.prototype.slice.call(s.querySelectorAll('[data-pw]')).filter(function(e){return pickable(e)&&!e.matches('.cols');});
+}
+function buildLayer(){
+  layer=document.createElement('div');layer.id='edit';
+  layer.innerHTML='<i class="eh"></i><i class="es"><b class="et"></b></i>';
+  document.body.appendChild(layer);
+  hovBox=layer.querySelector('.eh');selBox=layer.querySelector('.es');selTag=layer.querySelector('.et');
+  addEventListener('resize',drawEdit);
+  document.addEventListener('pointermove',function(e){
+    if(mode!=='edit'||ed)return;
+    var c=chainOf(e.target),h=c.length?nextIn(c):null;
+    if(h!==hov){hov=h;drawEdit();}
+  },true);
+  document.addEventListener('pointerdown',function(e){
+    if(ed&&!ed.root.contains(e.target))endText();
+  },true);
+  document.addEventListener('click',function(e){
+    if(mode!=='edit')return;
+    if(ed&&ed.root.contains(e.target)){
+      var f=e.target.closest('[data-src]');
+      if(f&&ed.root.contains(f))openFormula(f);
+      return;
+    }
+    /* a slide's own buttons and sliders are for the show */
+    e.preventDefault();e.stopPropagation();
+    var c=chainOf(e.target);
+    pick(c.length?nextIn(c):null);
+  },true);
+  document.addEventListener('dblclick',function(e){
+    if(mode!=='edit'||ed)return;
+    var c=chainOf(e.target).filter(textIn);
+    if(c.length)beginText(c[c.length-1],e.clientX,e.clientY);
+  },true);
+  document.addEventListener('selectionchange',barSoon);
+  document.addEventListener('paste',function(e){
+    if(!ed)return;
+    e.preventDefault();
+    var t=(e.clipboardData.getData('text/plain')||'').replace(/\s*\n\s*/g,' ');
+    if(t)document.execCommand('insertText',false,t);
+  },true);
+  document.addEventListener('drop',function(e){if(ed)e.preventDefault();},true);
+  addEventListener('blur',function(){if(ed&&!holdFocus)endText();});
+}
+
+/* one element at a time becomes typeable. A bullet brings its whole list, so Enter can add another */
+function toChip(t){
+  t.setAttribute('data-src',t.textContent);t.classList.remove('tex');t.classList.add('m');
+  t.setAttribute('contenteditable','false');drawChip(t);
+}
+function drawChip(t){
+  try{t.innerHTML=texConv(t.getAttribute('data-src'))||'&#8203;';}catch(x){t.textContent=t.getAttribute('data-src');}
+}
+function cleanHtml(root){
+  var c=root.cloneNode(true);
+  Array.prototype.slice.call(c.querySelectorAll('[data-src]')).forEach(function(t){
+    var s=document.createElement('span');s.className='tex';s.textContent=t.getAttribute('data-src');t.replaceWith(s);
+  });
+  Array.prototype.slice.call(c.querySelectorAll('*')).forEach(function(e){
+    e.removeAttribute('data-pw');e.removeAttribute('contenteditable');
+    e.classList.remove('on');if(!e.getAttribute('class'))e.removeAttribute('class');
+  });
+  return c.innerHTML.replace(/&nbsp;/g,' ');
+}
+function caretAt(root,x,y){
+  var s=getSelection(),r=x!==undefined&&document.caretRangeFromPoint?document.caretRangeFromPoint(x,y):null;
+  if(!r||!root.contains(r.startContainer)){r=document.createRange();r.selectNodeContents(root);r.collapse(false);}
+  s.removeAllRanges();s.addRange(r);
+}
+function beginText(e,x,y){
+  var up=e.parentElement,root=e.matches('li')&&up&&stampOf(up)>=0?up:e,n=stampOf(root);
+  var from=n===0?slides[cur]._src:slides[cur]._src.querySelector('[data-pw="'+n+'"]');
+  if(!from)return;
+  var kids=Array.prototype.slice.call(root.childNodes);
+  root.innerHTML=from.innerHTML;
+  Array.prototype.slice.call(root.querySelectorAll('.st')).forEach(function(i){i.classList.add('on');});
+  Array.prototype.slice.call(root.querySelectorAll('.tex')).forEach(toChip);
+  root.setAttribute('contenteditable','true');root.spellcheck=false;
+  ed={root:root,n:n,tag:root.tagName,kids:kids,before:cleanHtml(root)};
+  document.body.classList.add('typing');
+  sel=e===root?root:e;hov=null;
+  root.focus();caretAt(root,x,y);
+  drawEdit();barSoon();
+}
+function endText(){
+  if(!ed)return;
+  var d=ed;ed=null;holdFocus=false;chip=null;
+  document.body.classList.remove('typing');
+  d.root.removeAttribute('contenteditable');
+  getSelection().removeAllRanges();
+  send('textbar',{open:false});
+  var html=cleanHtml(d.root);
+  if(html===d.before){
+    /* nothing changed, so the running page gets back its own elements and no undo step is made */
+    d.root.textContent='';d.kids.forEach(function(k){d.root.appendChild(k);});
+    pick(d.root);return;
+  }
+  reselect=d.n;
+  send('text',{slide:cur,n:d.n,tag:d.tag,html:html});
+}
+function near(q){
+  var a=getSelection().anchorNode,e=a&&(a.nodeType===1?a:a.parentElement),f=e&&e.closest(q);
+  return f&&ed&&ed.root.contains(f)&&f!==ed.root?f:null;
+}
+function barSoon(){
+  if(!ed)return;
+  cancelAnimationFrame(barFrame);
+  barFrame=requestAnimationFrame(function(){
+    if(!ed)return;
+    var s=getSelection(),r=s.rangeCount&&!s.isCollapsed?s.getRangeAt(0).getBoundingClientRect():ed.root.getBoundingClientRect();
+    drawEdit();
+    send('textbar',{open:true,x:r.left,y:r.top,w:r.width,h:r.height,bold:!!near('b:not(.or)'),
+      italic:!!near('i'),orange:!!near('b.or'),teal:!!near('.tl'),muted:!!near('.mut')});
+  });
+}
+function unwrap(e){while(e.firstChild)e.parentNode.insertBefore(e.firstChild,e);e.remove();}
+function wrapWith(q,tag,cls){
+  var on=near(q),s=getSelection();
+  if(on){
+    /* the text stays selected, ready for the next button */
+    var a=on.firstChild,z=on.lastChild,back=document.createRange();
+    unwrap(on);
+    if(a){back.setStartBefore(a);back.setEndAfter(z);s.removeAllRanges();s.addRange(back);}
+    return;
+  }
+  if(!s.rangeCount||s.isCollapsed)return;
+  var r=s.getRangeAt(0),w=document.createElement(tag);w.className=cls;
+  w.appendChild(r.extractContents());r.insertNode(w);
+  r.selectNodeContents(w);s.removeAllRanges();s.addRange(r);
+}
+function format(c){
+  if(!ed)return;
+  ed.root.focus();
+  /* not the browser's bold: in a title, already heavy, that would turn it off with a style */
+  if(c==='bold')wrapWith('b:not(.or)','b','');
+  else if(c==='italic')wrapWith('i','i','');
+  else if(c==='orange')wrapWith('b.or','b','or');
+  else if(c==='teal')wrapWith('.tl','span','tl');
+  else if(c==='muted')wrapWith('.mut','span','mut');
+  else if(c==='clear'){
+    var s=getSelection(),r=s.rangeCount?s.getRangeAt(0):null;
+    if(r)Array.prototype.slice.call(ed.root.querySelectorAll('b,i,.tl,.mut')).forEach(function(e){if(r.intersectsNode(e))unwrap(e);});
+    ed.root.normalize();
+  }
+  else if(c==='formula'){
+    var f=document.createElement('span');f.setAttribute('data-src','');f.className='m';f.setAttribute('contenteditable','false');
+    var g=getSelection();if(!g.rangeCount)caretAt(ed.root);
+    var q=g.getRangeAt(0);q.deleteContents();q.insertNode(f);
+    openFormula(f);return;
+  }
+  barSoon();
+}
+function openFormula(f){chip=f;holdFocus=true;send('formula',{src:f.getAttribute('data-src')});}
+function formulaDone(){
+  if(!ed||!chip)return;
+  var r=document.createRange(),s=getSelection(),gone=!chip.getAttribute('data-src');
+  if(gone){r.setStartBefore(chip);chip.remove();}else r.setStartAfter(chip);
+  r.collapse(true);chip=null;holdFocus=false;
+  ed.root.focus();s.removeAllRanges();s.addRange(r);barSoon();
+}
+function bulletKey(e){
+  var a=getSelection().anchorNode,li=a&&(a.nodeType===1?a:a.parentElement).closest('li');
+  if(!li||!ed.root.contains(li))return false;
+  if(e.key==='Backspace'&&!li.textContent.trim()&&!li.querySelector('[data-src]')&&ed.root.children.length>1){
+    e.preventDefault();
+    var p=li.previousElementSibling||li.nextElementSibling;li.remove();caretAt(p);return true;
+  }
+  if(e.altKey&&(e.key==='ArrowUp'||e.key==='ArrowDown')){
+    e.preventDefault();e.stopPropagation();
+    var o=e.key==='ArrowUp'?li.previousElementSibling:li.nextElementSibling;
+    if(o){if(e.key==='ArrowUp')ed.root.insertBefore(li,o);else ed.root.insertBefore(o,li);caretAt(li);barSoon();}
+    return true;
+  }
+  return false;
+}
+function editKey(e){
+  var k=e.key;
+  if(ed){
+    if(k==='Escape'||k==='Tab'){e.preventDefault();e.stopPropagation();endText();return true;}
+    if(e.ctrlKey&&/^[bi]$/i.test(k)){e.preventDefault();format(/b/i.test(k)?'bold':'italic');return true;}
+    if(ed.root.matches('ul,ol')){if(bulletKey(e))return true;}
+    else if(k==='Enter'){
+      e.preventDefault();e.stopPropagation();
+      if(e.shiftKey)document.execCommand('insertLineBreak');else endText();
+      return true;
+    }
+    /* the app's own shortcuts finish the typing first, so Save saves what was just typed */
+    if(k==='F5'||(e.ctrlKey&&/^[se]$/i.test(k)))endText();
+    return false;
+  }
+  if(k==='Tab'){
+    var all=comps(),i=all.indexOf(sel)+(e.shiftKey?-1:1);
+    if(sel===null&&e.shiftKey)i=all.length-1;
+    /* past either end the keyboard moves on, out of the slide */
+    if(i<0||i>=all.length){if(sel)pick(null);return false;}
+    e.preventDefault();pick(all[i]);return true;
+  }
+  if(!sel)return false;
+  if(k==='Escape'){
+    e.preventDefault();
+    var c=chainOf(sel),at=c.indexOf(sel);
+    pick(at>0?c[at-1]:null);return true;
+  }
+  if(k==='Enter'){
+    e.preventDefault();
+    if(textIn(sel))beginText(sel);
+    else{var under=comps().filter(function(x){return sel.contains(x)&&x!==sel;})[0];if(under)pick(under);}
+    return true;
+  }
+  /* Delete would take the whole slide; the selected thing is what the user is looking at */
+  if(k==='Delete'||k==='Backspace'){e.preventDefault();return true;}
+  return false;
+}
+
 function isHex(v){return /^#[0-9a-f]{6}$/i.test(v);}
 function setVar(name,v){if(isHex(v))document.documentElement.style.setProperty(name,v);}
 addEventListener('message',function(e){
@@ -1919,6 +2219,11 @@ addEventListener('message',function(e){
   switch(e.data.type){
     case 'mode':setMode(p);break;
     case 'go':if(mode==='edit')preview(Math.max(0,Math.min(N-1,p.slide|0)));break;
+    case 'format':format(String(p.cmd));break;
+    case 'formulaSrc':
+      if(chip&&typeof p.src==='string'){chip.setAttribute('data-src',p.src);drawChip(chip);barSoon();}
+      break;
+    case 'formulaDone':formulaDone();break;
     case 'key':
       if(p.key)window.dispatchEvent(new KeyboardEvent('keydown',{key:p.key,shiftKey:!!p.shift,ctrlKey:!!p.ctrl,altKey:!!p.alt,bubbles:true,cancelable:true}));
       break;
@@ -1946,7 +2251,7 @@ addEventListener('message',function(e){
       setVar('--pw-dock-accent',p.color);setVar('--pw-dock-on',p.background);setVar('--acc',p.color);break;
     }
     case 'chrome':
-      setVar('--pw-accent',p.accent);setVar('--pw-text',p.text);setVar('--pw-line',p.line);setVar('--pw-muted',p.muted);
+      setVar('--pw-accent',p.accent);setVar('--pw-text',p.text);setVar('--pw-line',p.line);setVar('--pw-muted',p.muted);setVar('--pw-on-accent',p.onAccent);
       /* a see-through page must match the app, or the browser paints it white */
       if(SORTER&&(p.scheme==='dark'||p.scheme==='light'))document.documentElement.style.colorScheme=p.scheme;
       break;
@@ -1957,7 +2262,7 @@ texAll(document);
 document.body.classList.add('still','editing');
 /* load, not now: widgets.js comes after this file, and a slide's widgets start on first show */
 addEventListener('load',function(){
-  if(SORTER)bootSorter();
+  if(SORTER)bootSorter();else buildLayer();
   send('ready',{total:N});
 });
 

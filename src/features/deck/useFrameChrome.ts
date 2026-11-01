@@ -12,14 +12,17 @@ export function useFrameChrome(stageRef: Frame, sorterRef: Frame) {
 
   const postChrome = useCallback(() => {
     const css = getComputedStyle(document.documentElement);
-    sorterRef.current?.post("chrome", {
+    const chrome = {
       accent: css.getPropertyValue("--md-sys-color-primary").trim(),
+      onAccent: css.getPropertyValue("--md-sys-color-on-primary").trim(),
       text: css.getPropertyValue("--md-sys-color-on-surface").trim(),
       line: css.getPropertyValue("--md-sys-color-outline-variant").trim(),
       muted: css.getPropertyValue("--md-sys-color-on-surface-variant").trim(),
       scheme: css.colorScheme,
-    });
-  }, [sorterRef]);
+    };
+    sorterRef.current?.post("chrome", chrome);
+    stageRef.current?.post("chrome", chrome);
+  }, [sorterRef, stageRef]);
 
   const postLogo = useCallback(() => {
     const { settings, systemSeed: seed } = useSettings.getState();

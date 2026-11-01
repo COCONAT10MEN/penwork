@@ -13,6 +13,7 @@ export function EditToolbar({
   total,
   steps,
   shrunk,
+  hint,
   canHide,
   canRemove,
   onGo,
@@ -25,6 +26,7 @@ export function EditToolbar({
   total: number;
   steps: number;
   shrunk: boolean;
+  hint?: string;
   canHide: boolean;
   canRemove: boolean;
   onGo: (slide: number) => void;
@@ -72,6 +74,7 @@ export function EditToolbar({
           <b>Slide {slide + 1}</b> of {total}
         </span>
         {steps > 0 && <span>{steps === 1 ? "1 step" : `${steps} steps`}</span>}
+        {hint && <span>{hint}</span>}
       </span>
       <AnimatePresence initial={false}>
         {open && (

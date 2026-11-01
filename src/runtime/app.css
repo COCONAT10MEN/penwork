@@ -39,6 +39,96 @@ body.still .pop * {
   animation: none !important;
 }
 
+/*
+ * Selecting on the slide. The boxes sit in a layer over the slide, so they never change what's
+ * measured or saved, and they glide from one thing to the next on Material's fast spring.
+ */
+#edit {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: none;
+  pointer-events: none;
+  --pw-spring: linear(0, 0.075, 0.249, 0.458, 0.659, 0.827, 0.952, 1.034, 1.078, 1.094, 1.091, 1.076, 1.056, 1.037, 1.02, 1.007, 0.998, 0.993, 0.991, 0.991, 0.992, 0.994, 0.996, 0.998, 1);
+}
+body.editing #edit {
+  display: block;
+}
+html.sorter #edit {
+  display: none;
+}
+#edit .eh,
+#edit .es {
+  position: absolute;
+  display: block;
+  border-radius: 12px;
+  opacity: 0;
+  /* A dark edge inside the accent, so it shows on pale slides and on the dark cover alike. */
+  box-shadow:
+    0 0 0 1px rgba(0, 45, 55, 0.55),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+}
+#edit .eh {
+  outline: 1.5px solid var(--pw-accent, #00687a);
+  transition: opacity 0.12s;
+}
+#edit .es {
+  outline: 2.5px solid var(--pw-accent, #00687a);
+  transition:
+    left 360ms var(--pw-spring),
+    top 360ms var(--pw-spring),
+    width 360ms var(--pw-spring),
+    height 360ms var(--pw-spring),
+    opacity 0.12s;
+}
+#edit .eh.on,
+#edit .es.on {
+  opacity: 1;
+}
+#edit .et {
+  position: absolute;
+  right: -2px;
+  top: -30px;
+  padding: 3px 10px;
+  border-radius: 9px;
+  background: var(--pw-accent, #00687a);
+  color: var(--pw-on-accent, #fff);
+  font: 800 12px/1.5 var(--pw-ui-font, var(--sans));
+  white-space: nowrap;
+}
+#edit .sn {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  margin: -9px 0 0 -11px;
+  border-radius: 50%;
+  background: var(--pw-accent, #00687a);
+  color: var(--pw-on-accent, #fff);
+  font: 900 11px/1 var(--pw-ui-font, var(--sans));
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9);
+}
+body.calm #edit .es {
+  transition: opacity 0.12s;
+}
+/* Typing: the one element that's editable, with the real caret. */
+#stage [contenteditable="true"] {
+  outline: none;
+  cursor: text;
+  user-select: text;
+  -webkit-user-select: text;
+  caret-color: var(--pw-accent, #00687a);
+}
+body.typing #edit .sn {
+  opacity: 0.35;
+}
+#stage [data-src] {
+  cursor: default;
+  border-radius: 4px;
+  box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--pw-accent, #00687a) 40%, transparent);
+}
+
 /* Hidden slides: left out of the grid during a show, dimmed in the edit view's slide list. */
 html:not(.sorter) #ov .cell.off {
   display: none;

@@ -10,7 +10,7 @@ export interface KeyPress {
 }
 
 /** Typing in a dialog or picking from a menu is doing just that, not using a shortcut. */
-const BUSY = 'dialog[open], [role="menu"]';
+const BUSY = 'dialog[open], [role="menu"], input:focus';
 
 /** The keyboard, wherever focus is: here in the app, or inside one of the two slide pages. */
 export function useEditKeys(options: {

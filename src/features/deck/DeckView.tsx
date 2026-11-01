@@ -8,6 +8,7 @@ import { cx } from "../../ui/cx";
 import { createDeckStore, noteInk } from "./deckStore";
 import { EditHeader } from "./EditHeader";
 import { EditToolbar } from "./EditToolbar";
+import { TextToolbar } from "./TextToolbar";
 import { LayoutGallery } from "./LayoutGallery";
 import type { OpenDeck } from "./openDeck";
 import { SlideListPanel } from "./SlideListPanel";
@@ -16,6 +17,7 @@ import { useDeckSave } from "./useDeckSave";
 import { useFrameChrome } from "./useFrameChrome";
 import { useCoverThumb } from "./useCoverThumb";
 import { useShow } from "./useShow";
+import { useSlideText } from "./useSlideText";
 import { useLeaveGuard } from "./useLeaveGuard";
 import { useEditKeys, type KeyPress } from "./useEditKeys";
 import { useSlideEditing } from "./useSlideEditing";
@@ -79,6 +81,7 @@ export function DeckView({
     afterSync,
   });
   const { selected, setSelected } = editing;
+  const text = useSlideText(stage, editing.setText);
 
   const { dirty, saving, save, discard } = useDeckSave({ deck, store, inkFile: ink.file });
   const guard = useLeaveGuard({ dirty, title: deck.manifest.title, save, discard });
@@ -121,6 +124,7 @@ export function DeckView({
     const toolbar = await loadToolbar();
     if (toolbar) stage.current?.post("toolbar", toolbar);
     postLogo();
+    postChrome();
     ink.send(stage);
     if (showing.current) {
       setStageReady(true);
@@ -163,6 +167,8 @@ export function DeckView({
       onFrameKey(message);
     } else if (message.type === "end") {
       endShow();
+    } else if (text.onMessage(message)) {
+      return;
     } else if (message.type === "toolbar") {
       saveToolbar(message.settings);
     } else if (message.type === "exportToolbar") {
@@ -271,6 +277,7 @@ export function DeckView({
             total={slides.length}
             steps={steps}
             shrunk={shrunk}
+            hint={text.picked ? "Double-click text to edit · Esc to finish" : undefined}
             canHide={editing.canHide()}
             canRemove={editing.canRemove()}
             onGo={(to) => editing.pick(to, { ctrl: false, shift: false })}
@@ -281,6 +288,13 @@ export function DeckView({
           />
         </main>
       </div>
+      <TextToolbar
+        bar={presenting ? null : text.bar}
+        formula={text.formula}
+        frame={stage}
+        onFormula={text.onFormula}
+        onFormulaDone={text.onFormulaDone}
+      />
       <LayoutGallery open={gallery} onClose={() => setGallery(false)} onPick={editing.add} />
       <SlideMenu
         target={menu}

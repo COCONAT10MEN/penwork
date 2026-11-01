@@ -13,6 +13,14 @@ export type RuntimeMessage =
   | { type: "menu"; slide: number; x: number; y: number }
   /** A slide was dragged, to land before the slide now at `to`. */
   | { type: "move"; slide: number; to: number }
+  /** Something was picked on the slide. n is -1 when nothing is. */
+  | { type: "picked"; slide: number; n: number; kind: string }
+  /** Typing on the slide finished. The html is unchecked here: see lib/deck/slideEdit. */
+  | { type: "text"; slide: number; n: number; tag: string; html: string }
+  /** Where the formatting toolbar goes, in page coordinates, and what's on under the caret. */
+  | { type: "textbar"; bar: TextBar | null }
+  /** A formula is being typed. */
+  | { type: "formula"; src: string }
   /** The slide list scrolled far enough to count. */
   | { type: "scrolled"; down: boolean }
   /** The End show button, or F. */
@@ -24,8 +32,22 @@ export type RuntimeMessage =
   /** A slide's ink changed. The strokes are still unchecked here: see lib/deck/ink. */
   | { type: "ink"; id: string; strokes: unknown };
 
+export interface TextBar {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  bold: boolean;
+  italic: boolean;
+  orange: boolean;
+  teal: boolean;
+  muted: boolean;
+}
+
 const MAX_SETTINGS = 256 * 1024;
+const MAX_TEXT = 64 * 1024;
 const isCount = (v: unknown): v is number => Number.isInteger(v) && (v as number) >= 0;
+const isSpot = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
 
 export function parseRuntimeMessage(data: unknown): RuntimeMessage | null {
   if (typeof data !== "object" || data === null) return null;
@@ -53,6 +75,38 @@ export function parseRuntimeMessage(data: unknown): RuntimeMessage | null {
         : null;
     case "move":
       return isCount(p.slide) && isCount(p.to) ? { type, slide: p.slide, to: p.to } : null;
+    case "picked":
+      return isCount(p.slide) && typeof p.n === "number" && typeof p.kind === "string"
+        ? { type, slide: p.slide, n: p.n, kind: p.kind.slice(0, 40) }
+        : null;
+    case "text":
+      return isCount(p.slide) &&
+        isCount(p.n) &&
+        typeof p.tag === "string" &&
+        typeof p.html === "string" &&
+        p.html.length <= MAX_TEXT
+        ? { type, slide: p.slide, n: p.n, tag: p.tag, html: p.html }
+        : null;
+    case "textbar":
+      if (p.open !== true) return { type, bar: null };
+      return isSpot(p.x) && isSpot(p.y) && isSpot(p.w) && isSpot(p.h)
+        ? {
+            type,
+            bar: {
+              x: p.x,
+              y: p.y,
+              w: p.w,
+              h: p.h,
+              bold: p.bold === true,
+              italic: p.italic === true,
+              orange: p.orange === true,
+              teal: p.teal === true,
+              muted: p.muted === true,
+            },
+          }
+        : null;
+    case "formula":
+      return typeof p.src === "string" && p.src.length <= 2000 ? { type, src: p.src } : null;
     case "scrolled":
       return typeof p.down === "boolean" ? { type, down: p.down } : null;
     case "end":

@@ -67,6 +67,11 @@
   --pw-glass-thick-blur: 32px;
   --pw-glass-saturate: 1.7;
 
+  /* The template's text colours (engine.css), shown on the formatting toolbar's buttons. */
+  --pw-slide-orange: #c0562f;
+  --pw-slide-teal: #0e7f9e;
+  --pw-slide-muted: #4c6470;
+
   /* On a colour the user picks, so it can't come from the theme. */
   --pw-on-swatch: #ffffff;
 

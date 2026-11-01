@@ -73,7 +73,8 @@ runtime, so it can forge any runtime message.
 
 ## 6. Windows
 
-- One main window. Present = Tauri fullscreen on the current monitor. Esc leaves fullscreen, a second Esc leaves Present.
+- One main window. Present = Tauri fullscreen on the current monitor, always. Esc or F ends the show and returns to the edit view,
+  on the slide it stopped at. The same iframe is used for both, so nothing reloads.
 - First launch: about 90% of the work area, centred (the owner's screen is 1366×768). After that, remember size,
   position and maximised state.
 - Later (M6): presenter view in a second window on the second monitor (current slide, next slide, notes, timer).

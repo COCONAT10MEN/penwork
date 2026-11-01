@@ -23,6 +23,7 @@ Licenses below were checked against the installed packages (`package.json` / `LI
 | Material Color Utilities (`@material/material-color-utilities`) | Google (material-foundation) | Apache-2.0 | Generating the color theme from a seed |
 | Motion (`motion`, with `framer-motion`) | Motion B.V. / Framer B.V. (Matt Perry) | MIT | Spring animations |
 | `windows` crate (Windows only) | Microsoft | MIT / Apache-2.0 | Reading the Windows accent color; thumbnail capture |
+| playwright-core, pixelmatch, pngjs (tests only, not in the app) | Microsoft; Mapbox; pngjs contributors | Apache-2.0 / ISC / MIT | Comparing slides with the template |
 | webview2-com (Windows only) | Bill Avery and contributors | MIT | Capturing deck thumbnails from WebView2 |
 
 Tauri pulls in about 240 smaller Rust crates. Almost all are MIT, Apache-2.0, BSD, Zlib, Unicode-3.0

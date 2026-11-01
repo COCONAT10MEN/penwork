@@ -12,32 +12,32 @@ Milestone: slide engine items land in **M3**, dock, ink and whiteboard in **M5**
 
 ## 1. Slide engine (ported as-is, M3)
 
-- [ ] 1920×1080 stage scaled and centred to fit any window, re-fit on resize
-- [ ] Steps: `.st` in document order, `data-st="="` together with the previous step, `.l` `.r` `.z` animations, ← hides again
-- [ ] Next on the last step goes to the next slide; next on the last slide loops to the cover
-- [ ] Back on step 0 goes to the previous slide, arriving fully revealed
-- [ ] Morph: `data-m` names, same-text `.fbox`, identical words glide (up to 34 per transition, stop-words ignored), cards and
+- [x] 1920×1080 stage scaled and centred to fit any window, re-fit on resize
+- [x] Steps: `.st` in document order, `data-st="="` together with the previous step, `.l` `.r` `.z` animations, ← hides again
+- [x] Next on the last step goes to the next slide; next on the last slide loops to the cover
+- [x] Back on step 0 goes to the previous slide, arriving fully revealed
+- [x] Morph: `data-m` names, same-text `.fbox`, identical words glide (up to 34 per transition, stop-words ignored), cards and
       diagram frames glide and resize while content crossfades, everything else fades in staggered
-- [ ] Background blobs glide to each slide's `data-bg`; the stage turns dark on `.hero` slides
-- [ ] Diagram part highlighting: `data-part`, `data-hl`, `hasHL` dimming, latest visible step wins
-- [ ] Mini-LaTeX: every command in AI-GUIDE §6, stacked fractions, roots, units, Greek, unknown commands in red, `__tex()` for widgets
-- [ ] Widgets: `W.name(root)` runs once on first show; `data-onstep` calls `W.fn(section, step)`; `W.demo`
-- [ ] Quiz: from JSON, A–D options, right/wrong marking, others dimmed, feedback text, Next/Finish, score, Try again, maths inside
-- [ ] Every component in AI-GUIDE §3–§4: cover, chips, cards (soft, key, note, tips, vio), lists, formula boxes, tables,
+- [x] Background blobs glide to each slide's `data-bg`; the stage turns dark on `.hero` slides
+- [x] Diagram part highlighting: `data-part`, `data-hl`, `hasHL` dimming, latest visible step wins
+- [x] Mini-LaTeX: every command in AI-GUIDE §6, stacked fractions, roots, units, Greek, unknown commands in red, `__tex()` for widgets
+- [x] Widgets: `W.name(root)` runs once on first show; `data-onstep` calls `W.fn(section, step)`; `W.demo`
+- [x] Quiz: from JSON, A–D options, right/wrong marking, others dimmed, feedback text, Next/Finish, score, Try again, maths inside
+- [x] Every component in AI-GUIDE §3–§4: cover, chips, cards (soft, key, note, tips, vio), lists, formula boxes, tables,
       diagram boxes, captions, worked examples, recap grid, columns, grids
 - [ ] Reduced motion: slides change with no animation
-- [ ] Theme overrides from `<style id="theme">`: `--teal --or --ink --paper`, blobs, badge
-- [ ] Deep link to a slide (`#3` in the old file): becomes "open on slide 3" through the app
+- [x] Theme overrides from `<style id="theme">`: `--teal --or --ink --paper`, blobs, badge
+- [x] Deep link to a slide (`#3` in the old file): becomes "open on slide 3" through the app
 
 ## 2. Navigation input (M3, all of it, with focus inside or outside the slide)
 
-- [ ] Next: → ↓ PageDown Space Enter. Back: ← ↑ PageUp Backspace. Home, End
-- [ ] F ends the show (owner's decision: a show is always full screen, so there is no windowed mode to toggle). G grid
-- [ ] Keys are ignored while typing in a field. Ctrl/Alt/Meta combinations don't trigger slide keys
-- [ ] Mouse click on a slide: next. Click in the left 12% of the stage: back. Clicks on controls don't navigate
+- [x] Next: → ↓ PageDown Space Enter. Back: ← ↑ PageUp Backspace. Home, End
+- [x] F ends the show (owner's decision: a show is always full screen, so there is no windowed mode to toggle). G grid
+- [x] Keys are ignored while typing in a field. Ctrl/Alt/Meta combinations don't trigger slide keys
+- [x] Mouse click on a slide: next. Click in the left 12% of the stage: back. Clicks on controls don't navigate
 - [ ] A click right after drawing is swallowed (350 ms) so finishing a stroke never changes slide
-- [ ] Finger swipe left/right: next/back. Finger swipe up: open the grid
-- [ ] Right-click menu of the browser never appears
+- [x] Finger swipe left/right: next/back. Finger swipe up: open the grid
+- [x] Right-click menu of the browser never appears
 
 ## 3. Input devices: stylus, touch, mouse (M5)
 
@@ -103,13 +103,13 @@ Milestone: slide engine items land in **M3**, dock, ink and whiteboard in **M5**
 
 ## 8. Grid overview (M3, ink on thumbnails in M5)
 
-- [ ] G, the dock button, or swipe up opens it. G or Esc closes. Enter or Space opens the selected slide
-- [ ] Arrow keys, Home, End move the selection; click a slide to open it
-- [ ] Real thumbnails, fully revealed; built at idle; refreshed on open if the slide changed (quiz answered, slider moved)
-- [ ] Field values copied into thumbnails so they match; only visible cells refresh
-- [ ] Slide number and `data-title` under each; selection ring
-- [ ] Open/close morph: the chosen thumbnail grows to the full slide with no cut
-- [ ] Grid always shows and returns to slides fully revealed
+- [x] G, the dock button, or swipe up opens it. G or Esc closes. Enter or Space opens the selected slide
+- [x] Arrow keys, Home, End move the selection; click a slide to open it
+- [x] Real thumbnails, fully revealed; built at idle; refreshed on open if the slide changed (quiz answered, slider moved)
+- [x] Field values copied into thumbnails so they match; only visible cells refresh
+- [x] Slide number and `data-title` under each; selection ring
+- [x] Open/close morph: the chosen thumbnail grows to the full slide with no cut
+- [x] Grid always shows and returns to slides fully revealed
 
 ## 9. Whiteboard (M5, in v1 by the owner's decision)
 

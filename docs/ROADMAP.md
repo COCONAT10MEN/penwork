@@ -59,17 +59,19 @@ Tick boxes only when finished and verified in the running app.
 - [x] Test decks in `test-files/`: the demo deck (.pwpptx), a broken zip, a deck with a widget
 
 ## M3: Slide runtime & Present
-- [ ] Runtime ported from `reference/lop-deck/deck-template.html` into `src/runtime/` (engine only, no dock/ink)
-- [ ] Typed bridge, including forwarded keys and pointer events (`docs/ARCHITECTURE-DECKS.md`)
-- [ ] **Parity test**: 8 demo slides match the original template (Playwright screenshots)
+- [x] Opening a presentation lands in the edit view, like PowerPoint: slide list, big slide, Present button (owner, 2026-11-01)
+- [x] Runtime ported from `reference/lop-deck/deck-template.html` into `src/runtime/` (engine only, no dock/ink)
+- [ ] Typed bridge, including forwarded keys and pointer events (`docs/ARCHITECTURE-DECKS.md`). Keys are done; pointer events come with ink
+- [x] **Parity test**: 8 demo slides match the original template (`npm run test:parity`, using the Edge on Windows)
 - [ ] `docs/TEMPLATE-PARITY.md` §1 and §2 all ticked: slide engine and navigation input, including clicker use
-- [ ] Present mode: fullscreen, steps, Morph, quiz, widgets, maths
-- [ ] Hidden slides skipped; last slide → back to cover (template behaviour) or stop (setting)
-- [ ] Minimal dock shell: logo → capsule (one body, no bounce), buttons: grid, edit, full screen, settings (tools come in M5)
-- [ ] Overview grid: `docs/TEMPLATE-PARITY.md` §8
-- [ ] Remember last slide per deck; "Continue" on Home opens there
+- [x] Present mode: fullscreen, steps, Morph, quiz, widgets, maths. F5 from the start, Shift+F5 from the current slide, Esc or F ends it
+- [x] Hidden slides skipped; last slide → back to cover (template behaviour) or stop (setting)
+- [ ] Minimal dock shell: logo → capsule (one body, no bounce), buttons: grid, edit, full screen, settings (tools come in M5). So far: grid and End show
+- [x] Overview grid: `docs/TEMPLATE-PARITY.md` §8
+- [x] Remember last slide per deck; "Continue" on Home opens there
 
 ## M4: Mini edits (`docs/EDITING.md`)
+**Comes after M5** (owner, 2026-11-01): every template feature first.
 - [ ] Edit mode layout like `design/mockups/v2/edit.html`: top bar, sorter, stage, inspector
 - [ ] Selection model (hover, click, deeper/up, Tab), breadcrumb, type tag, step numbers
 - [ ] Inline text editing + context toolbar (bold, italic, orange, teal, muted, clear, insert formula)

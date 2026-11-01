@@ -44,6 +44,9 @@ export function DeckView({
   const [steps, setSteps] = useState(0);
   const [total, setTotal] = useState(deck.slideCount);
   const [presenting, setPresenting] = useState(presentOnOpen);
+  // For code that runs outside a render: a show can start while the page is still being set up.
+  const showing = useRef(presentOnOpen);
+  const latestSlide = useRef(start);
   const ink = useDeckInk(deck, sorter);
   const systemSeed = useSettings((s) => s.systemSeed);
   const presentButton = useRef<HTMLButtonElement>(null);
@@ -65,13 +68,23 @@ export function DeckView({
     });
   }, []);
 
+  const postLogo = useCallback(() => {
+    const { settings, systemSeed: seed } = useSettings.getState();
+    stage.current?.post("logo", {
+      svg: settings.logo?.svg ?? penworkLogoSvg(),
+      color: logoColor(settings, seed),
+      background: settings.logoBackground,
+    });
+  }, []);
+
   // The default theme follows Windows, which can change while a presentation is open.
   useEffect(() => {
     postChrome();
+    postLogo();
     const dark = window.matchMedia("(prefers-color-scheme: dark)");
     dark.addEventListener("change", postChrome);
     return () => dark.removeEventListener("change", postChrome);
-  }, [postChrome, systemSeed]);
+  }, [postChrome, postLogo, systemSeed]);
 
   const modeMessage = (mode: "edit" | "present", from: number) => {
     const { reduceMotion, endOfShow } = useSettings.getState().settings;
@@ -79,6 +92,7 @@ export function DeckView({
   };
 
   const present = useCallback((from: number) => {
+    showing.current = true;
     setPresenting(true);
     // The show starts once the window is full size, so its opening isn't seen at the old size.
     void setFullscreen(true).then(() => {
@@ -88,10 +102,8 @@ export function DeckView({
   }, []);
 
   const endShow = useCallback(() => {
-    setSlide((current) => {
-      stage.current?.post("mode", modeMessage("edit", current));
-      return current;
-    });
+    showing.current = false;
+    stage.current?.post("mode", modeMessage("edit", latestSlide.current));
     setPresenting(false);
     void setFullscreen(false);
   }, []);
@@ -115,7 +127,7 @@ export function DeckView({
   const onKey = useCallback(
     (key: string, shift: boolean) => {
       if (key === "F5") {
-        present(shift ? slide : 0);
+        if (!presenting) present(shift ? slide : 0);
       } else if (presenting) {
         if (key === "Escape") endShow();
       } else if (key === "ArrowRight" || key === "ArrowDown" || key === "PageDown") {
@@ -135,10 +147,7 @@ export function DeckView({
     const listener = (e: KeyboardEvent) => {
       // F5 would otherwise reload the whole app.
       if (e.key === "F5") e.preventDefault();
-      if (e.key !== "F5" && e.target instanceof HTMLElement && e.target.closest("button")) {
-        if (e.key === " " || e.key === "Enter") return;
-      }
-      // During a show the slide page owns the keys, even when focus is on a dock button.
+      // During a show the slide page owns the keys, even if focus has landed out here.
       if (presenting) {
         stage.current?.post("key", {
           key: e.key,
@@ -172,16 +181,11 @@ export function DeckView({
 
   /** Everything the page needs before anything is shown: saved settings, the logo, the ink. */
   const startStage = async (from: number) => {
-    const { settings, systemSeed: seed } = useSettings.getState();
     const toolbar = await loadToolbar();
     if (toolbar) stage.current?.post("toolbar", toolbar);
-    stage.current?.post("logo", {
-      svg: settings.logo?.svg ?? penworkLogoSvg(),
-      color: logoColor(settings, seed),
-      background: settings.logoBackground,
-    });
+    postLogo();
     await ink.send(stage);
-    if (presentOnOpen) present(from);
+    if (showing.current) present(from);
     else stage.current?.post("mode", modeMessage("edit", from));
   };
 
@@ -190,6 +194,7 @@ export function DeckView({
       setTotal(message.total);
       void startStage(Math.min(start, Math.max(0, message.total - 1)));
     } else if (message.type === "state") {
+      latestSlide.current = message.slide;
       setSlide(message.slide);
       setSteps(message.steps);
       setTotal(message.total);

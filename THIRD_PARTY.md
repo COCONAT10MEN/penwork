@@ -58,7 +58,6 @@ them unmodified. They come with every Tauri app. Run `cargo metadata` in `src-ta
 | Playwright (dev only) | Microsoft | Apache-2.0 | Slide parity screenshots |
 | pdf.js (`pdfjs-dist`), paused | Mozilla | Apache-2.0 | Rendering PDFs, text layer, search |
 | pdf-lib, paused | Andrew Dillon | MIT | Writing annotations into PDFs |
-| perfect-freehand | Steve Ruiz | MIT | Smooth ink strokes |
 
 The slide engine in `reference/lop-deck/` is the owner's own work.
 

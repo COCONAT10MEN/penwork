@@ -7,13 +7,20 @@
 #logo {
   color: var(--pw-dock-accent, #35aac5);
   background-color: var(--pw-dock-on, #0b0e11);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+/* Closed, the capsule behind the logo must match it, or a light background shows a dark frame. */
+#shell {
+  background-color: var(--pw-dock-on, #0b0e11);
 }
 #logo .lg {
   width: 72%;
   height: 72%;
 }
 body.editing #dock,
-body.editing #toast {
+body.editing #toast,
+body.editing .pop {
   display: none;
 }
 
@@ -22,7 +29,12 @@ body.editing #toast {
  * Windows setting to follow, so its own rule for this can't see the app's.
  */
 body.still #stage,
-body.still #stage * {
+body.still #stage *,
+body.still #dock,
+body.still #dock *,
+body.still #toast,
+body.still .pop,
+body.still .pop * {
   transition: none !important;
   animation: none !important;
 }

@@ -361,7 +361,7 @@ function loadSettings(){
   fixAll();
 }
 var saveT=0;
-function saveSettings(){clearTimeout(saveT);saveT=setTimeout(function(){send('toolbar',{v:1,ui:UIS,tools:CFG,wb:{p:wbPat,c:wbCol}});},120);}
+function saveSettings(){if(mode==='boot')return;clearTimeout(saveT);saveT=setTimeout(function(){send('toolbar',{v:1,ui:UIS,tools:CFG,wb:{p:wbPat,c:wbCol}});},120);}
 loadSettings();
 
 var wbOn=false,wy=0,prevAnnot=false,hidSave=false;
@@ -1064,8 +1064,8 @@ function ovKey(e){
 
 /* ---------- keyboard ---------- */
 addEventListener('keydown',function(e){
-  var tg=e.target;if(tg&&((tg.tagName==='INPUT'&&tg.type!=='range'&&tg.type!=='checkbox')||tg.tagName==='TEXTAREA'||tg.isContentEditable))return;
   if(e.key==='F5'){e.preventDefault();keyUp(e);return;}
+  var tg=e.target;if(tg&&((tg.tagName==='INPUT'&&tg.type!=='range'&&tg.type!=='checkbox')||tg.tagName==='TEXTAREA'||tg.isContentEditable))return;
   if(mode!=='present'){if(SORTER&&/^(Arrow|Page|Home|End)/.test(e.key))e.preventDefault();keyUp(e);return;}
   if(e.ctrlKey&&(e.key==='z'||e.key==='Z')){e.preventDefault();if(!ovOpen){if(e.shiftKey)redo();else undo();}return;}
   if(e.ctrlKey&&(e.key==='y'||e.key==='Y')){e.preventDefault();if(!ovOpen)redo();return;}
@@ -1416,7 +1416,7 @@ function setBuild(){
        tgl('vis',UIS.hidden.indexOf(id)<0,id)+'</div>';
   });
   h+='<div class="hd">Settings file</div><div class="sr two"><button class="bt" data-s="export">Export</button><button class="bt" data-s="import">Import</button></div>';
-  h+='<p class="nt">Everything here is saved on this device and shared by every deck opened from the same place. Use Export / Import to carry it to another device or app.</p></div>';
+  h+='<p class="nt">Everything here is saved on this device and shared by every presentation. Use Export / Import to carry it to another device.</p></div>';
   setEl.innerHTML=h;setEl.querySelector('.sbody').scrollTop=st;
 }
 var setAt=0;
@@ -1480,12 +1480,12 @@ function setWy(v){
   wy=Math.max(0,v);
   if(!sraf)sraf=requestAnimationFrame(function(){sraf=0;if(!wbOn)return;applyTx();inkRedraw();gridTx();wbBar();});
 }
-function wbScrollTo(t,ms){
+function wbScrollTo(t,ms){if(REDUCED){setWy(t);return;}
   cancelAnimationFrame(scrAnim);cancelAnimationFrame(inr);
   var a=wy,b=Math.max(0,t),t0=performance.now();ms=ms||380;
   (function f(n){var k=Math.min(1,(n-t0)/ms),e=1-Math.pow(1-k,3);setWy(a+(b-a)*e);if(k<1)scrAnim=requestAnimationFrame(f);})(t0);
 }
-function inertia(v){
+function inertia(v){if(REDUCED)return;
   cancelAnimationFrame(inr);var last=performance.now();
   (function f(n){var dt=Math.min(40,n-last);last=n;setWy(wy+v*dt);v*=Math.pow(.945,dt/16.7);if(Math.abs(v)>.015&&(wy>0||v>0))inr=requestAnimationFrame(f);})(last);
 }
@@ -1505,7 +1505,7 @@ function setWB(on){
     prevAnnot=annot;hidSave=inkHidden;inkHidden=false;document.body.classList.remove('inkhide');wbOn=true;wbEl.classList.add('on');layoutWb();sizeCanvases();inkRedraw();
     inkwrap.style.opacity='0';setAnnot(true);
     if(wbEl.animate&&!REDUCED)an=wbEl.animate([{clipPath:full(0)},{clipPath:full(R)}],{duration:680,easing:EASE});
-    setTimeout(function(){inkwrap.style.opacity='';document.body.classList.add('wbfull');wbBusy=false;wbBar();},an?640:0);
+    setTimeout(function(){inkwrap.style.opacity='';if(wbOn)document.body.classList.add('wbfull');wbBusy=false;wbBar();},an?640:0);
   }else{
     bgPop(false);document.body.classList.remove('wbfull','wbdark');wbOn=false;inkHidden=hidSave;document.body.classList.toggle('inkhide',inkHidden);sizeCanvases();inkRedraw();setAnnot(prevAnnot);
     inkwrap.style.opacity='0';
@@ -1725,8 +1725,11 @@ function closeOvNow(){
 }
 function leaveShow(){
   flushInk();closePops();closeOvNow();
-  if(wbOn){var r=REDUCED;REDUCED=true;setWB(false);REDUCED=r;}
+  /* wbBusy: the board may still be opening, and closing it mustn't wait for that */
+  if(wbOn){var r=REDUCED;REDUCED=true;wbBusy=false;setWB(false);REDUCED=r;}
   if(annot)setAnnot(false);
+  /* the only button that shows hidden ink again is in the dock, which the edit view doesn't have */
+  inkHidden=false;document.body.classList.remove('inkhide');renderDock();
   hideRing();
 }
 function setMode(p){
@@ -1812,11 +1815,18 @@ addEventListener('message',function(e){
       if(p.ui)assign(UIS,p.ui);
       if(p.tools)for(var t in CFG)assign(CFG[t],p.tools[t]);
       if(p.wb){if(p.wb.p)wbPat=p.wb.p;if(p.wb.c)wbCol=p.wb.c;}
-      if(!SORTER)applyAll();
+      /* the template read these before it first drew the dock; here they arrive just after */
+      if(!SORTER){dockOpen=UIS.open;applyAll();}
       break;
     case 'toolbarFile':importText(p.text);break;
     case 'logo':{
-      var l=document.querySelector('#logo .lg');if(l&&typeof p.svg==='string')l.innerHTML=p.svg;
+      var l=document.querySelector('#logo .lg');
+      if(l&&typeof p.svg==='string'){
+        l.innerHTML=p.svg;
+        /* engine.css sets these on every logo, which would fill in a logo drawn with lines */
+        var root=l.querySelector('svg');
+        if(root)['fill','stroke'].forEach(function(a){var v=root.getAttribute(a);if(v)root.style[a]=v;});
+      }
       setVar('--pw-dock-accent',p.color);setVar('--pw-dock-on',p.background);setVar('--acc',p.color);break;
     }
     case 'chrome':

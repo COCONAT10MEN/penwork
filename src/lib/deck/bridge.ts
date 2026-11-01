@@ -5,8 +5,12 @@
 
 export type RuntimeMessage =
   | { type: "ready"; total: number }
-  | { type: "state"; slide: number; total: number }
-  | { type: "key"; key: string; ctrl: boolean; shift: boolean; alt: boolean };
+  | { type: "state"; slide: number; step: number; steps: number; total: number }
+  | { type: "key"; key: string; ctrl: boolean; shift: boolean; alt: boolean }
+  /** A slide was clicked in the edit view's slide list. */
+  | { type: "pick"; slide: number }
+  /** The overview grid opened or closed. */
+  | { type: "grid"; open: boolean };
 
 const isCount = (v: unknown): v is number => Number.isInteger(v) && (v as number) >= 0;
 
@@ -19,11 +23,17 @@ export function parseRuntimeMessage(data: unknown): RuntimeMessage | null {
     case "ready":
       return isCount(p.total) ? { type, total: p.total } : null;
     case "state":
-      return isCount(p.slide) && isCount(p.total) ? { type, slide: p.slide, total: p.total } : null;
+      return isCount(p.slide) && isCount(p.step) && isCount(p.steps) && isCount(p.total)
+        ? { type, slide: p.slide, step: p.step, steps: p.steps, total: p.total }
+        : null;
     case "key":
       return typeof p.key === "string" && p.key.length <= 32
         ? { type, key: p.key, ctrl: p.ctrl === true, shift: p.shift === true, alt: p.alt === true }
         : null;
+    case "pick":
+      return isCount(p.slide) ? { type, slide: p.slide } : null;
+    case "grid":
+      return typeof p.open === "boolean" ? { type, open: p.open } : null;
     default:
       return null;
   }

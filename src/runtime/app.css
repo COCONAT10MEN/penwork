@@ -1,0 +1,68 @@
+/* Additions for the app. engine.css stays exactly the template's, so it can be compared with it. */
+
+/*
+ * Nothing moves in the edit view, or with Reduce motion on in Settings. The template only had the
+ * Windows setting to follow, so its own rule for this can't see the app's.
+ */
+body.still #stage,
+body.still #stage * {
+  transition: none !important;
+  animation: none !important;
+}
+
+/* Hidden slides: left out of the grid during a show, dimmed in the edit view's slide list. */
+html:not(.sorter) #ov .cell.off {
+  display: none;
+}
+html.sorter #ov .cell.off .th {
+  opacity: 0.45;
+}
+
+html.sorter,
+html.sorter body {
+  background: transparent;
+}
+html.sorter #stage {
+  visibility: hidden;
+}
+html.sorter #ov {
+  background: none;
+  z-index: 1;
+  scrollbar-width: thin;
+  scrollbar-gutter: stable;
+}
+html.sorter #ov .bk,
+html.sorter #ov .bar,
+html.sorter #ov .lb {
+  display: none;
+}
+/* Each slide is its own rectangle, with its number right above its top left corner. */
+html.sorter #ov .grid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+  padding: 10px 12px 12px;
+}
+html.sorter #ov .cell {
+  display: block;
+  min-width: 0;
+}
+html.sorter #ov .num {
+  display: block;
+  margin: 0 0 4px 2px;
+  font: 700 12px/1.4 var(--sans);
+  color: var(--pw-text, #e6f6fb);
+}
+html.sorter #ov .th {
+  width: 100%;
+  border-radius: 8px;
+  content-visibility: visible;
+  contain-intrinsic-size: none;
+  box-shadow: 0 0 0 1px rgb(127 127 127 / 0.35);
+}
+html.sorter #ov .cell:hover .th,
+html.sorter #ov .cell:focus-visible .th {
+  box-shadow: 0 0 0 2px var(--pw-accent, var(--cy));
+}
+html.sorter #ov .cell.cur .th {
+  box-shadow: 0 0 0 3px var(--pw-accent, var(--acc));
+}

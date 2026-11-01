@@ -126,6 +126,29 @@ fn main() {
         &[("assets/icon.png", SMALL_PNG), ("assets/circle.svg", SMALL_SVG)],
     );
 
+    let mut hidden = 0;
+    let with_hidden = slides
+        .split("<section ")
+        .map(|part| {
+            hidden += 1;
+            // The third slide: the part before the first section is empty, so it is number 4 here.
+            if hidden == 4 { format!("data-hidden=\"true\" {part}") } else { part.to_string() }
+        })
+        .collect::<Vec<_>>()
+        .join("<section ");
+    write(
+        &out.join("hidden-slide.pwpptx"),
+        &DeckContent {
+            manifest: manifest("A hidden slide"),
+            slides_html: with_hidden,
+            theme_css: Some(theme.to_string()),
+            widgets_js: None,
+            notes: None,
+            ink: None,
+        },
+        &[],
+    );
+
     fs::write(out.join("broken.pwpptx"), "This is not a zip file, so it can't be opened.")
         .expect("broken file");
     println!("wrote broken.pwpptx");

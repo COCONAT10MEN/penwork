@@ -33,10 +33,12 @@ interface AppState {
   /** The deck on screen, or null on Home. */
   deck: OpenDeck | null;
   startSlide: number;
+  /** Open straight into the show, not the edit view. Only Present on Home asks for this. */
+  presentOnOpen: boolean;
   /** Set while a deck is loading, so the UI can show it. */
   opening: boolean;
   loadLibrary: () => Promise<void>;
-  openPath: (path: string, notify: Notify) => Promise<void>;
+  openPath: (path: string, notify: Notify, options?: { present?: boolean }) => Promise<void>;
   /** New deck: makes the deck, then opens it. */
   createDeck: (deck: DeckParts, generator: string, notify: Notify) => Promise<void>;
   closeDeck: () => void;
@@ -63,7 +65,7 @@ export const useApp = create<AppState>((set, get) => {
   };
 
   /** Puts a deck on screen and into the library, whichever way it arrived. */
-  const show = (deck: OpenDeck, notify: Notify) => {
+  const show = (deck: OpenDeck, notify: Notify, present = false) => {
     const previous = get().deck;
     if (previous) closeDeckFile(previous.token);
     const library = recordOpen(
@@ -81,7 +83,7 @@ export const useApp = create<AppState>((set, get) => {
       () => crypto.randomUUID(),
     );
     commit(library);
-    set({ deck, startSlide: library.decks[0]?.lastSlide ?? 0 });
+    set({ deck, startSlide: library.decks[0]?.lastSlide ?? 0, presentOnOpen: present });
     if (deck.removed.length > 0) {
       notify({
         message: `Cleaned up while opening: ${deck.removed.join(", ")}`,
@@ -94,6 +96,7 @@ export const useApp = create<AppState>((set, get) => {
     library: EMPTY_LIBRARY,
     deck: null,
     startSlide: 0,
+    presentOnOpen: false,
     opening: false,
 
     loadLibrary: async () => {
@@ -107,14 +110,14 @@ export const useApp = create<AppState>((set, get) => {
       set({ library: markExisting(get().library, exists) });
     },
 
-    openPath: async (path, notify) => {
+    openPath: async (path, notify, options) => {
       if (!isDeckPath(path)) {
         notify({ message: "Penwork opens .pwpptx presentations only." });
         return;
       }
       set({ opening: true });
       try {
-        show(await openDeckFile(path), notify);
+        show(await openDeckFile(path), notify, options?.present);
       } catch (error) {
         if (isDeckError(error) && error.code === "io") commit(markMissing(get().library, path));
         reportError(error, notify);

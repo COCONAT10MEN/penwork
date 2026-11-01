@@ -1,4 +1,5 @@
 .frame {
+  color-scheme: inherit;
   display: block;
   width: 100%;
   height: 100%;

@@ -15,7 +15,7 @@ import {
 } from "../../ui";
 import type { ThemeMode, Transparency } from "../../theme/theme";
 import { logoColor } from "./appearance";
-import type { ColorSource } from "./settingsFile";
+import type { ColorSource, Settings as SavedSettings } from "./settingsFile";
 import { useSettings } from "./settingsStore";
 import styles from "./Settings.module.css";
 
@@ -136,6 +136,10 @@ const COLORS = [
   { value: "deck", label: "Match the presentation" },
   { value: "custom", label: "Custom" },
 ];
+const END_OF_SHOW = [
+  { value: "loop", label: "Back to the first" },
+  { value: "stop", label: "Stay on it" },
+];
 const TRANSPARENCY = [
   { value: "auto", label: "Follow Windows" },
   { value: "glass", label: "Glass" },
@@ -192,6 +196,15 @@ export function Settings() {
             options={TRANSPARENCY}
             value={settings.transparency}
             onChange={(transparency) => update({ transparency: transparency as Transparency })}
+          />
+        </Section>
+        <Section title="Last slide of a show">
+          <SegmentedButton
+            label="Last slide of a show"
+            required
+            options={END_OF_SHOW}
+            value={settings.endOfShow}
+            onChange={(endOfShow) => update({ endOfShow: endOfShow as SavedSettings["endOfShow"] })}
           />
         </Section>
         <Section title="Motion">

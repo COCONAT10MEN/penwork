@@ -107,3 +107,7 @@ colour from a seed) and the **tinted liquid-glass** look of the owner's toolbar.
     HTML can cause problems and that is the reason `.pwpptx` exists. This replaces every mention of an `.html` importer.
     Paste from AI on Home is removed too (2026-10-31). A `.pwpptx` file and New deck are the only ways a deck gets in.
 12. **Everything on screen says "presentation", never "deck" (2026-11-01).** The code keeps the word `deck`.
+13. **Opening goes to the edit view, like PowerPoint (2026-11-01).** A show is always full screen: Present or F5 starts it,
+    Esc or F ends it on the slide it stopped at, and there is no windowed show. So the template's full-screen toggle becomes
+    End show. Present on Home is the one way to open straight into a show.
+14. **The template comes first (2026-11-01).** M5 (dock, ink, whiteboard) moves ahead of M4 (mini edits).

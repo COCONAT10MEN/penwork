@@ -103,8 +103,9 @@ export function closeDeckFile(token: string): void {
 }
 
 /** On Windows, WebView2 sees a custom scheme as http://<scheme>.localhost. */
-export function deckUrl(token: string): string {
-  return `http://penwork-deck.localhost/${token}/index.html`;
+export function deckUrl(token: string, view: "stage" | "sorter" = "stage"): string {
+  const page = `http://penwork-deck.localhost/${token}/index.html`;
+  return view === "sorter" ? `${page}?view=sorter` : page;
 }
 
 /** .pwpptx only. Raw .html is refused on purpose: the format exists so decks stay contained. */

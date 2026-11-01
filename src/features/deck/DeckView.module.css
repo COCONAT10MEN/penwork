@@ -1,0 +1,111 @@
+.view {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+  padding: 12px;
+  box-sizing: border-box;
+  color: var(--md-sys-color-on-surface);
+}
+
+.header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 64px;
+  padding: 8px 10px;
+  box-sizing: border-box;
+  border-radius: var(--md-sys-shape-corner-full);
+}
+.titles {
+  flex: 1;
+  min-width: 0;
+}
+.title,
+.meta {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.title {
+  font-size: var(--md-sys-typescale-title-medium-size);
+  line-height: var(--md-sys-typescale-title-medium-line-height);
+  font-weight: var(--md-sys-typescale-title-medium-weight-emphasized);
+}
+.meta {
+  color: var(--pw-glass-on-variant);
+  font-size: var(--md-sys-typescale-body-small-size);
+  line-height: var(--md-sys-typescale-body-small-line-height);
+}
+
+.body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  gap: 12px;
+}
+.sorter {
+  flex: 0 0 208px;
+  overflow: hidden;
+  border-radius: var(--md-sys-shape-corner-extra-large);
+}
+.sorterFrame {
+  background: transparent;
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+/* The largest 16:9 box that fits, whichever of width or height runs out first. */
+.stage {
+  aspect-ratio: 16 / 9;
+  width: min(100%, calc((100vh - 170px) * 16 / 9));
+  overflow: hidden;
+  border-radius: var(--md-sys-shape-corner-small);
+  box-shadow: var(--pw-glass-shadow);
+}
+.status {
+  display: flex;
+  gap: 14px;
+  padding: 8px 16px;
+  border-radius: var(--md-sys-shape-corner-full);
+  font-size: var(--md-sys-typescale-body-medium-size);
+  line-height: var(--md-sys-typescale-body-medium-line-height);
+}
+.status b {
+  font-weight: var(--md-sys-typescale-body-medium-weight-emphasized, 700);
+}
+
+/*
+ * The show. The same iframe is lifted out of the layout, so it keeps running. Everything else is
+ * hidden, not removed, so the slide list keeps its place for when the show ends.
+ */
+.fullFrame {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  width: 100vw;
+  height: 100vh;
+}
+.view[data-presenting] {
+  background: var(--md-sys-color-scrim);
+}
+.view[data-presenting] .stage {
+  overflow: visible;
+  box-shadow: none;
+}
+.view[data-presenting] .header,
+.view[data-presenting] .sorter,
+.view[data-presenting] .status {
+  visibility: hidden;
+}

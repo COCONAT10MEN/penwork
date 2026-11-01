@@ -20,7 +20,8 @@ pub const SCHEME: &str = "penwork-deck";
 const SOURCES: &str = "http://penwork-deck.localhost penwork-deck:";
 
 const ENGINE_CSS: &str = include_str!("../../../src/runtime/engine.css");
-const VIEWER_JS: &str = include_str!("../../../src/runtime/viewer.js");
+const APP_CSS: &str = include_str!("../../../src/runtime/app.css");
+const ENGINE_JS: &str = include_str!("../../../src/runtime/engine.js");
 
 struct Session {
     /// The `.pwpptx` assets are read from. None for a deck that exists only in memory so far.
@@ -180,10 +181,11 @@ fn page(session: &Session) -> String {
     format!(
         "<!doctype html><html lang=\"{}\" dir=\"{}\"><head><meta charset=\"utf-8\">\
          <title>Slides</title><link rel=\"stylesheet\" href=\"engine.css\">\
+         <link rel=\"stylesheet\" href=\"app.css\">\
          <link rel=\"stylesheet\" href=\"theme.css\"></head><body>\
          <div id=\"stage\"><div id=\"bgl\"><div class=\"blob b0\"></div><div class=\"blob b1\"></div>\
-         <div class=\"blob b2\"></div><div class=\"blob b3\"></div></div>{}</div>\
-         <script src=\"viewer.js\"></script><script src=\"widgets.js\"></script></body></html>",
+         <div class=\"blob b2\"></div><div class=\"blob b3\"></div></div>{}</div><div id=\"ov\"></div>\
+         <script src=\"engine.js\"></script><script src=\"widgets.js\"></script></body></html>",
         session.lang, session.dir, session.slides_html
     )
 }
@@ -254,7 +256,8 @@ pub fn handle(sessions: &Sessions, request: &Request<Vec<u8>>) -> Response<Vec<u
         "index.html" => text("text/html; charset=utf-8", &page(session)),
         "engine.css" => text("text/css; charset=utf-8", ENGINE_CSS),
         "theme.css" => text("text/css; charset=utf-8", &session.theme_css),
-        "viewer.js" => text("text/javascript; charset=utf-8", VIEWER_JS),
+        "app.css" => text("text/css; charset=utf-8", APP_CSS),
+        "engine.js" => text("text/javascript; charset=utf-8", ENGINE_JS),
         "widgets.js" => text("text/javascript; charset=utf-8", &session.widgets_js),
         name if name.starts_with("assets/") => {
             if let Some(bytes) = session.assets.get(name) {

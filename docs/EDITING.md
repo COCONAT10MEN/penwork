@@ -17,7 +17,7 @@ Goal: every change that's quicker to do by hand than to describe to an AI. Visua
 
 | Mode | What it's for | How to enter |
 |---|---|---|
-| **Present** | Teaching. Steps, Morph, dock, ink | ▶ Present, F5, or double-click a deck in Home |
+| **Present** | Teaching, always full screen. Steps, Morph, dock, ink | ▶ Present, F5, or Present on Home. Opening a file goes to Edit, like PowerPoint |
 | **Edit** | Mini edits. Slide sorter + stage + inspector | Edit button, Ctrl+E, or ✎ in the dock while presenting (opens on the same slide) |
 | **Steps** (sub-mode of Edit) | Click through the slide's steps to see and change what appears when | Segmented button in the top bar |
 | **Notes** (sub-mode of Edit) | Speaker notes for each slide | Segmented button in the top bar |

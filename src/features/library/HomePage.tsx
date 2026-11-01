@@ -65,7 +65,7 @@ function ContinueCard({ deck }: { deck: LibraryDeck }) {
             size="medium"
             icon="play_arrow"
             aria-label={`Present ${deck.title}`}
-            onClick={() => void openPath(deck.path, notify)}
+            onClick={() => void openPath(deck.path, notify, { present: true })}
           >
             Present
           </Button>
@@ -74,7 +74,7 @@ function ContinueCard({ deck }: { deck: LibraryDeck }) {
             variant="tonal"
             icon="edit"
             aria-label={`Edit ${deck.title}`}
-            onClick={() => notify({ message: "Editing arrives in a later update." })}
+            onClick={() => void openPath(deck.path, notify)}
           >
             Edit
           </Button>

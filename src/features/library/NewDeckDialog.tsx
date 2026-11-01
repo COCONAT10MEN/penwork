@@ -35,7 +35,7 @@ export function NewDeckDialog({ open, onClose }: { open: boolean; onClose: () =>
             Cancel
           </Button>
           <Button size="medium" onClick={create}>
-            Create deck
+            Create presentation
           </Button>
         </>
       }

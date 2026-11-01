@@ -21,6 +21,8 @@ export interface Settings {
   transparency: Transparency;
   /** On: always reduced. Off: follows the Windows setting. */
   reduceMotion: boolean;
+  /** What "next" does on the last slide of a show. Back to the first is the template's way. */
+  endOfShow: "loop" | "stop";
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -32,6 +34,7 @@ export const DEFAULT_SETTINGS: Settings = {
   logoBackground: "#000000",
   transparency: "auto",
   reduceMotion: false,
+  endOfShow: "loop",
 };
 
 function oneOf<T extends string>(value: unknown, options: readonly T[], fallback: T): T {
@@ -70,5 +73,6 @@ export function parseSettings(text: string | null): Settings {
       DEFAULT_SETTINGS.transparency,
     ),
     reduceMotion: d.reduceMotion === true,
+    endOfShow: d.endOfShow === "stop" ? "stop" : "loop",
   };
 }

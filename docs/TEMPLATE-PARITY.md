@@ -32,7 +32,7 @@ Milestone: slide engine items land in **M3**, dock, ink and whiteboard in **M5**
 ## 2. Navigation input (M3, all of it, with focus inside or outside the slide)
 
 - [ ] Next: → ↓ PageDown Space Enter. Back: ← ↑ PageUp Backspace. Home, End
-- [ ] F full screen (the button swaps to the exit icon while full screen). G grid
+- [ ] F ends the show (owner's decision: a show is always full screen, so there is no windowed mode to toggle). G grid
 - [ ] Keys are ignored while typing in a field. Ctrl/Alt/Meta combinations don't trigger slide keys
 - [ ] Mouse click on a slide: next. Click in the left 12% of the stage: back. Clicks on controls don't navigate
 - [ ] A click right after drawing is swallowed (350 ms) so finishing a stroke never changes slide

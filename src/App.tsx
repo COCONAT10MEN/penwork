@@ -1,7 +1,7 @@
 import { MotionConfig } from "motion/react";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { useApp } from "./appStore";
-import { PlaceholderViewer } from "./features/deck/PlaceholderViewer";
+import { DeckView } from "./features/deck/DeckView";
 import { useFileOpening } from "./features/deck/useFileOpening";
 import { Home } from "./features/library/Home";
 import { useSettings } from "./features/settings/settingsStore";
@@ -31,11 +31,21 @@ function Screens() {
   const [galleryOpen, setGalleryOpen] = useGalleryToggle();
   const deck = useApp((s) => s.deck);
   const startSlide = useApp((s) => s.startSlide);
+  const presentOnOpen = useApp((s) => s.presentOnOpen);
   const loadLibrary = useApp((s) => s.loadLibrary);
 
   useEffect(() => {
     void loadLibrary();
   }, [loadLibrary]);
+
+  // Browser reload keys would wipe the app's state, and an open presentation with it.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "F5" || (e.ctrlKey && e.key.toLowerCase() === "r")) e.preventDefault();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   if (Gallery && galleryOpen) {
     return (
@@ -45,7 +55,7 @@ function Screens() {
     );
   }
   return deck ? (
-    <PlaceholderViewer key={deck.token} deck={deck} start={startSlide} />
+    <DeckView key={deck.token} deck={deck} start={startSlide} presentOnOpen={presentOnOpen} />
   ) : (
     <Home dragging={dragging} />
   );

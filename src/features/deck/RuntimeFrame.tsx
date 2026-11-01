@@ -1,10 +1,13 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import { parseRuntimeMessage, type RuntimeMessage } from "../../lib/deck/bridge";
+import { cx } from "../../ui/cx";
 import { deckUrl } from "./openDeck";
 import styles from "./RuntimeFrame.module.css";
 
 export interface RuntimeFrameHandle {
-  go: (slide: number) => void;
+  /** Sends a command to the slide page. Its meaning is in the glue at the end of engine.js. */
+  post: (type: string, payload?: object) => void;
+  focus: () => void;
   /** Where the slide page is on screen, for cropping a thumbnail. */
   rect: () => DOMRect | null;
 }
@@ -12,6 +15,9 @@ export interface RuntimeFrameHandle {
 interface RuntimeFrameProps {
   token: string;
   title: string;
+  /** The slide itself, or the column of thumbnails beside it in the edit view. */
+  view?: "stage" | "sorter";
+  className?: string;
   onMessage: (message: RuntimeMessage) => void;
 }
 
@@ -20,7 +26,7 @@ interface RuntimeFrameProps {
  * the internet. Anything it sends is checked in parseRuntimeMessage before the app uses it.
  */
 export const RuntimeFrame = forwardRef<RuntimeFrameHandle, RuntimeFrameProps>(function RuntimeFrame(
-  { token, title, onMessage },
+  { token, title, view = "stage", className, onMessage },
   ref,
 ) {
   const frame = useRef<HTMLIFrameElement>(null);
@@ -30,11 +36,12 @@ export const RuntimeFrame = forwardRef<RuntimeFrameHandle, RuntimeFrameProps>(fu
   });
 
   useImperativeHandle(ref, () => ({
-    go: (slide) =>
+    post: (type, payload = {}) =>
       frame.current?.contentWindow?.postMessage(
-        { v: 1, id: String(Date.now()), type: "go", payload: { slide } },
+        { v: 1, id: String(Date.now()), type, payload },
         "*",
       ),
+    focus: () => frame.current?.focus(),
     rect: () => frame.current?.getBoundingClientRect() ?? null,
   }));
 
@@ -52,10 +59,10 @@ export const RuntimeFrame = forwardRef<RuntimeFrameHandle, RuntimeFrameProps>(fu
   return (
     <iframe
       ref={frame}
-      className={styles.frame}
-      title={`Slides: ${title}`}
+      className={cx(styles.frame, className)}
+      title={view === "sorter" ? `Slide list: ${title}` : `Slides: ${title}`}
       sandbox="allow-scripts"
-      src={deckUrl(token)}
+      src={deckUrl(token, view)}
     />
   );
 });

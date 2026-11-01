@@ -13,24 +13,9 @@
   line-height: var(--md-sys-typescale-body-small-line-height);
   font-weight: var(--md-sys-typescale-body-small-weight-emphasized);
   pointer-events: none;
-  animation:
-    fade-in var(--md-sys-motion-effects-default-duration)
-      var(--md-sys-motion-effects-default-easing),
-    pop-in var(--md-sys-motion-spatial-fast-duration) var(--md-sys-motion-spatial-fast-easing);
 }
 
 .tonal {
   background: var(--md-sys-color-inverse-surface);
   color: var(--md-sys-color-inverse-on-surface);
-}
-
-@keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-}
-@keyframes pop-in {
-  from {
-    scale: 0.86;
-  }
 }

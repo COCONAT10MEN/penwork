@@ -51,7 +51,7 @@ export function EditHeader({
           </AnimatePresence>
         </p>
       </div>
-      <div className={styles.history} role="group" aria-label="Undo and save">
+      <div className={styles.history} role="group" aria-label="Undo and save" data-press-group>
         <IconButton size="compact" icon="undo" label="Undo" disabled={!canUndo} onClick={onUndo} />
         <IconButton size="compact" icon="redo" label="Redo" disabled={!canRedo} onClick={onRedo} />
         <IconButton size="compact" icon="save" label="Save" onClick={onSave} />

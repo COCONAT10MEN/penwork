@@ -27,8 +27,8 @@ export interface ButtonGroupProps<V extends string | string[]> {
 }
 
 /**
- * M3 Expressive connected button group: tight segments with small inner corners. The
- * selected segment morphs to fully round.
+ * M3 Expressive connected button group: tight segments with small inner corners. A pressed
+ * segment grows into its neighbours, and the selected one eases to fully round.
  *
  * Single-select (a string value) is a radio group: one Tab stop, arrow keys move and select.
  * Multi-select (an array) is a row of toggle buttons with aria-pressed.
@@ -64,6 +64,7 @@ export function ButtonGroup<V extends string | string[]>({
       ref={groupRef}
       role={single ? "radiogroup" : "group"}
       aria-label={label}
+      data-press-group
       className={cx(styles.group, styles[size])}
       onKeyDown={onKeyDown}
     >
@@ -86,7 +87,7 @@ export function ButtonGroup<V extends string | string[]>({
             data-first={index === 0 || undefined}
             data-last={index === options.length - 1 || undefined}
             disabled={option.disabled}
-            className={cx("pw-state", styles.segment, !option.label && styles.iconOnly)}
+            className={cx("pw-state pw-press", styles.segment, !option.label && styles.iconOnly)}
             onClick={() => onChange(nextSelection(value, option.value, required) as V)}
           >
             {option.icon && (

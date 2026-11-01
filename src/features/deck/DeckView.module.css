@@ -200,27 +200,19 @@
     var(--md-sys-motion-spatial-slow-easing);
 }
 .present {
-  transition:
-    box-shadow var(--md-sys-motion-effects-duration) var(--md-sys-motion-effects-easing),
-    border-radius var(--md-sys-motion-spatial-fast-duration)
-      var(--md-sys-motion-spatial-fast-easing),
-    scale var(--md-sys-motion-spatial-fast-duration) var(--md-sys-motion-spatial-fast-easing);
+  transition: box-shadow var(--md-sys-motion-effects-duration) var(--md-sys-motion-effects-easing);
 }
 .present:hover {
   box-shadow: 0 12px 26px -8px color-mix(in srgb, var(--md-sys-color-primary) 75%, transparent);
 }
 .layout {
-  transition:
-    translate var(--md-sys-motion-spatial-default-duration)
-      var(--md-sys-motion-spatial-default-easing),
-    background-color var(--md-sys-motion-effects-duration) var(--md-sys-motion-effects-easing);
+  --pw-corner: var(--md-sys-shape-corner-large);
+  --pw-pressed-corner: var(--md-sys-shape-corner-small);
+  transition: background-color var(--md-sys-motion-effects-duration)
+    var(--md-sys-motion-effects-easing);
 }
 .layout:hover {
-  translate: 0 -3px;
   background: var(--md-sys-color-secondary-container);
-}
-.layout:active {
-  translate: 0 0;
 }
 @keyframes drop-in {
   from {

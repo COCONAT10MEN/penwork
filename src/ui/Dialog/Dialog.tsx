@@ -88,7 +88,11 @@ export function Dialog({
         <div id={bodyId} className={styles.body}>
           {children}
         </div>
-        {actions && <div className={styles.actions}>{actions}</div>}
+        {actions && (
+          <div className={styles.actions} data-press-group>
+            {actions}
+          </div>
+        )}
       </div>
     </dialog>
   );

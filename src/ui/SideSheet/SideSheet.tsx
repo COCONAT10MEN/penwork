@@ -33,7 +33,7 @@ export function SideSheet({
   strength = "regular",
   children,
 }: SideSheetProps) {
-  const spring = useSpring("spatialCalm");
+  const spring = useSpring("spatialDefault");
   const fade = useSpring("effectsFast");
   const reduce = useReduceMotion();
   const offset = side === "right" ? 32 : -32;

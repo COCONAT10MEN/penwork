@@ -23,12 +23,12 @@
   min-height: 44px;
   padding: 0 12px;
   border: 0;
-  border-radius: var(--pw-shape-tool);
   background: transparent;
   cursor: default;
   text-align: start;
-  transition: border-radius var(--md-sys-motion-spatial-fast-duration)
-    var(--md-sys-motion-spatial-fast-easing);
+  --pw-corner: var(--pw-shape-tool);
+  --pw-pressed-corner: var(--md-sys-shape-corner-small);
+  --pw-press-depth: 0.01;
   font-size: var(--md-sys-typescale-label-large-size);
   line-height: var(--md-sys-typescale-label-large-line-height);
   letter-spacing: var(--md-sys-typescale-label-large-tracking);
@@ -38,8 +38,9 @@
   outline: none;
   background: color-mix(in srgb, var(--md-sys-color-primary) 16%, transparent);
 }
+/* Hovering rounds the row, as Google's menu groups do. */
 .item:hover:not([aria-disabled="true"]) {
-  border-radius: var(--md-sys-shape-corner-large-increased);
+  --pw-corner: var(--md-sys-shape-corner-large-increased);
 }
 .item[aria-disabled="true"] {
   cursor: default;

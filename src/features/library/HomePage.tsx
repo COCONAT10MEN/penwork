@@ -60,7 +60,7 @@ function ContinueCard({ deck }: { deck: LibraryDeck }) {
             </span>
           ))}
         </div>
-        <div className={styles.continueActions}>
+        <div className={styles.continueActions} data-press-group>
           <Button
             size="medium"
             icon="play_arrow"

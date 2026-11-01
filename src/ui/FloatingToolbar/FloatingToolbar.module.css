@@ -10,8 +10,9 @@
   padding: var(--pw-frame);
   border-radius: var(--md-sys-shape-corner-full);
   transition:
-    padding var(--md-sys-motion-spatial-calm-duration) var(--md-sys-motion-spatial-calm-easing),
-    gap var(--md-sys-motion-spatial-calm-duration) var(--md-sys-motion-spatial-calm-easing);
+    padding var(--md-sys-motion-spatial-default-duration)
+      var(--md-sys-motion-spatial-default-easing),
+    gap var(--md-sys-motion-spatial-default-duration) var(--md-sys-motion-spatial-default-easing);
 }
 .tonal {
   background: var(--md-sys-color-surface-container-high);
@@ -61,9 +62,9 @@
   cursor: default;
   /* Same timing as the capsule: one body. */
   transition:
-    background-color var(--md-sys-motion-spatial-calm-duration)
-      var(--md-sys-motion-spatial-calm-easing),
-    color var(--md-sys-motion-spatial-calm-duration) var(--md-sys-motion-spatial-calm-easing);
+    background-color var(--md-sys-motion-spatial-default-duration)
+      var(--md-sys-motion-spatial-default-easing),
+    color var(--md-sys-motion-spatial-default-duration) var(--md-sys-motion-spatial-default-easing);
 }
 .capsule[data-open] .logo {
   background: var(--pw-logo-fg);
@@ -74,8 +75,8 @@
 .reveal {
   display: grid;
   grid-template-columns: 0fr;
-  transition: grid-template-columns var(--md-sys-motion-spatial-calm-duration)
-    var(--md-sys-motion-spatial-calm-easing);
+  transition: grid-template-columns var(--md-sys-motion-spatial-default-duration)
+    var(--md-sys-motion-spatial-default-easing);
 }
 .capsule[data-open] .reveal {
   grid-template-columns: 1fr;

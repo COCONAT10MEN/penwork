@@ -35,7 +35,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
     <button
       ref={ref}
       type={type}
-      className={cx("pw-state", styles.button, styles[variant], styles[size], className)}
+      className={cx("pw-state pw-press", styles.button, styles[variant], styles[size], className)}
       {...rest}
     >
       {icon && <Icon name={icon} size={ICON_SIZE[size]} filled={iconFilled} />}

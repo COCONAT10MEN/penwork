@@ -24,7 +24,13 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
       type={type}
       aria-pressed={filter ? selected : undefined}
       data-selected={(filter && selected) || undefined}
-      className={cx("pw-state", styles.chip, styles[variant], !leading && styles.noIcon, className)}
+      className={cx(
+        "pw-state pw-press",
+        styles.chip,
+        styles[variant],
+        !leading && styles.noIcon,
+        className,
+      )}
       {...rest}
     >
       {leading && <Icon name={leading} size={18} className={styles.icon} />}

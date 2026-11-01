@@ -35,8 +35,8 @@ const GAP = 4;
 /** M3 menu in a portal. Arrow keys, Home/End, Enter; Escape, Tab or a click outside closes. */
 export function Menu({ open, onClose, anchor, label, items, material = "tonal" }: MenuProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const [pos, setPos] = useState<{ left: number; top: number; up: boolean } | null>(null);
-  const spring = useSpring("spatialCalm");
+  const [pos, setPos] = useState<{ left: number; top: number; origin: string } | null>(null);
+  const spring = useSpring("spatialFast");
   const fade = useSpring("effectsFast");
   const reduce = useReduceMotion();
   // Inside a dialog it needs the top layer, or the dialog's glass would be what it's placed against.
@@ -58,7 +58,13 @@ export function Menu({ open, onClose, anchor, label, items, material = "tonal" }
     const width = ref.current.offsetWidth;
     const up = a.bottom + GAP + height > window.innerHeight && a.top - GAP - height > 0;
     const left = Math.min(Math.max(8, a.left), window.innerWidth - width - 8);
-    setPos({ left, top: up ? a.top - GAP - height : a.bottom + GAP, up });
+    // It opens out of the button: the middle of where the two overlap, on the edge nearest it.
+    const middle = (Math.max(a.left, left) + Math.min(a.right, left + width)) / 2 - left;
+    setPos({
+      left,
+      top: up ? a.top - GAP - height : a.bottom + GAP,
+      origin: `${middle}px ${up ? height : 0}px`,
+    });
   }, [open, anchor, items.length, lifted]);
 
   // The position is recomputed in the layout effect above before each opening is painted.
@@ -94,16 +100,26 @@ export function Menu({ open, onClose, anchor, label, items, material = "tonal" }
           // Until measured it sits off-screen, not visibility:hidden, so the first item can take focus.
           style={
             pos
-              ? {
-                  left: pos.left,
-                  top: pos.top,
-                  transformOrigin: pos.up ? "left bottom" : "left top",
-                }
+              ? { left: pos.left, top: pos.top, transformOrigin: pos.origin }
               : { left: -10000, top: 0 }
           }
-          initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.88 }}
-          animate={{ opacity: 1, scale: 1, transition: spring }}
-          exit={{ opacity: 0, transition: fade }}
+          initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.8, "--pw-mat": 0 }}
+          animate={{
+            opacity: 1,
+            scale: 1,
+            "--pw-mat": 1,
+            transition: { default: spring, opacity: fade, "--pw-mat": fade },
+          }}
+          exit={
+            reduce
+              ? { opacity: 0, transition: fade }
+              : {
+                  opacity: 0,
+                  scale: 0.8,
+                  "--pw-mat": 0,
+                  transition: { default: fade, scale: spring },
+                }
+          }
           onKeyDown={(e) => {
             if (handleMenuKeys(e, ref.current)) return;
             if (e.key === "Escape") {
@@ -124,7 +140,7 @@ export function Menu({ open, onClose, anchor, label, items, material = "tonal" }
                 role="menuitem"
                 tabIndex={-1}
                 aria-disabled={item.disabled || undefined}
-                className={cx("pw-state", styles.item)}
+                className={cx("pw-state pw-press", styles.item)}
                 onClick={() => {
                   if (item.disabled) return;
                   close(true);

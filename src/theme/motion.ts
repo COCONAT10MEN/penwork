@@ -4,8 +4,6 @@ import { type Transition, useReducedMotionConfig } from "motion/react";
 export const SPRING_SPECS = {
   spatialFast: { ratio: 0.6, stiffness: 800 }, // buttons, toggles, shape morph
   spatialDefault: { ratio: 0.8, stiffness: 380 }, // morphs that may overshoot a little
-  // The owner's rule: the dock, panels, popovers and menus never bounce.
-  spatialCalm: { ratio: 1, stiffness: 380 },
   spatialSlow: { ratio: 0.8, stiffness: 200 }, // full-screen transitions
   effectsFast: { ratio: 1, stiffness: 3800 }, // color/opacity on press
   effectsDefault: { ratio: 1, stiffness: 1600 }, // fades

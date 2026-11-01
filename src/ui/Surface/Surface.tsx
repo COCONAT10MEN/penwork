@@ -34,6 +34,7 @@ export function surfaceClass({
 }: SurfaceStyle = {}): string | undefined {
   if (material === "tonal") return undefined;
   return cx(
+    "pw-glass",
     styles.glass,
     styles[strength],
     floating && styles.floating,

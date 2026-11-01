@@ -38,7 +38,7 @@ export const Fab = forwardRef<HTMLButtonElement, FabProps>(function Fab(
       type={type}
       aria-label={extended ? undefined : label}
       className={cx(
-        "pw-state",
+        "pw-state pw-press",
         styles.fab,
         styles[color],
         styles[size],

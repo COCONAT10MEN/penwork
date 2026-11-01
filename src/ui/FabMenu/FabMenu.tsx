@@ -24,8 +24,8 @@ export interface FabMenuProps {
 }
 
 /**
- * M3 Expressive FAB menu. The FAB turns into a round close button and the actions spring
- * up above it. Arrow keys move between actions; Escape or a click outside closes it.
+ * M3 Expressive FAB menu. The FAB turns into a round close button and the actions grow out
+ * of it one after another, nearest first. Arrow keys move between actions; Escape or a click outside closes it.
  */
 export function FabMenu({ label, icon = "add", items }: FabMenuProps) {
   const [open, setOpen] = useState(false);
@@ -33,7 +33,7 @@ export function FabMenu({ label, icon = "add", items }: FabMenuProps) {
   const list = useRef<HTMLDivElement>(null);
   const toggle = useRef<HTMLButtonElement>(null);
   const menuId = useId();
-  const spring = useSpring("spatialCalm");
+  const spring = useSpring("spatialFast");
   const fade = useSpring("effectsFast");
   const reduce = useReduceMotion();
 
@@ -92,12 +92,15 @@ export function FabMenu({ label, icon = "add", items }: FabMenuProps) {
                   tabIndex={-1}
                   aria-disabled={item.disabled || undefined}
                   className={cx("pw-state", styles.item)}
-                  initial={reduce ? { opacity: 0 } : { opacity: 0, y: 16, scale: 0.85 }}
+                  style={{ transformOrigin: "right center" }}
+                  initial={reduce ? { opacity: 0 } : { opacity: 0, scaleX: 0.4 }}
                   animate={{
                     opacity: 1,
-                    y: 0,
-                    scale: 1,
-                    transition: { ...spring, delay: order * 0.03 },
+                    scaleX: 1,
+                    transition: {
+                      default: { ...spring, delay: order * 0.05 },
+                      opacity: { ...fade, delay: order * 0.05 },
+                    },
                   }}
                   onClick={() => {
                     if (item.disabled) return;

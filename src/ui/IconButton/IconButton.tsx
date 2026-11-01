@@ -16,7 +16,7 @@ export interface IconButtonProps extends Omit<
   variant?: IconButtonVariant;
   size?: "small" | "compact" | "medium";
   /**
-   * Makes it a toggle (aria-pressed). Toggles are rounded squares when off and morph to
+   * Makes it a toggle (aria-pressed). Toggles are rounded squares when off and ease to
    * circles when on, like toolbar tools (DESIGN.md).
    */
   selected?: boolean;
@@ -51,7 +51,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(functio
       aria-pressed={toggle ? selected : undefined}
       data-selected={selected || undefined}
       className={cx(
-        "pw-state",
+        "pw-state pw-press",
         styles.button,
         styles[variant],
         styles[size],

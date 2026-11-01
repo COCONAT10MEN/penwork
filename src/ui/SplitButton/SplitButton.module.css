@@ -15,8 +15,8 @@
   line-height: var(--md-sys-typescale-label-large-line-height);
   letter-spacing: var(--md-sys-typescale-label-large-tracking);
   font-weight: var(--md-sys-typescale-label-large-weight-emphasized);
-  transition: border-radius var(--md-sys-motion-spatial-fast-duration)
-    var(--md-sys-motion-spatial-fast-easing);
+  transition: border-radius var(--md-sys-motion-effects-default-duration)
+    var(--md-sys-motion-effects-default-easing);
 }
 .main {
   gap: 8px;

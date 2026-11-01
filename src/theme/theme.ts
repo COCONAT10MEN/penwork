@@ -194,6 +194,8 @@ export function glassVars(colors: ColorRoles, scheme: "light" | "dark"): Record<
     rim: `1px solid rgb(255 255 255 / ${dark ? 0.16 : 0.8})`,
     "rim-top": `inset 0 1px 0 rgb(255 255 255 / ${dark ? 0.26 : 0.95})`,
     sheen: `linear-gradient(180deg, rgb(255 255 255 / ${sheen}), rgb(255 255 255 / 0) 48%)`,
+    light: `rgb(255 255 255 / ${dark ? 0.09 : 0.42})`,
+    "light-rim": `rgb(255 255 255 / ${dark ? 0.6 : 1})`,
     shadow: dark ? "0 18px 40px -14px rgb(0 0 0 / 0.6)" : "0 16px 36px -18px rgb(16 40 48 / 0.32)",
     "ambient-a": AMBIENT_MIX[scheme][0],
     "ambient-b": AMBIENT_MIX[scheme][1],

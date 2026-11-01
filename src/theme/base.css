@@ -135,6 +135,48 @@ textarea {
 .pw-state:active::before {
   opacity: var(--md-sys-state-pressed-opacity);
 }
+
+/*
+  .pw-press: the press from src/ui/press.ts. Set --pw-corner (at rest) and --pw-pressed-corner; a
+  picked toggle changes --pw-corner, which eases without a bounce, as Google's icon buttons do.
+*/
+@property --pw-corner {
+  syntax: "<length-percentage>";
+  inherits: false;
+  initial-value: 0px;
+}
+.pw-press {
+  --pw-corner: var(--md-sys-shape-corner-medium);
+  --pw-pressed-corner: var(--md-sys-shape-corner-small);
+  --pw-press-depth: 0.03;
+  --pw-press-radius: calc(
+    var(--pw-corner) + (var(--pw-pressed-corner) - var(--pw-corner)) * var(--pw-morph, 0)
+  );
+  border-radius: var(--pw-press-radius);
+  scale: calc(1 - var(--pw-press-depth) * var(--pw-press, 0));
+  transition: --pw-corner var(--md-sys-motion-effects-default-duration)
+    var(--md-sys-motion-effects-default-easing);
+}
+/* The values inherit, and pressing a card must not press the buttons on it. */
+.pw-press .pw-press {
+  --pw-press: 0;
+  --pw-morph: 0;
+}
+/* Material's ripple as Liquid Glass lights up: from under the pointer, out across the control. */
+.pw-press::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(
+    circle at var(--pw-x, 50%) var(--pw-y, 50%),
+    color-mix(in srgb, var(--pw-state-color, currentColor) 22%, transparent),
+    transparent calc(var(--pw-morph, 0) * 130%)
+  );
+  opacity: min(1, calc(var(--pw-morph, 0) * 1.6));
+  pointer-events: none;
+}
 .pw-state[data-dragging]::before {
   opacity: var(--md-sys-state-dragged-opacity);
 }
@@ -162,6 +204,8 @@ textarea {
 
 /* DESIGN.md icon defaults: weight 400, grade 0, optical size 24, outlined until selected. */
 .material-symbols-rounded {
+  transition: font-variation-settings var(--md-sys-motion-effects-default-duration)
+    var(--md-sys-motion-effects-default-easing);
   font-variation-settings:
     "FILL" var(--pw-icon-fill, 0),
     "wght" 400,

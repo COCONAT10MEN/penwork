@@ -15,9 +15,9 @@
   background: var(--md-sys-color-secondary-container);
   color: var(--md-sys-color-on-secondary-container);
   font-weight: var(--md-sys-typescale-label-large-weight-emphasized);
-  border-radius: var(--md-sys-shape-corner-small);
-  transition: border-radius var(--md-sys-motion-spatial-fast-duration)
-    var(--md-sys-motion-spatial-fast-easing);
+  --pw-corner: var(--md-sys-shape-corner-small);
+  --pw-pressed-corner: var(--md-sys-shape-corner-extra-small);
+  --pw-press-depth: 0;
 }
 .segment[data-first] {
   border-start-start-radius: var(--pw-end-corner);
@@ -30,10 +30,7 @@
 .segment[data-selected] {
   background: var(--md-sys-color-primary);
   color: var(--md-sys-color-on-primary);
-  border-radius: var(--pw-end-corner);
-}
-.segment:active:not(:disabled) {
-  border-radius: var(--md-sys-shape-corner-extra-small);
+  --pw-corner: var(--pw-end-corner);
 }
 /* Each segment is its own layer (.pw-state); lift the focused one so its ring isn't covered. */
 .segment:focus-visible {

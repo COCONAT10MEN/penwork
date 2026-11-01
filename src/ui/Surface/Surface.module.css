@@ -3,6 +3,22 @@
   color: var(--md-sys-color-on-surface);
 }
 
+/*
+ * --pw-mat: glass doesn't fade in, it gathers: the bending of light builds from nothing (Apple's
+ * "materialize"). 0 is plain air, 1 is the finished material.
+ * --pw-light: set by src/ui/press.ts while the pointer is over the surface.
+ */
+@property --pw-mat {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+@property --pw-light {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
 /* :where keeps this at zero specificity, so a component that is position: fixed stays fixed. */
 :where(.glass) {
   position: relative;
@@ -10,22 +26,53 @@
 .glass {
   isolation: isolate;
   background: var(--pw-surface-fill);
-  backdrop-filter: blur(var(--pw-surface-blur)) saturate(var(--pw-glass-saturate));
+  backdrop-filter: blur(calc(var(--pw-surface-blur) * var(--pw-mat)))
+    saturate(calc(1 + (var(--pw-glass-saturate) - 1) * var(--pw-mat)));
   border: var(--pw-glass-rim);
   box-shadow: var(--pw-glass-rim-top);
   color: var(--md-sys-color-on-surface);
   /* Secondary text inside glass (subtitles, placeholders). */
   --md-sys-color-on-surface-variant: var(--pw-glass-on-variant);
 }
-/* The specular sheen on the top half, under the content. */
+/* The specular sheen on the top half, and the light the pointer casts into the glass. */
 .glass::after {
   content: "";
   position: absolute;
   inset: 0;
   z-index: -1;
   border-radius: inherit;
-  background: var(--pw-glass-sheen);
+  background:
+    radial-gradient(
+      280px circle at var(--pw-light-x, 50%) var(--pw-light-y, 0%),
+      color-mix(in srgb, var(--pw-glass-light) calc(var(--pw-light) * 100%), transparent),
+      transparent 75%
+    ),
+    var(--pw-glass-sheen);
   pointer-events: none;
+  transition: --pw-light var(--md-sys-motion-effects-slow-duration)
+    var(--md-sys-motion-effects-slow-easing);
+}
+/* The rim catches that light. Clickable glass has its state layer here, and the glow is enough. */
+.glass:not(:global(.pw-state))::before {
+  content: "";
+  position: absolute;
+  /* Just inside the border: past it, a dialog or a list would grow a scrollbar. */
+  inset: 0;
+  z-index: -1;
+  padding: 1px;
+  border-radius: inherit;
+  background: radial-gradient(
+    200px circle at var(--pw-light-x, 50%) var(--pw-light-y, 0%),
+    var(--pw-glass-light-rim),
+    transparent 72%
+  );
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+  opacity: var(--pw-light);
+  pointer-events: none;
+  transition: --pw-light var(--md-sys-motion-effects-slow-duration)
+    var(--md-sys-motion-effects-slow-easing);
 }
 
 .thin {
@@ -58,6 +105,7 @@
   background: var(--md-sys-color-surface-container-high);
   backdrop-filter: none;
 }
+:global(:root[data-transparency="reduced"]) .glass::before,
 :global(:root[data-transparency="reduced"]) .glass::after {
   content: none;
 }
@@ -66,6 +114,7 @@
     background: var(--md-sys-color-surface-container-high);
     backdrop-filter: none;
   }
+  :global(:root:not([data-transparency="glass"])) .glass::before,
   :global(:root:not([data-transparency="glass"])) .glass::after {
     content: none;
   }

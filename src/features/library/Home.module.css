@@ -291,19 +291,8 @@
     translate: -14px 0;
   }
 }
-.continueThumb img {
-  transition: scale var(--md-sys-motion-spatial-slow-duration)
-    var(--md-sys-motion-spatial-slow-easing);
-}
-.continue:hover .continueThumb img {
-  scale: 1.03;
-}
 .continueActions .present {
-  transition:
-    box-shadow var(--md-sys-motion-effects-duration) var(--md-sys-motion-effects-easing),
-    border-radius var(--md-sys-motion-spatial-fast-duration)
-      var(--md-sys-motion-spatial-fast-easing),
-    scale var(--md-sys-motion-spatial-fast-duration) var(--md-sys-motion-spatial-fast-easing);
+  transition: box-shadow var(--md-sys-motion-effects-duration) var(--md-sys-motion-effects-easing);
 }
 .continueActions .present:hover {
   box-shadow: 0 14px 30px -8px color-mix(in srgb, var(--md-sys-color-primary) 75%, transparent);

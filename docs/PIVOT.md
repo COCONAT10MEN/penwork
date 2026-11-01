@@ -118,6 +118,11 @@ colour from a seed) and the **tinted liquid-glass** look of the owner's toolbar.
 16. **Nothing may look like a web page or like Windows (2026-11-01).** Everything is Penwork's own: glass dialogs, glass
     notices, our own right-click menu and tooltips, with Material 3 Expressive motion. WebView2's browser menus, shortcuts,
     zoom and autofill are off. Open and Save as still use the Windows file picker, and the window keeps its Windows title bar.
-17. **The design is copied exactly (2026-11-01).** Teal is the default colour. The dock takes the design's look, with every
-    template feature kept. The owner's later decisions still beat the mockups: "presentation", no Paste from AI, no `.html`,
+17. **The design is copied exactly (2026-11-01).** Teal is the default colour. The owner's later decisions still beat the mockups: "presentation", no Paste from AI, no `.html`,
     and slide numbers above each slide.
+18. **The slide toolbar stays the template's (2026-11-01).** The owner asked for it back. Its look and its animation are
+    the template's, with the Windows accent on black as before; only its tooltip is ours. This replaces decision 17's
+    dock and the mockups' dark capsule.
+19. **Motion is Google's, not lookalike (2026-11-01).** The rest of the app takes its springs and behaviour from Compose's
+    source. The old "panels and menus never bounce" rule is gone; it now covers the slide toolbar alone. Liquid Glass
+    supplies how the material behaves (`docs/DESIGN-GLASS.md` §6).

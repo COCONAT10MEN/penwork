@@ -10,7 +10,7 @@ const NOTICE_MS = 3000;
 
 function NoticeHost() {
   const notice = useNotices((s) => s.notice);
-  const spring = useSpring("spatialCalm");
+  const spring = useSpring("spatialDefault");
   const fade = useSpring("effectsDefault");
   const reduce = useReduceMotion();
 
@@ -27,9 +27,19 @@ function NoticeHost() {
         {notice && (
           <motion.div
             key={notice.id}
-            initial={reduce ? { opacity: 0 } : { opacity: 0, y: 24, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1, transition: spring }}
-            exit={reduce ? { opacity: 0 } : { opacity: 0, y: 12, scale: 0.96, transition: fade }}
+            initial={reduce ? { opacity: 0 } : { opacity: 0, y: 24, scale: 0.8, "--pw-mat": 0 }}
+            animate={{
+              opacity: 1,
+              y: 0,
+              scale: 1,
+              "--pw-mat": 1,
+              transition: { default: spring, opacity: fade, "--pw-mat": fade },
+            }}
+            exit={
+              reduce
+                ? { opacity: 0 }
+                : { opacity: 0, y: 12, scale: 0.9, "--pw-mat": 0, transition: fade }
+            }
           >
             <Surface material="glass" strength="thick" floating className={styles.notice}>
               <span className={styles.noticeIcon}>

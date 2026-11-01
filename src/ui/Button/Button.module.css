@@ -4,17 +4,12 @@
   justify-content: center;
   gap: 8px;
   border: 0;
-  /* Half the height (set per size), not "full", so the press morph is visible. */
-  border-radius: var(--pw-rest-corner);
   cursor: default;
   white-space: nowrap;
   font-weight: var(--md-sys-typescale-label-large-weight-emphasized);
-  transition:
-    border-radius var(--md-sys-motion-spatial-fast-duration)
-      var(--md-sys-motion-spatial-fast-easing),
-    scale var(--md-sys-motion-spatial-fast-duration) var(--md-sys-motion-spatial-fast-easing);
 }
 
+/* Corners are half the height, not "full", so the press morph is visible. */
 /* Sizes (M3 Expressive: small 40, medium 56, large 96; compact 48 is the design's top-bar button). */
 .small {
   min-height: 40px;
@@ -22,7 +17,7 @@
   font-size: var(--md-sys-typescale-label-large-size);
   line-height: var(--md-sys-typescale-label-large-line-height);
   letter-spacing: var(--md-sys-typescale-label-large-tracking);
-  --pw-rest-corner: var(--md-sys-shape-corner-large-increased);
+  --pw-corner: var(--md-sys-shape-corner-large-increased);
   --pw-pressed-corner: var(--md-sys-shape-corner-small);
 }
 .compact {
@@ -30,7 +25,7 @@
   padding: 0 22px 0 18px;
   font-size: var(--md-sys-typescale-label-large-size);
   line-height: var(--md-sys-typescale-label-large-line-height);
-  --pw-rest-corner: var(--md-sys-shape-corner-full);
+  --pw-corner: var(--md-sys-shape-corner-extra-large);
   --pw-pressed-corner: var(--md-sys-shape-corner-medium);
 }
 .medium {
@@ -39,7 +34,7 @@
   font-size: var(--md-sys-typescale-title-medium-size);
   line-height: var(--md-sys-typescale-title-medium-line-height);
   letter-spacing: var(--md-sys-typescale-title-medium-tracking);
-  --pw-rest-corner: var(--md-sys-shape-corner-extra-large);
+  --pw-corner: var(--md-sys-shape-corner-extra-large);
   --pw-pressed-corner: var(--md-sys-shape-corner-medium);
 }
 .large {
@@ -49,13 +44,8 @@
   font-size: var(--md-sys-typescale-headline-small-size);
   line-height: var(--md-sys-typescale-headline-small-line-height);
   font-weight: var(--md-sys-typescale-headline-small-weight-emphasized);
-  --pw-rest-corner: var(--md-sys-shape-corner-extra-extra-large);
+  --pw-corner: var(--md-sys-shape-corner-extra-extra-large);
   --pw-pressed-corner: var(--md-sys-shape-corner-large);
-}
-
-.button:active:not(:disabled) {
-  border-radius: var(--pw-pressed-corner);
-  scale: 0.97;
 }
 
 /* Variants */

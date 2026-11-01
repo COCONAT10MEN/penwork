@@ -5,13 +5,11 @@
   padding: 0;
   border: 0;
   /* 50%, not the "full" token: a huge radius would finish the morph in its first frame. */
-  border-radius: 50%;
+  --pw-corner: 50%;
+  --pw-pressed-corner: var(--md-sys-shape-corner-medium);
+  --pw-press-depth: 0.06;
   background: transparent;
   cursor: default;
-  transition:
-    border-radius var(--md-sys-motion-spatial-fast-duration)
-      var(--md-sys-motion-spatial-fast-easing),
-    scale var(--md-sys-motion-spatial-fast-duration) var(--md-sys-motion-spatial-fast-easing);
 }
 .small {
   width: 40px;
@@ -20,13 +18,6 @@
 .compact {
   width: 44px;
   height: 44px;
-  border-radius: var(--pw-shape-tool);
-}
-.compact:hover:not(:disabled) {
-  border-radius: 50%;
-}
-.button:active:not(:disabled) {
-  scale: 0.92;
 }
 .medium {
   width: 56px;
@@ -35,13 +26,10 @@
 
 /* Toggle: rounded square when off, circle when on. */
 .toggle {
-  border-radius: var(--md-sys-shape-corner-large);
+  --pw-corner: var(--md-sys-shape-corner-large);
 }
 .toggle[data-selected] {
-  border-radius: 50%;
-}
-.button:active:not(:disabled) {
-  border-radius: var(--md-sys-shape-corner-medium);
+  --pw-corner: 50%;
 }
 
 /* A tool in a floating toolbar: clear on the glass, a solid circle when selected. */

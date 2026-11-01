@@ -29,7 +29,7 @@ export function LayoutGallery({
           <button
             key={id}
             type="button"
-            className={`pw-state ${styles.layout}`}
+            className={`pw-state pw-press ${styles.layout}`}
             onClick={() => {
               onClose();
               onPick(id);

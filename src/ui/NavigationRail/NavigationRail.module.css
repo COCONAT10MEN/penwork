@@ -5,8 +5,8 @@
   height: 100%;
   padding: 20px 12px;
   overflow: hidden auto;
-  transition: width var(--md-sys-motion-spatial-calm-duration)
-    var(--md-sys-motion-spatial-calm-easing);
+  transition: width var(--md-sys-motion-spatial-default-duration)
+    var(--md-sys-motion-spatial-default-easing);
 }
 .tonal {
   background: var(--md-sys-color-surface-container-low);
@@ -75,19 +75,20 @@
   border-radius: var(--md-sys-shape-corner-large);
 }
 /* The pill alone answers to the pointer, as the design has no box around the label. */
-.stacked .item::before {
+.stacked .item {
+  --pw-press-depth: 0;
+}
+.stacked .item::before,
+.stacked .item::after {
   content: none;
 }
 .stacked .iconWrap {
-  transition:
-    background-color var(--md-sys-motion-effects-duration) var(--md-sys-motion-effects-easing),
-    scale var(--md-sys-motion-spatial-fast-duration) var(--md-sys-motion-spatial-fast-easing);
+  scale: calc(1 - 0.08 * var(--pw-press, 0));
+  transition: background-color var(--md-sys-motion-effects-duration)
+    var(--md-sys-motion-effects-easing);
 }
 .stacked .item:hover .iconWrap {
   background: color-mix(in srgb, var(--md-sys-color-on-surface) 8%, transparent);
-}
-.stacked .item:active .iconWrap {
-  scale: 0.92;
 }
 .stacked .item[data-active] {
   background: transparent;
@@ -104,7 +105,9 @@
 }
 .pill {
   position: absolute;
-  inset: 0;
+  inset-block: 0;
+  left: 50%;
+  translate: -50% 0;
   border-radius: var(--md-sys-shape-corner-large);
   background: var(--md-sys-color-primary-container);
 }

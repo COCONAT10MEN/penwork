@@ -71,20 +71,26 @@ Glass needs colour behind it to look like glass.
 ## 5. Shape & type (unchanged from M3E, emphasised here)
 
 Dock and pills: full radius. Panels: 28–32. Cards on Home: 24–32. Selected tool/size/segment: rounded square
-(16) → circle, morphing with the spatial spring. Selected swatch: cookie shape. Headlines: emphasized weights
+(16) → circle, on an effects spring. Selected swatch: cookie shape. Headlines: emphasized weights
 (800–850), large display size on Home ("Good evening").
 
 ## 6. Motion (owner rules come first)
 
-- **Logo + dock are one body.** The capsule grows out of the logo with no seam, no separate fading pieces, **no bounce**,
-  no tilt, and an equal frame thickness all round (`reference/lop-deck/HANDOFF.md` §3.10). Use a critically damped
-  spring (damping ratio 1.0) for the dock, panels and popovers.
-- Small controls (buttons, toggles, swatches) may use the expressive fast spring (slight overshoot).
-- The selection indicator slides between tools as one shape (Motion `layoutId`).
+- **The slide toolbar is the template's, untouched.** Its look and its timing live in `engine.css`. The logo's colour
+  capsule grows into the whole toolbar with no seam, **no bounce** and no tilt (`reference/lop-deck/HANDOFF.md` §3.10).
+  Glass and the new motion stop at the toolbar. Its tooltip is the one addition: solid dark, out of the tool, on the fast
+  spring.
+- **The rest of the app moves like Google's Material 3 Expressive** (`docs/DESIGN.md`, Motion): what moves, and on
+  which spring.
+- **Liquid Glass supplies the material's behaviour** (Apple, "Meet Liquid Glass"):
+  - It gathers instead of fading: blur and saturation build from nothing as a surface appears (`--pw-mat`).
+  - It answers to the pointer: the rim catches the light, and a soft glow follows inside the surface (`--pw-light`).
+  - A press lights up from under the pointer and spreads across the control. That glow stands in for Material's ripple.
+  - Larger means thicker: panels get the stronger blur and deeper shadow.
+- Real refraction at the edges isn't used. It needs a lighter blur than menus can read through, and a second layer
+  can't refract inside a surface that already blurs.
 - Popovers grow from their anchor button and never cover the dock.
-- Reduce motion: springs become 150 ms fades.
-- The existing `spatialDefault` spring (ratio 0.8) bounces slightly, so M1 adds a no-bounce preset (ratio 1.0) and moves
-  dock, panels, popovers and menus onto it.
+- Reduce motion: springs become 150 ms fades, and the pointer light stays off.
 
 ## 7. Fallbacks & performance (the owner's laptop: i7-8565U, 7.8 GB RAM)
 

@@ -37,7 +37,7 @@ export function Home({ dragging }: { dragging: boolean }) {
   const [query, setQuery] = useState("");
   const [newDeckOpen, setNewDeckOpen] = useState(false);
   const main = useRef<HTMLElement>(null);
-  const glide = useSpring("spatialCalm");
+  const glide = useSpring("spatialDefault");
   const fade = useSpring("effectsDefault");
   const reduce = useReduceMotion();
 

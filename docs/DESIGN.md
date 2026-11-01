@@ -38,7 +38,7 @@ Starting token values: `design/tokens.css` (hand-matched; M1 replaces them with 
 
 - Chips 8, list items in panels 20, cards 24, side sheets/hero cards 28, buttons and toolbars full.
 - **Shape morphing:** toggle buttons and toolbar tools are rounded squares (16) when idle and become
-  circles (full) when selected; animate the radius with the spatial spring.
+  circles (full) when selected. Corners ease on an effects spring, so they never bounce.
 - Expressive shapes (cookie 9-point, clover 4-leaf) are SVG paths in `src/ui/shapes.ts`.
   Use them sparingly: logo, selected color swatch, empty states, avatar.
 
@@ -57,21 +57,28 @@ Starting token values: `design/tokens.css` (hand-matched; M1 replaces them with 
 
 ## Motion
 
-Use `motion` springs, never fixed-duration easing for movement.
-Values follow Material's expressive motion scheme (damping ratio / stiffness). Double-check against
-m3.material.io if something feels off. Motion's `damping` = ratio × 2 × √stiffness (mass 1).
+Use `motion` springs, never fixed-duration easing for movement. The values are Google's own, from
+Compose's `ExpressiveMotionTokens.kt` (damping ratio / stiffness), and which spring goes where comes from
+Compose's components. Motion's `damping` = ratio × 2 × √stiffness (mass 1).
 
 | Preset | Use for | Ratio | Stiffness | → motion `damping` |
 |---|---|---|---|---|
-| spatial-fast | buttons, toggles, shape morph | 0.6 | 800 | ≈ 34 |
-| spatial-default | morphs that may overshoot a little | 0.8 | 380 | ≈ 31 |
-| spatial-calm | dock, toolbars, FAB menu, popovers, menus, sheets (never bounce) | 1.0 | 380 | ≈ 39 |
-| spatial-slow | full-screen transitions | 0.8 | 200 | ≈ 23 |
-| effects-fast | color/opacity on press | 1.0 | 3800 | ≈ 123 |
-| effects-default | fades | 1.0 | 1600 | ≈ 80 |
+| spatial-fast | small things: press, menus, tooltips, FAB menu | 0.6 | 800 | ≈ 34 |
+| spatial-default | things that cover part of the screen: dialogs, notices, sheets, the rail's pill | 0.8 | 380 | ≈ 31 |
+| spatial-slow | full-screen arrivals | 0.8 | 200 | ≈ 23 |
+| effects-fast | opacity beside spatial-fast | 1.0 | 3800 | ≈ 123 |
+| effects-default | opacity and colour beside spatial-default; corners while pressed | 1.0 | 1600 | ≈ 80 |
 | effects-slow | large fades | 1.0 | 800 | ≈ 57 |
 
-- "Spatial" springs (position, size, shape) may overshoot slightly. "Effects" springs (color, opacity) never overshoot.
+- "Spatial" springs (position, size) overshoot: that is what makes it Expressive. "Effects" springs (colour, opacity,
+  and corner shape on press) never do. Anything that moves and fades pairs one of each at the same speed.
+- **Press** (`src/ui/press.ts`, class `.pw-press`). Never `:active`: size rides spatial-fast and corners effects-default,
+  a released control waits until 75% of the press has played so a quick click still shows, and springs keep their speed
+  when reversed. In a `data-press-group` the pressed control grows 15% and its neighbours give up the room.
+- **Tooltips and menus** start at 0.8 and grow from the control that opened them. A tooltip's wait is 150 ms, and none
+  once one is showing.
+- **Navigation rail:** the pill grows out of its own centre on the destination. It doesn't slide across.
+- Hover only tints (state layer). Nothing lifts or zooms.
 - Reduced motion (OS setting or app setting): replace spatial springs with a 150 ms opacity fade.
 
 ## States

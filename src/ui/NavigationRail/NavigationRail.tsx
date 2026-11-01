@@ -1,5 +1,5 @@
-import { motion } from "motion/react";
-import { useId, type ReactNode } from "react";
+import { AnimatePresence, motion } from "motion/react";
+import type { ReactNode } from "react";
 import { useSpring } from "../../theme/motion";
 import { cx } from "../cx";
 import { surfaceClass, type SurfaceMaterial } from "../Surface/Surface";
@@ -48,8 +48,7 @@ export function NavigationRail({
   footerItems = [],
   material = "tonal",
 }: NavigationRailProps) {
-  const pill = useId();
-  const slide = useSpring("spatialDefault");
+  const grow = useSpring("spatialDefault");
   const entry = (item: RailItem) => {
     const active = item.id === value;
     const button = (
@@ -64,13 +63,21 @@ export function NavigationRail({
               : item.label
         }
         data-active={active || undefined}
-        className={cx("pw-state", styles.item)}
+        className={cx("pw-state pw-press", styles.item)}
         onClick={() => onChange(item.id)}
       >
         <span className={styles.iconWrap}>
-          {active && layout === "stacked" && (
-            <motion.span layoutId={pill} className={styles.pill} transition={slide} />
-          )}
+          <AnimatePresence initial={false}>
+            {active && layout === "stacked" && (
+              <motion.span
+                className={styles.pill}
+                initial={{ width: "0%", opacity: 0 }}
+                animate={{ width: "100%", opacity: 1 }}
+                exit={{ width: "0%", opacity: 0 }}
+                transition={grow}
+              />
+            )}
+          </AnimatePresence>
           <Icon name={item.icon} filled={active} className={styles.railIcon} />
           {!!item.badge && (
             <span className={styles.badge} aria-hidden="true">

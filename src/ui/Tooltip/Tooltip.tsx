@@ -1,3 +1,4 @@
+import { AnimatePresence, motion } from "motion/react";
 import {
   cloneElement,
   isValidElement,
@@ -10,6 +11,7 @@ import {
   type ReactElement,
 } from "react";
 import { createPortal } from "react-dom";
+import { useReduceMotion, useSpring } from "../../theme/motion";
 import { cx } from "../cx";
 import { portalTarget } from "../focus";
 import { surfaceClass, type SurfaceMaterial } from "../Surface/Surface";
@@ -30,10 +32,17 @@ export interface TooltipProps {
   children: ReactElement<{ "aria-describedby"?: string }>;
 }
 
-const HOVER_DELAY_MS = 500;
+const HOVER_DELAY_MS = 150;
+const STAYS_WARM_MS = 400;
 const GAP = 8;
+// With one just showing, the next control's comes up straight away.
+let lastShown = 0;
 
-function position(anchor: DOMRect, tip: DOMRect, placement: TooltipPlacement) {
+function position(
+  anchor: DOMRect,
+  tip: { width: number; height: number },
+  placement: TooltipPlacement,
+) {
   const centerX = anchor.left + anchor.width / 2 - tip.width / 2;
   const centerY = anchor.top + anchor.height / 2 - tip.height / 2;
   const spots = {
@@ -47,10 +56,14 @@ function position(anchor: DOMRect, tip: DOMRect, placement: TooltipPlacement) {
   if (placement === "top" && spot.top < 0) spot = spots.bottom;
   if (placement === "bottom" && spot.top + tip.height > window.innerHeight) spot = spots.top;
   const left = Math.min(Math.max(4, spot.left), window.innerWidth - tip.width - 4);
-  return { left, top: spot.top };
+  // It grows out of the control, even when the window's edge has pushed it to one side.
+  const middle = anchor.left + anchor.width / 2 - left;
+  const x = placement === "left" ? tip.width : placement === "right" ? 0 : middle;
+  const y = spot.top < anchor.top ? tip.height : spot.top >= anchor.bottom ? 0 : tip.height / 2;
+  return { left, top: spot.top, transformOrigin: `${x}px ${y}px` };
 }
 
-/** Plain M3 tooltip: shows after a short hover, or right away on keyboard focus. */
+/** Plain M3 tooltip: grows out of its control after a short hover, or at once on keyboard focus. */
 export function Tooltip({
   text,
   placement = "top",
@@ -62,23 +75,31 @@ export function Tooltip({
   const wrapper = useRef<HTMLSpanElement>(null);
   const tip = useRef<HTMLDivElement>(null);
   const timer = useRef<number | undefined>(undefined);
-  // Where the tooltip is rendered; null while hidden. Picked when it opens, not during render.
+  const pop = useSpring("spatialFast");
+  const fade = useSpring("effectsFast");
+  const reduce = useReduceMotion();
+  // Where the tooltip is rendered. Picked when it opens, not during render.
   const [target, setTarget] = useState<HTMLElement | null>(null);
-  const [coords, setCoords] = useState<{ left: number; top: number } | null>(null);
-  const open = target !== null;
+  const [open, setOpen] = useState(false);
+  const [coords, setCoords] = useState<ReturnType<typeof position> | null>(null);
 
   const anchorEl = () => wrapper.current?.firstElementChild ?? null;
 
   const show = useCallback((delay: number) => {
     window.clearTimeout(timer.current);
+    const wait = Date.now() - lastShown < STAYS_WARM_MS ? 0 : delay;
     timer.current = window.setTimeout(() => {
       setTarget(portalTarget(wrapper.current?.firstElementChild ?? null));
-    }, delay);
+      setCoords(null);
+      setOpen(true);
+    }, wait);
   }, []);
   const hide = useCallback(() => {
     window.clearTimeout(timer.current);
-    setTarget(null);
-    setCoords(null);
+    setOpen((was) => {
+      if (was) lastShown = Date.now();
+      return false;
+    });
   }, []);
 
   useEffect(() => () => window.clearTimeout(timer.current), []);
@@ -97,9 +118,9 @@ export function Tooltip({
   useLayoutEffect(() => {
     const anchor = anchorEl();
     if (open && anchor && tip.current) {
-      setCoords(
-        position(anchor.getBoundingClientRect(), tip.current.getBoundingClientRect(), placement),
-      );
+      // offsetWidth, as the opening animation has it scaled down right now.
+      const { offsetWidth: width, offsetHeight: height } = tip.current;
+      setCoords(position(anchor.getBoundingClientRect(), { width, height }, placement));
     }
   }, [open, placement, text]);
 
@@ -131,20 +152,32 @@ export function Tooltip({
       </span>
       {target &&
         createPortal(
-          <div
-            ref={tip}
-            id={id}
-            role="tooltip"
-            aria-hidden="true"
-            className={cx(
-              styles.tooltip,
-              material === "tonal" && styles.tonal,
-              surfaceClass({ material, strength: "thick", floating: true }),
+          <AnimatePresence>
+            {open && (
+              <motion.div
+                ref={tip}
+                id={id}
+                role="tooltip"
+                aria-hidden="true"
+                className={cx(
+                  styles.tooltip,
+                  material === "tonal" && styles.tonal,
+                  surfaceClass({ material, strength: "thick", floating: true }),
+                )}
+                style={coords ?? { visibility: "hidden", left: 0, top: 0 }}
+                initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.8, "--pw-mat": 0 }}
+                animate={{
+                  opacity: 1,
+                  scale: 1,
+                  "--pw-mat": 1,
+                  transition: { default: pop, opacity: fade, "--pw-mat": fade },
+                }}
+                exit={{ opacity: 0, scale: reduce ? 1 : 0.8, transition: fade }}
+              >
+                {text}
+              </motion.div>
             )}
-            style={coords ?? { visibility: "hidden", left: 0, top: 0 }}
-          >
-            {text}
-          </div>,
+          </AnimatePresence>,
           target,
         )}
     </>

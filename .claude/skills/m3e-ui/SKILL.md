@@ -14,10 +14,10 @@ While building:
 - Colors only from `var(--md-sys-color-*)`; radius from `var(--md-sys-shape-corner-*)`; type from the typescale tokens; glass from the `--pw-glass-*` tokens.
 - Glass only through the `Surface` primitive: the frame is glass, the jewel is solid. Never nest glass. At most ~6 blurred layers on screen.
   Popovers and menus are solid until tested in the real Tauri window. Respect the Transparency setting.
-- Motion only through the spring presets in `src/theme/motion.ts`; honor reduced motion. Dock, panels, popovers and menus never bounce.
+- Motion only through the spring presets in `src/theme/motion.ts`; honor reduced motion. Press through `.pw-press` (`src/ui/press.ts`), never `:active`; hover only tints. The slide toolbar keeps the template's own look and timing.
 - Interactive elements: real `<button>`/`<a>`/`<input>`, `aria-label` on icon-only buttons,
   `:focus-visible` ring, hover/pressed state layer, target ≥ 40px.
-- Selected toggles and toolbar tools morph from rounded square to circle.
+- Selected toggles morph from rounded square to circle on an effects spring.
 - Both light and dark themes must look right.
 - No new UI libraries.
 

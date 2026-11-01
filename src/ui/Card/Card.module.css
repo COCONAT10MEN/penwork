@@ -1,13 +1,14 @@
 .card {
   display: block;
   padding: 16px;
-  border-radius: var(--pw-shape-card);
+  --pw-corner: var(--pw-shape-card);
+  border-radius: var(--pw-corner);
   color: var(--md-sys-color-on-surface);
   text-align: start;
 }
 .card.hero {
   padding: 20px;
-  border-radius: var(--md-sys-shape-corner-extra-large);
+  --pw-corner: var(--md-sys-shape-corner-extra-large);
 }
 
 .surface {
@@ -38,6 +39,9 @@
   Buttons and links inside the card sit above it, so they stay clickable on their own.
 */
 .interactive {
+  --pw-pressed-corner: var(--md-sys-shape-corner-large);
+  --pw-press-depth: 0.012;
+  border-radius: var(--pw-press-radius);
   cursor: default;
 }
 .stretched {

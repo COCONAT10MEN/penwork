@@ -46,7 +46,7 @@ export function Card({
         styles[shape],
         material === "tonal" && outlined && styles.outlined,
         surfaceClass({ material, blur }),
-        onClick && cx("pw-state", styles.interactive),
+        onClick && cx("pw-state pw-press", styles.interactive),
         className,
       )}
       {...rest}

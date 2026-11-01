@@ -6,7 +6,8 @@
   min-height: 40px;
   padding: 0 16px 0 10px;
   border: 0;
-  border-radius: var(--md-sys-shape-corner-small);
+  --pw-corner: var(--md-sys-shape-corner-small);
+  --pw-pressed-corner: var(--md-sys-shape-corner-extra-small);
   box-shadow: inset 0 0 0 1px var(--md-sys-color-outline);
   background: transparent;
   color: var(--md-sys-color-on-surface-variant);

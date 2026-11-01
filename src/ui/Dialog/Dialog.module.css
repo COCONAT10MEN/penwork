@@ -7,13 +7,16 @@
   border-radius: var(--md-sys-shape-corner-extra-large-increased);
   color: var(--md-sys-color-on-surface);
   opacity: 0;
-  scale: 0.9;
+  scale: 0.8;
   translate: 0 16px;
+  --pw-mat: 0;
   transition:
     opacity var(--md-sys-motion-effects-default-duration)
       var(--md-sys-motion-effects-default-easing),
-    scale var(--md-sys-motion-spatial-calm-duration) var(--md-sys-motion-spatial-calm-easing),
-    translate var(--md-sys-motion-spatial-calm-duration) var(--md-sys-motion-spatial-calm-easing),
+    --pw-mat var(--md-sys-motion-effects-slow-duration) var(--md-sys-motion-effects-slow-easing),
+    scale var(--md-sys-motion-spatial-default-duration) var(--md-sys-motion-spatial-default-easing),
+    translate var(--md-sys-motion-spatial-default-duration)
+      var(--md-sys-motion-spatial-default-easing),
     overlay var(--md-sys-motion-effects-default-duration) allow-discrete,
     display var(--md-sys-motion-effects-default-duration) allow-discrete;
 }
@@ -26,6 +29,7 @@
   opacity: 1;
   scale: 1;
   translate: 0 0;
+  --pw-mat: 1;
 }
 @starting-style {
   .tonal {
@@ -34,8 +38,13 @@
   }
   .dialog[open] {
     opacity: 0;
-    scale: 0.9;
+    scale: 0.8;
     translate: 0 16px;
+    --pw-mat: 0;
+  }
+  .dialog[open] .iconShape {
+    scale: 0.4;
+    rotate: -40deg;
   }
   .dialog[open]::backdrop {
     opacity: 0;
@@ -73,6 +82,11 @@
   height: 64px;
   fill: var(--md-sys-color-primary-container);
   color: var(--md-sys-color-on-primary-container);
+  /* The shape spins in behind the dialog, a touch after it, as Google's expressive icons do. */
+  transition:
+    scale var(--md-sys-motion-spatial-fast-duration) var(--md-sys-motion-spatial-fast-easing) 60ms,
+    rotate var(--md-sys-motion-spatial-default-duration) var(--md-sys-motion-spatial-default-easing)
+      60ms;
 }
 .iconShape[data-danger] {
   fill: var(--md-sys-color-error-container);

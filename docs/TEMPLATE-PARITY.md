@@ -25,7 +25,7 @@ Milestone: slide engine items land in **M3**, dock, ink and whiteboard in **M5**
 - [x] Quiz: from JSON, A–D options, right/wrong marking, others dimmed, feedback text, Next/Finish, score, Try again, maths inside
 - [x] Every component in AI-GUIDE §3–§4: cover, chips, cards (soft, key, note, tips, vio), lists, formula boxes, tables,
       diagram boxes, captions, worked examples, recap grid, columns, grids
-- [ ] Reduced motion: slides change with no animation
+- [x] Reduced motion: slides change with no animation
 - [x] Theme overrides from `<style id="theme">`: `--teal --or --ink --paper`, blobs, badge
 - [x] Deep link to a slide (`#3` in the old file): becomes "open on slide 3" through the app
 

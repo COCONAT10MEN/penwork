@@ -95,7 +95,7 @@
   appearance: none;
   background: transparent;
   opacity: 0;
-  cursor: pointer;
+  cursor: default;
 }
 /* Same thumb width as the drawn handle, so the pointer maps to the same positions. */
 .input::-webkit-slider-thumb {

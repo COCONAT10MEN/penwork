@@ -3,7 +3,7 @@ import { isHexColor, type ThemeMode, type Transparency } from "../../theme/theme
 
 /** settings.json. Anything missing or damaged falls back to its default, one setting at a time. */
 
-export type ColorSource = "logo" | "deck" | "custom";
+export type ColorSource = "penwork" | "logo" | "deck" | "custom";
 
 export interface CustomLogo {
   /** Checked and cleaned by lib/logo before it gets here. */
@@ -12,7 +12,7 @@ export interface CustomLogo {
 }
 
 export interface Settings {
-  version: 1;
+  version: 2;
   theme: ThemeMode;
   colorSource: ColorSource;
   customColor: string;
@@ -26,16 +26,24 @@ export interface Settings {
 }
 
 export const DEFAULT_SETTINGS: Settings = {
-  version: 1,
+  version: 2,
   theme: "system",
-  colorSource: "logo",
-  customColor: "#3F5BD4",
+  colorSource: "penwork",
+  customColor: "#00687A",
   logo: null,
-  logoBackground: "#000000",
+  logoBackground: "#00363F",
   transparency: "auto",
   reduceMotion: false,
   endOfShow: "loop",
 };
+
+/** Before version 2 "logo" was simply the default, so nobody who has it chose it. */
+function colorSourceOf(d: Record<string, unknown>): unknown {
+  return d.version === 1 && d.colorSource === "logo" && !d.logo ? "penwork" : d.colorSource;
+}
+function logoBackgroundOf(d: Record<string, unknown>): unknown {
+  return d.version === 1 && d.logoBackground === "#000000" ? undefined : d.logoBackground;
+}
 
 function oneOf<T extends string>(value: unknown, options: readonly T[], fallback: T): T {
   return options.includes(value as T) ? (value as T) : fallback;
@@ -61,12 +69,16 @@ export function parseSettings(text: string | null): Settings {
   const hex = (v: unknown, fallback: string) =>
     typeof v === "string" && isHexColor(v) ? v : fallback;
   return {
-    version: 1,
+    version: 2,
     theme: oneOf(d.theme, ["system", "light", "dark"], DEFAULT_SETTINGS.theme),
-    colorSource: oneOf(d.colorSource, ["logo", "deck", "custom"], DEFAULT_SETTINGS.colorSource),
+    colorSource: oneOf(
+      colorSourceOf(d),
+      ["penwork", "logo", "deck", "custom"],
+      DEFAULT_SETTINGS.colorSource,
+    ),
     customColor: hex(d.customColor, DEFAULT_SETTINGS.customColor),
     logo: readLogo(d.logo),
-    logoBackground: hex(d.logoBackground, DEFAULT_SETTINGS.logoBackground),
+    logoBackground: hex(logoBackgroundOf(d), DEFAULT_SETTINGS.logoBackground),
     transparency: oneOf(
       d.transparency,
       ["auto", "glass", "reduced"],

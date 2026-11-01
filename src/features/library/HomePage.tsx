@@ -1,5 +1,6 @@
 import { useApp } from "../../appStore";
-import { Button, Card, CLOVER_PATH, Icon, Surface, useSnackbar } from "../../ui";
+import { Button, Card, CLOVER_PATH, Icon, Surface } from "../../ui";
+import { cx } from "../../ui/cx";
 import { DeckGrid, DeckMenu, DeckThumb, NewDeckCard, OPEN_BUTTON_ID } from "./DeckCard";
 import { greeting, slidesLabel, whenOpened } from "./greeting";
 import type { LibraryDeck } from "./libraryFile";
@@ -9,7 +10,7 @@ function DropZone({ dragging }: { dragging: boolean }) {
   return (
     <Surface
       material="glass"
-      blur={false}
+      strength="thin"
       className={styles.drop}
       data-dragging={dragging || undefined}
     >
@@ -26,7 +27,6 @@ function DropZone({ dragging }: { dragging: boolean }) {
 }
 
 function ContinueCard({ deck }: { deck: LibraryDeck }) {
-  const notify = useSnackbar();
   const openPath = useApp((s) => s.openPath);
   const tags = [
     slidesLabel(deck.slides),
@@ -38,15 +38,15 @@ function ContinueCard({ deck }: { deck: LibraryDeck }) {
     <Card material="glass" blur shape="hero" className={styles.continue}>
       <DeckThumb deck={deck} className={styles.continueThumb} />
       <div className={styles.continueText}>
-        <div className={styles.continueHead}>
-          <span className={styles.overline}>Continue</span>
+        <span className={styles.continueMore}>
           <DeckMenu
             deck={deck}
             onRemoved={() =>
               requestAnimationFrame(() => document.getElementById(OPEN_BUTTON_ID)?.focus())
             }
           />
-        </div>
+        </span>
+        <span className={styles.overline}>Continue</span>
         <span className={styles.continueTitle}>{deck.title}</span>
         <span className={styles.meta}>
           {deck.missing
@@ -64,17 +64,20 @@ function ContinueCard({ deck }: { deck: LibraryDeck }) {
           <Button
             size="medium"
             icon="play_arrow"
+            iconFilled
+            className={styles.present}
             aria-label={`Present ${deck.title}`}
-            onClick={() => void openPath(deck.path, notify, { present: true })}
+            onClick={() => void openPath(deck.path, { present: true })}
           >
             Present
           </Button>
           <Button
             size="medium"
-            variant="tonal"
+            variant="quiet"
             icon="edit"
+            className={styles.edit}
             aria-label={`Edit ${deck.title}`}
-            onClick={() => void openPath(deck.path, notify)}
+            onClick={() => void openPath(deck.path)}
           >
             Edit
           </Button>
@@ -115,9 +118,9 @@ export function HomePage({
             Recent presentations
           </h2>
           {others.length > 3 && (
-            <Button variant="text" size="small" onClick={onSeeAll}>
+            <button type="button" className={cx("pw-state", styles.seeAll)} onClick={onSeeAll}>
               See all
-            </Button>
+            </button>
           )}
         </div>
         <DeckGrid decks={others.slice(0, 3)}>

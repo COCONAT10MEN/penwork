@@ -32,6 +32,8 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
       </label>
       <div className={styles.field} data-error={error ? true : undefined}>
         <input
+          spellCheck={false}
+          autoComplete="off"
           ref={ref}
           id={id}
           className={styles.input}

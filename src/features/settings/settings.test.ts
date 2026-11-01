@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from "vitest";
 import { applyAppearance, chromeSeed, logoColor } from "./appearance";
+import { PENWORK_SEED } from "../../theme/theme";
 import { DEFAULT_SETTINGS, parseSettings, type Settings } from "./settingsFile";
 
 const WINDOWS = "#0078D4";
@@ -18,7 +19,7 @@ describe("parseSettings", () => {
       JSON.stringify({ theme: "dark", logoBackground: "red", transparency: "nonsense" }),
     );
     expect(parsed.theme).toBe("dark");
-    expect(parsed.logoBackground).toBe("#000000");
+    expect(parsed.logoBackground).toBe(DEFAULT_SETTINGS.logoBackground);
     expect(parsed.transparency).toBe("auto");
   });
 
@@ -35,13 +36,29 @@ describe("parseSettings", () => {
 });
 
 describe("app colour", () => {
-  it("defaults to the logo, and the default logo is the Windows accent", () => {
-    expect(logoColor(DEFAULT_SETTINGS, WINDOWS)).toBe(WINDOWS);
-    expect(chromeSeed(DEFAULT_SETTINGS, WINDOWS, null)).toBe(WINDOWS);
+  it("defaults to Penwork's teal, whatever Windows is set to", () => {
+    expect(chromeSeed(DEFAULT_SETTINGS, WINDOWS, null)).toBe(PENWORK_SEED);
+    expect(logoColor(DEFAULT_SETTINGS, WINDOWS)).not.toBe(WINDOWS);
+  });
+
+  it("follows the Windows accent when the logo setting is chosen", () => {
+    const settings = with_({ colorSource: "logo" });
+    expect(logoColor(settings, WINDOWS)).toBe(WINDOWS);
+    expect(chromeSeed(settings, WINDOWS, null)).toBe(WINDOWS);
+  });
+
+  it("moves settings from before teal was the default onto it", () => {
+    const old = parseSettings(
+      JSON.stringify({ version: 1, colorSource: "logo", logoBackground: "#000000" }),
+    );
+    expect(old.colorSource).toBe("penwork");
+    expect(old.logoBackground).toBe(DEFAULT_SETTINGS.logoBackground);
+    const chosen = parseSettings(JSON.stringify({ version: 2, colorSource: "logo" }));
+    expect(chosen.colorSource).toBe("logo");
   });
 
   it("uses a custom logo's own colour", () => {
-    expect(chromeSeed(with_({ logo }), WINDOWS, "#00ff00")).toBe(logo.color);
+    expect(chromeSeed(with_({ logo, colorSource: "logo" }), WINDOWS, "#00ff00")).toBe(logo.color);
   });
 
   it("matches the deck only while one is open", () => {
@@ -65,6 +82,7 @@ describe("applyAppearance", () => {
         transparency: "reduced",
         reduceMotion: true,
         logoBackground: "#ffffff",
+        colorSource: "logo",
       }),
       WINDOWS,
       null,

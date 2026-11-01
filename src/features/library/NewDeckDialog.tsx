@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useApp } from "../../appStore";
 import { newDeck, type StartLayout } from "../../lib/deck/layouts";
-import { Button, Dialog, SegmentedButton, TextField, useSnackbar } from "../../ui";
+import { Button, Dialog, SegmentedButton, TextField } from "../../ui";
 import styles from "./Home.module.css";
 
 const LAYOUTS = [
@@ -11,14 +11,13 @@ const LAYOUTS = [
 ];
 
 export function NewDeckDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const notify = useSnackbar();
   const createDeck = useApp((s) => s.createDeck);
   const [title, setTitle] = useState("");
   const [layout, setLayout] = useState<StartLayout>("cover");
 
   const create = () => {
     onClose();
-    void createDeck(newDeck(title, layout), "New deck", notify);
+    void createDeck(newDeck(title, layout), "New deck");
     setTitle("");
   };
 

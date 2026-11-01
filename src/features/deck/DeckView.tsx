@@ -10,7 +10,6 @@ import { EditHeader } from "./EditHeader";
 import { LayoutGallery } from "./LayoutGallery";
 import type { OpenDeck } from "./openDeck";
 import { SlideMenu, type SlideMenuTarget } from "./SlideMenu";
-import { useChoice } from "./useChoice";
 import { useDeckSave } from "./useDeckSave";
 import { useFrameChrome } from "./useFrameChrome";
 import { useShow } from "./useShow";
@@ -56,7 +55,6 @@ export function DeckView({
   const [menu, setMenu] = useState<SlideMenuTarget | null>(null);
   const [syncs, setSyncs] = useState(0);
   const sorterBox = useRef<HTMLDivElement>(null);
-  const { dialog, ask } = useChoice();
   const inkDrawn = useCallback(() => noteInk(store), [store]);
   const ink = useDeckInk(deck, sorter, inkDrawn);
   const { send } = ink;
@@ -76,8 +74,8 @@ export function DeckView({
   });
   const { selected, setSelected } = editing;
 
-  const { dirty, save, discard } = useDeckSave({ deck, store, inkFile: ink.file, ask });
-  const guard = useLeaveGuard({ dirty, title: deck.manifest.title, ask, save, discard });
+  const { dirty, saving, save, discard } = useDeckSave({ deck, store, inkFile: ink.file });
+  const guard = useLeaveGuard({ dirty, title: deck.manifest.title, save, discard });
 
   const { postChrome, postLogo } = useFrameChrome(stage, sorter);
   const { presenting, present, endShow, modeMessage, showing, presentButton } = useShow(
@@ -216,11 +214,11 @@ export function DeckView({
 
   return (
     <div className={styles.view} data-presenting={presenting || undefined}>
-      <AmbientBackground />
+      <AmbientBackground layout="edit" />
       <EditHeader
         title={deck.manifest.title}
-        total={total}
         dirty={dirty}
+        saving={saving}
         canUndo={canUndo}
         canRedo={canRedo}
         presentRef={presentButton}
@@ -249,7 +247,7 @@ export function DeckView({
             />
           </div>
           <Button
-            size="medium"
+            size="compact"
             variant="tonal"
             icon="add"
             className={styles.addSlide}
@@ -281,12 +279,13 @@ export function DeckView({
         target={menu}
         hides={wouldHide(slides, selected)}
         canPaste={editing.hasCopied()}
+        canHide={menu !== null && editing.canHide()}
+        canRemove={menu !== null && editing.canRemove()}
         count={selected.length}
         onClose={closeMenu}
         onAway={menuAway}
         on={editing}
       />
-      {dialog}
     </div>
   );
 }

@@ -11,7 +11,7 @@
   flex-direction: column;
 }
 .label {
-  cursor: pointer;
+  cursor: default;
   font-size: var(--md-sys-typescale-body-large-size);
   line-height: var(--md-sys-typescale-body-large-line-height);
   letter-spacing: var(--md-sys-typescale-body-large-tracking);
@@ -32,7 +32,7 @@
   border: 2px solid var(--md-sys-color-outline);
   border-radius: var(--md-sys-shape-corner-full);
   background: var(--md-sys-color-surface-container-highest);
-  cursor: pointer;
+  cursor: default;
   transition:
     background-color var(--md-sys-motion-effects-fast-duration)
       var(--md-sys-motion-effects-fast-easing),

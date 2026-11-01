@@ -22,6 +22,46 @@ body,
   height: 100%;
   margin: 0;
 }
+
+/*
+  A desktop app, not a page: labels can't be selected, buttons keep the arrow cursor as they do in
+  Windows, and nothing bounces at the end of a scroll. Text can be selected where it can be typed.
+*/
+html {
+  cursor: default;
+  overscroll-behavior: none;
+  user-select: none;
+}
+input,
+textarea {
+  cursor: text;
+  user-select: text;
+}
+img,
+svg {
+  -webkit-user-drag: none;
+}
+
+/* Thin and round like Windows 11's, instead of the browser's boxy bar with arrows. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+::-webkit-scrollbar-button {
+  display: none;
+}
+::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: color-mix(in srgb, var(--md-sys-color-on-surface) 30%, transparent) padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--md-sys-color-on-surface) 50%, transparent) padding-box;
+}
 /*
   The app shell owns all scrolling (panes scroll, the page never does). Absolutely positioned
   things whose nearest box isn't positioned (e.g. .pw-visually-hidden text) land here instead

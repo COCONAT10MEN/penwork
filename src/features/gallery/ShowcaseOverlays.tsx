@@ -1,5 +1,6 @@
+import { snack } from "./demoAction";
 import { useState } from "react";
-import { Button, Dialog, IconButton, Menu, Slider, Switch, Tooltip, useSnackbar } from "../../ui";
+import { Button, Dialog, IconButton, Menu, Slider, Switch, Tooltip } from "../../ui";
 import { useGalleryMaterial } from "./galleryMaterial";
 import { Section } from "./ShowcaseActions";
 import styles from "./Gallery.module.css";
@@ -9,9 +10,8 @@ export function ShowcaseOverlays() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [anchor, setAnchor] = useState<HTMLButtonElement | null>(null);
   const [dialog, setDialog] = useState(false);
-  const snack = useSnackbar();
   return (
-    <Section title="Menu · Dialog · Snackbar · Tooltip">
+    <Section title="Menu · Dialog · Tooltip">
       <div className={styles.row}>
         <IconButton
           ref={setAnchor}
@@ -47,12 +47,6 @@ export function ShowcaseOverlays() {
         />
         <Button variant="tonal" onClick={() => setDialog(true)}>
           Open dialog
-        </Button>
-        <Button
-          variant="outlined"
-          onClick={() => snack({ message: "Saved a copy to Documents", material })}
-        >
-          Show snackbar
         </Button>
         <Tooltip text="Keeps your original file untouched" material={material}>
           <Button variant="text">Hover for tooltip</Button>

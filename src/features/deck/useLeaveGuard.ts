@@ -2,34 +2,30 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { isTauri } from "@tauri-apps/api/core";
 import { useCallback, useEffect, useRef } from "react";
 import { useApp } from "../../appStore";
-import type { ChoiceOptions } from "./useChoice";
+import { askThreeWay } from "../../lib/windowsDialog";
 
 /** Asks about unsaved work before the presentation goes, whichever way it's leaving. */
 export function useLeaveGuard(options: {
   dirty: boolean;
   title: string;
-  ask: <T extends string>(question: ChoiceOptions<T>) => Promise<T | null>;
   save: () => Promise<boolean>;
   discard: () => Promise<void>;
 }): () => Promise<boolean> {
-  const { dirty, title, ask, save, discard } = options;
+  const { dirty, title, save, discard } = options;
 
   /** True when it's fine to move on: nothing unsaved, or the user has decided what to do with it. */
   const guard = useCallback(async () => {
     if (!dirty) return true;
-    const answer = await ask({
-      headline: "Save your changes?",
+    const answer = await askThreeWay({
+      title: "Save your changes?",
       text: `"${title}" has changes that aren't saved.`,
-      icon: "save",
-      actions: [
-        { value: "cancel", label: "Cancel" },
-        { value: "discard", label: "Don't save" },
-        { value: "save", label: "Save" },
-      ],
+      yes: "Save",
+      no: "Don't save",
+      cancel: "Cancel",
     });
-    if (answer === "discard") await discard();
-    return answer === "save" ? save() : answer === "discard";
-  }, [dirty, ask, title, save, discard]);
+    if (answer === "no") await discard();
+    return answer === "yes" ? save() : answer === "no";
+  }, [dirty, title, save, discard]);
 
   useEffect(() => {
     useApp.setState({ leaveGuard: guard });

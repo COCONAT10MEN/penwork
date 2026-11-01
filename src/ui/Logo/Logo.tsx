@@ -53,6 +53,22 @@ export function PenworkLogo({
   );
 }
 
+/** The default mark as the rail shows it: solid primary, with the pen stroke drawn on top. */
+export function PenworkMark({ size = 44, label }: { size?: number; label: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100" role="img" aria-label={label}>
+      <path d={COOKIE_PATH} className={styles.markShape} />
+      <path
+        d="M32 66c8-3 13-10 18-20s10-16 20-18"
+        fill="none"
+        strokeWidth="7"
+        strokeLinecap="round"
+        className={styles.markPen}
+      />
+    </svg>
+  );
+}
+
 /**
  * The logo on its background, as it sits at the top of the rail and on the closed dock. Both
  * colours belong to the app, not the file, so they are CSS variables set from Settings.

@@ -18,7 +18,7 @@ export {
 export { Icon, type IconProps } from "./Icon";
 export { IconButton, type IconButtonProps } from "./IconButton/IconButton";
 export { List, ListIcon, ListItem, type ListItemProps } from "./List/List";
-export { LogoTile, PenworkLogo } from "./Logo/Logo";
+export { LogoTile, PenworkLogo, PenworkMark } from "./Logo/Logo";
 export { CLOVER_PATH, COOKIE_PATH, penworkLogoSvg } from "./shapes";
 export { Menu, type MenuEntry, type MenuProps } from "./Menu/Menu";
 export {
@@ -37,7 +37,6 @@ export { SearchBar, type SearchBarProps } from "./SearchBar/SearchBar";
 export { SegmentedButton, type SegmentedButtonProps } from "./SegmentedButton/SegmentedButton";
 export { SideSheet, type SideSheetProps } from "./SideSheet/SideSheet";
 export { Slider, type SliderProps } from "./Slider/Slider";
-export { SnackbarProvider, useSnackbar, type SnackbarOptions } from "./Snackbar/Snackbar";
 export {
   Surface,
   surfaceClass,

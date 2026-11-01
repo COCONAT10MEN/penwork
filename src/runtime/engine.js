@@ -1872,6 +1872,26 @@ function bootSorter(){
   ov.addEventListener('pointercancel',endDrag);
 }
 
+/* Browser tooltips give away a web page, so titles are moved onto the dock's own chip. */
+var tipEl=document.createElement('div'),tipT;
+tipEl.id='tip';document.body.appendChild(tipEl);
+function tipOff(){clearTimeout(tipT);tipEl.classList.remove('on');}
+function tipAt(t){
+  tipEl.textContent=t.getAttribute('data-tip');
+  var r=t.getBoundingClientRect(),w=tipEl.offsetWidth,h=tipEl.offsetHeight,y=r.top-h-8;
+  if(y<4)y=r.bottom+8;
+  tipEl.style.transform='translate('+Math.round(Math.max(4,Math.min(innerWidth-w-4,r.left+r.width/2-w/2)))+'px,'+Math.round(y)+'px)';
+  tipEl.classList.add('on');
+}
+document.addEventListener('pointerover',function(e){
+  var t=e.target&&e.target.closest?e.target.closest('[title],[data-tip]'):null;
+  tipOff();
+  if(!t)return;
+  if(t.hasAttribute('title')){t.setAttribute('data-tip',t.title);t.removeAttribute('title');}
+  if(e.pointerType==='mouse')tipT=setTimeout(function(){tipAt(t);},500);
+},true);
+document.addEventListener('pointerdown',tipOff,true);
+
 function isHex(v){return /^#[0-9a-f]{6}$/i.test(v);}
 function setVar(name,v){if(isHex(v))document.documentElement.style.setProperty(name,v);}
 addEventListener('message',function(e){
@@ -1907,7 +1927,7 @@ addEventListener('message',function(e){
       setVar('--pw-dock-accent',p.color);setVar('--pw-dock-on',p.background);setVar('--acc',p.color);break;
     }
     case 'chrome':
-      setVar('--pw-accent',p.accent);setVar('--pw-text',p.text);setVar('--pw-line',p.line);
+      setVar('--pw-accent',p.accent);setVar('--pw-text',p.text);setVar('--pw-line',p.line);setVar('--pw-muted',p.muted);
       /* a see-through page must match the app, or the browser paints it white */
       if(SORTER&&(p.scheme==='dark'||p.scheme==='light'))document.documentElement.style.colorScheme=p.scheme;
       break;

@@ -13,35 +13,62 @@
   border-radius: var(--md-sys-shape-corner-full);
 }
 .a {
-  left: -8%;
-  top: -18%;
-  width: 56vmin;
-  height: 56vmin;
   background: radial-gradient(
     circle,
-    color-mix(in srgb, var(--md-sys-color-primary) 42%, transparent),
-    transparent 66%
+    color-mix(in srgb, var(--md-sys-color-ambient-a) var(--pw-glass-ambient-a), transparent),
+    transparent 68%
   );
 }
 .b {
-  right: -6%;
-  top: 12%;
-  width: 62vmin;
-  height: 62vmin;
   background: radial-gradient(
     circle,
-    color-mix(in srgb, var(--md-sys-color-tertiary) 34%, transparent),
-    transparent 66%
+    color-mix(in srgb, var(--md-sys-color-ambient-b) var(--pw-glass-ambient-b), transparent),
+    transparent 68%
   );
 }
 .c {
-  left: 28%;
-  bottom: -24%;
-  width: 58vmin;
-  height: 58vmin;
   background: radial-gradient(
     circle,
-    color-mix(in srgb, var(--md-sys-color-secondary) 30%, transparent),
+    color-mix(in srgb, var(--md-sys-color-ambient-c) var(--pw-glass-ambient-c), transparent),
     transparent 66%
   );
+}
+
+/* In vmin, so a bigger window keeps the look the design has at 1366x768. */
+.home .a {
+  left: -21vmin;
+  top: -26vmin;
+  width: 83vmin;
+  height: 83vmin;
+}
+.home .b {
+  right: -16vmin;
+  top: 16vmin;
+  width: 73vmin;
+  height: 73vmin;
+}
+.home .c {
+  left: 38%;
+  bottom: -34vmin;
+  width: 81vmin;
+  height: 81vmin;
+}
+
+.edit .a {
+  left: -26vmin;
+  top: 23vmin;
+  width: 81vmin;
+  height: 81vmin;
+}
+.edit .b {
+  right: -21vmin;
+  top: -23vmin;
+  width: 78vmin;
+  height: 78vmin;
+}
+.edit .c {
+  right: 20%;
+  bottom: -36vmin;
+  width: 83vmin;
+  height: 83vmin;
 }

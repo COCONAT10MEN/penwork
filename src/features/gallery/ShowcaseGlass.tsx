@@ -1,3 +1,4 @@
+import { snack } from "./demoAction";
 import { useState } from "react";
 import {
   Breadcrumb,
@@ -15,7 +16,6 @@ import {
   Surface,
   TextField,
   ToolbarDivider,
-  useSnackbar,
 } from "../../ui";
 import { CLOVER_PATH, COOKIE_PATH } from "../../ui/shapes";
 import { useGalleryMaterial } from "./galleryMaterial";
@@ -174,7 +174,6 @@ export function ShowcaseFields() {
 
 export function ShowcaseSplitSheet() {
   const material = useGalleryMaterial();
-  const snack = useSnackbar();
   const [sheet, setSheet] = useState(false);
   const items = [
     { label: "Save as", icon: "save_as", onSelect: () => snack({ message: "Save as", material }) },

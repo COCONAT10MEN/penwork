@@ -27,7 +27,7 @@
   border: 0;
   border-radius: var(--md-sys-shape-corner-small);
   background: transparent;
-  cursor: pointer;
+  cursor: default;
 }
 /* Keeps a compact look but a full 40px target. */
 .link::after {

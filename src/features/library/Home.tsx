@@ -3,12 +3,11 @@ import { useApp } from "../../appStore";
 import {
   AmbientBackground,
   Button,
-  IconButton,
   LoadingIndicator,
   LogoTile,
   NavigationRail,
+  PenworkMark,
   SearchBar,
-  useSnackbar,
   type RailItem,
 } from "../../ui";
 import { pickDeck } from "../deck/useFileOpening";
@@ -22,13 +21,13 @@ import styles from "./Home.module.css";
 
 const NAV: RailItem[] = [
   { id: "home", label: "Home", icon: "home" },
-  { id: "decks", label: "Presentations", icon: "co_present" },
+  { id: "decks", label: "Presentations", icon: "desktop_windows" },
   { id: "layouts", label: "Layouts", icon: "grid_view" },
   { id: "favorites", label: "Favorites", icon: "star" },
 ];
+const NAV_END: RailItem[] = [{ id: "settings", label: "Settings", icon: "settings" }];
 
 export function Home({ dragging }: { dragging: boolean }) {
-  const notify = useSnackbar();
   const opening = useApp((s) => s.opening);
   const openPath = useApp((s) => s.openPath);
   const logo = useSettings((s) => s.settings.logo);
@@ -39,7 +38,7 @@ export function Home({ dragging }: { dragging: boolean }) {
 
   const onOpen = async () => {
     const path = await pickDeck();
-    if (path) await openPath(path, notify);
+    if (path) await openPath(path);
   };
 
   const go = (next: string) => {
@@ -88,19 +87,14 @@ export function Home({ dragging }: { dragging: boolean }) {
           onChange={go}
           header={
             <span className={styles.logo}>
-              <LogoTile size={52} svg={logo?.svg} label="Penwork" />
+              {logo ? (
+                <LogoTile size={44} svg={logo.svg} label="Penwork" />
+              ) : (
+                <PenworkMark label="Penwork" />
+              )}
             </span>
           }
-          footer={
-            <IconButton
-              icon="settings"
-              label="Settings"
-              tooltipPlacement="right"
-              variant={page === "settings" ? "tonal" : "standard"}
-              aria-current={page === "settings" ? "page" : undefined}
-              onClick={() => go("settings")}
-            />
-          }
+          footerItems={NAV_END}
         />
       </div>
       <main
@@ -119,12 +113,7 @@ export function Home({ dragging }: { dragging: boolean }) {
           </div>
           <span className={styles.spacer} />
           {opening && <LoadingIndicator label="Opening presentation" size={40} />}
-          <Button
-            id={OPEN_BUTTON_ID}
-            size="medium"
-            icon="folder_open"
-            onClick={() => void onOpen()}
-          >
+          <Button id={OPEN_BUTTON_ID} size="compact" icon="folder" onClick={() => void onOpen()}>
             Open presentation
           </Button>
         </div>

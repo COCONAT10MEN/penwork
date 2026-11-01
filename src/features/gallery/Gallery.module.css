@@ -31,7 +31,7 @@
   border: 0;
   border-radius: var(--md-sys-shape-corner-full);
   background: none;
-  cursor: pointer;
+  cursor: default;
 }
 .colorInput::-webkit-color-swatch-wrapper {
   padding: 4px;

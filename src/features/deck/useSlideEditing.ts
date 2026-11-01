@@ -18,20 +18,24 @@ import {
   withNewId,
   type DeckSlide,
 } from "../../lib/deck/slideOps";
-import { useSnackbar } from "../../ui";
+import { showError, showWarning } from "../../lib/windowsDialog";
 import { commit, redo as redoStore, undo as undoStore, type DeckStore } from "./deckStore";
 import type { OpenDeck } from "./openDeck";
 import type { RuntimeFrameHandle } from "./RuntimeFrame";
 
 type Frame = RefObject<RuntimeFrameHandle | null>;
 
-const NOTHING_TO_SHOW = "At least one slide has to stay in the show.";
 const IMAGES_NOT_COPIED = "Some images couldn't be copied with the slides.";
 
 /** Lives outside any one presentation, so slides can be pasted into the next one opened. */
 let copied: DeckSlide[] = [];
 /** Their images, on the way to the app's clipboard. */
 let copying: Promise<unknown> = Promise.resolve();
+
+/** A show needs a slide to show, so the last visible one can't be hidden or deleted. */
+function leavesNoShow(slides: readonly DeckSlide[]): boolean {
+  return slides.every(isHidden);
+}
 
 export function useSlideEditing(options: {
   deck: OpenDeck;
@@ -44,7 +48,6 @@ export function useSlideEditing(options: {
   afterSync: () => void;
 }) {
   const { deck, store, stage, sorter, start, slideRef, afterSync } = options;
-  const notify = useSnackbar();
   const [selected, setSelected] = useState<number[]>([start]);
 
   /** Puts a list of slides on screen, in Rust too, so Save and a reload see the same thing. */
@@ -89,10 +92,10 @@ export function useSlideEditing(options: {
   const fits = useCallback(
     (adding: number) => {
       if (store.getState().slides.length + adding <= MAX_SLIDES) return true;
-      notify({ message: `A presentation can have up to ${MAX_SLIDES} slides.` });
+      showError(`A presentation can have up to ${MAX_SLIDES} slides.`);
       return false;
     },
-    [store, notify],
+    [store],
   );
 
   /** The slides an action applies to: the selection, or the one right-clicked outside it. */
@@ -139,31 +142,22 @@ export function useSlideEditing(options: {
     (slide?: number) => {
       const { slides } = store.getState();
       const picked = pickedFor(slide);
-      if (picked.length >= slides.length) {
-        notify({ message: "A presentation needs at least one slide." });
-        return;
-      }
+      // The menu greys this out, and the Delete key simply does nothing here.
       const left = removeSlides(slides, picked);
-      if (left.every(isHidden)) {
-        notify({ message: NOTHING_TO_SHOW });
-        return;
-      }
+      if (leavesNoShow(left)) return;
       edit(left, picked[0] ?? 0);
     },
-    [store, pickedFor, edit, notify],
+    [store, pickedFor, edit],
   );
 
   const hide = useCallback(
     (slide?: number) => {
       const picked = pickedFor(slide);
       const toggled = toggleHidden(store.getState().slides, picked);
-      if (toggled.every(isHidden)) {
-        notify({ message: NOTHING_TO_SHOW });
-        return;
-      }
+      if (leavesNoShow(toggled)) return;
       edit(toggled, slideRef.current, picked);
     },
-    [store, pickedFor, edit, slideRef, notify],
+    [store, pickedFor, edit, slideRef],
   );
 
   const move = useCallback(
@@ -203,16 +197,13 @@ export function useSlideEditing(options: {
           names: assetNames(copied),
         }).then(
           (failed) => {
-            if (failed.length > 0) notify({ message: IMAGES_NOT_COPIED });
+            if (failed.length > 0) showWarning(IMAGES_NOT_COPIED);
           },
-          () => notify({ message: IMAGES_NOT_COPIED }),
+          () => showWarning(IMAGES_NOT_COPIED),
         );
       }
-      notify({
-        message: copied.length === 1 ? "Slide copied." : `${copied.length} slides copied.`,
-      });
     },
-    [deck.token, store, pickedFor, notify],
+    [deck.token, store, pickedFor],
   );
 
   const paste = useCallback(
@@ -241,8 +232,19 @@ export function useSlideEditing(options: {
     [stage, slideRef],
   );
 
+  const canRemove = useCallback(
+    () => !leavesNoShow(removeSlides(store.getState().slides, selected)),
+    [store, selected],
+  );
+  const canHide = useCallback(
+    () => !leavesNoShow(toggleHidden(store.getState().slides, selected)),
+    [store, selected],
+  );
+
   return {
     selected,
+    canRemove,
+    canHide,
     setSelected,
     undo,
     redo,

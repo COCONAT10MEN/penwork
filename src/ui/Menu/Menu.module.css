@@ -23,7 +23,7 @@
   border: 0;
   border-radius: var(--md-sys-shape-corner-medium);
   background: transparent;
-  cursor: pointer;
+  cursor: default;
   text-align: start;
   font-size: var(--md-sys-typescale-label-large-size);
   line-height: var(--md-sys-typescale-label-large-line-height);

@@ -7,13 +7,18 @@
   /* 50%, not the "full" token: a huge radius would finish the morph in its first frame. */
   border-radius: 50%;
   background: transparent;
-  cursor: pointer;
+  cursor: default;
   transition: border-radius var(--md-sys-motion-spatial-fast-duration)
     var(--md-sys-motion-spatial-fast-easing);
 }
 .small {
   width: 40px;
   height: 40px;
+}
+.compact {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--pw-shape-tool);
 }
 .medium {
   width: 56px;

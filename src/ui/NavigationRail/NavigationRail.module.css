@@ -12,7 +12,7 @@
   background: var(--md-sys-color-surface-container-low);
 }
 .glassRail {
-  border-radius: var(--md-sys-shape-corner-extra-large);
+  border-radius: var(--md-sys-shape-corner-extra-large-increased);
 }
 .wide {
   width: 232px;
@@ -22,9 +22,15 @@
   width: 96px;
   align-items: center;
 }
+.stacked {
+  padding: 16px 0;
+}
 
 .header {
-  padding-bottom: 16px;
+  padding-bottom: 14px;
+}
+.items.end {
+  margin-top: auto;
 }
 
 .items {
@@ -50,7 +56,7 @@
   border-radius: var(--md-sys-shape-corner-full);
   background: transparent;
   color: var(--md-sys-color-on-surface-variant);
-  cursor: pointer;
+  cursor: default;
   text-align: start;
 }
 .icons .item {
@@ -63,10 +69,17 @@
 .stacked .item {
   flex-direction: column;
   gap: 4px;
-  width: 72px;
+  width: 88px;
   min-height: 56px;
   padding: 4px 0;
   border-radius: var(--md-sys-shape-corner-large);
+}
+/* The pill alone answers to the pointer, as the design has no box around the label. */
+.stacked .item::before {
+  content: none;
+}
+.stacked .item:hover .iconWrap {
+  background: color-mix(in srgb, var(--md-sys-color-on-surface) 8%, transparent);
 }
 .stacked .item[data-active] {
   background: transparent;
@@ -79,14 +92,18 @@
   border-radius: var(--md-sys-shape-corner-large);
 }
 .stacked .item[data-active] .iconWrap {
-  background: var(--md-sys-color-secondary-container);
-  color: var(--md-sys-color-on-secondary-container);
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
 }
 .stacked .label {
   max-width: 100%;
   font-size: var(--md-sys-typescale-label-medium-size);
   line-height: var(--md-sys-typescale-label-medium-line-height);
+  font-weight: var(--md-sys-typescale-label-medium-weight);
   letter-spacing: 0;
+}
+.stacked .item[data-active] .label {
+  font-weight: var(--md-sys-typescale-label-medium-weight-emphasized);
 }
 .stacked .footer {
   width: 100%;

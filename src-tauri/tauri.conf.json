@@ -40,7 +40,7 @@
         "ext": [
           "pwpptx"
         ],
-        "name": "Penwork deck",
+        "name": "Penwork presentation",
         "description": "Penwork presentation",
         "role": "Editor",
         "mimeType": "application/vnd.penwork.deck"

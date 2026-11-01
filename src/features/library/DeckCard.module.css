@@ -9,8 +9,9 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 10px;
+  padding: 10px 10px 14px;
   min-width: 0;
+  --pw-surface-fill: var(--pw-glass-thin-fill);
 }
 /* A shaped placeholder until the thumbnail exists; also what a broken deck shows. */
 .thumb {
@@ -18,7 +19,7 @@
   place-items: center;
   aspect-ratio: 16 / 9;
   overflow: hidden;
-  border-radius: var(--md-sys-shape-corner-large-increased);
+  border-radius: var(--pw-shape-thumb);
   background: var(--md-sys-color-surface-container-high);
   fill: var(--md-sys-color-outline-variant);
 }
@@ -35,31 +36,18 @@
   justify-content: center;
   gap: 6px;
   aspect-ratio: 16 / 9;
-  border: 2px dashed var(--md-sys-color-outline);
-  border-radius: var(--md-sys-shape-corner-large-increased);
-  color: var(--md-sys-color-on-surface);
-  font-size: var(--md-sys-typescale-title-small-size);
+  border: 2px dashed color-mix(in srgb, var(--md-sys-color-on-primary-container) 30%, transparent);
+  border-radius: var(--pw-shape-thumb);
+  color: var(--md-sys-color-on-primary-container);
+  font-size: var(--pw-type-caption-size);
   line-height: var(--md-sys-typescale-title-small-line-height);
   font-weight: var(--md-sys-typescale-title-small-weight-emphasized);
 }
-.badge {
-  position: absolute;
-  top: 18px;
-  inset-inline-start: 18px;
-  padding: 2px 8px;
-  pointer-events: none;
-  border-radius: var(--md-sys-shape-corner-small);
-  color: var(--md-sys-color-on-secondary-container);
-  background: var(--md-sys-color-secondary-container);
-  font-size: var(--md-sys-typescale-label-small-size);
-  line-height: var(--md-sys-typescale-label-small-line-height);
-  font-weight: var(--md-sys-typescale-label-small-weight-emphasized);
-}
-
 .row {
   display: flex;
   align-items: center;
   gap: 4px;
+  position: relative;
   min-width: 0;
   min-height: 40px;
 }
@@ -67,8 +55,23 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+  gap: 2px;
   min-width: 0;
-  padding-inline-start: 4px;
+  padding-inline: 6px 0;
+}
+/* The card is clean at rest, as designed. Touch has no hover, so there it always shows. */
+.more {
+  opacity: 0;
+  transition: opacity var(--md-sys-motion-effects-duration) var(--md-sys-motion-effects-easing);
+}
+.deck:hover .more,
+.more:focus-within {
+  opacity: 1;
+}
+@media (hover: none) {
+  .more {
+    opacity: 1;
+  }
 }
 .title {
   display: flex;

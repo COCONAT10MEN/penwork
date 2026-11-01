@@ -44,7 +44,7 @@
   height: 40px;
   margin: 0;
   background: transparent;
-  cursor: pointer;
+  cursor: default;
 }
 .hue::-webkit-slider-runnable-track {
   height: 16px;

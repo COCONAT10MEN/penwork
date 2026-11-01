@@ -9,7 +9,9 @@ import {
 } from "@material/material-color-utilities";
 import { mixHex, rgba } from "../lib/color";
 
-export const DEFAULT_SEED = "#3F5BD4"; // Ink blue
+/** Penwork's own teal, the default look. Its exact colours are set in PENWORK_ROLES. */
+export const PENWORK_SEED = "#00687A";
+export const DEFAULT_SEED = PENWORK_SEED;
 export type SchemeVariant = "tonalSpot" | "vibrant" | "expressive";
 export type ThemeMode = "system" | "light" | "dark";
 export type ColorRoles = Record<string, string>;
@@ -59,7 +61,7 @@ const ROLES = {
   scrim: (s) => s.scrim,
 } satisfies Record<string, (s: DynamicScheme) => number>;
 
-export const ROLE_NAMES = Object.keys(ROLES);
+export const ROLE_NAMES = [...Object.keys(ROLES), "ambient-a", "ambient-b", "ambient-c"];
 
 function makeScheme(seed: Hct, dark: boolean, variant: SchemeVariant): DynamicScheme {
   // "2025" is the Material 3 Expressive color spec.
@@ -76,8 +78,46 @@ function makeScheme(seed: Hct, dark: boolean, variant: SchemeVariant): DynamicSc
 function roles(scheme: DynamicScheme): ColorRoles {
   const out: ColorRoles = {};
   for (const [name, get] of Object.entries(ROLES)) out[name] = hexFromArgb(get(scheme));
+  // The soft colours behind the glass (AmbientBackground).
+  out["ambient-a"] = out.primary ?? "";
+  out["ambient-b"] = out.tertiary ?? "";
+  out["ambient-c"] = out.secondary ?? "";
   return out;
 }
+
+/** The colours of the design itself (design/mockups/v2), where the generated ones drift from it. */
+const PENWORK_ROLES: { light: ColorRoles; dark: ColorRoles } = {
+  light: {
+    primary: "#00687a",
+    "on-primary": "#ffffff",
+    "on-primary-container": "#004e5c",
+    "secondary-container": "#cde7ed",
+    "on-secondary-container": "#051f23",
+    surface: "#e7eef1",
+    "surface-container-lowest": "#ffffff",
+    "surface-container-low": "#eff4f7",
+    "surface-container-high": "#dee3e6",
+    "on-surface": "#171d1e",
+    "on-surface-variant": "#3f484b",
+    outline: "#6f797b",
+    "ambient-a": "#2aa1bf",
+    "ambient-b": "#9678e6",
+    "ambient-c": "#f07a2a",
+  },
+  dark: {
+    primary: "#82d3e6",
+    "on-primary": "#00363f",
+    "primary-container": "#004e5a",
+    "on-primary-container": "#a6eeff",
+    surface: "#0b1214",
+    "surface-container-high": "#252b2d",
+    "on-surface": "#dee3e5",
+    "on-surface-variant": "#bfc8cb",
+    "ambient-a": "#2aa1bf",
+    "ambient-b": "#7c5cd6",
+    "ambient-c": "#f07a2a",
+  },
+};
 
 export function isHexColor(value: string): boolean {
   return /^#[0-9a-f]{6}$/i.test(value);
@@ -88,31 +128,44 @@ export function generateColors(
   seedHex: string,
   variant: SchemeVariant = "tonalSpot",
 ): { light: ColorRoles; dark: ColorRoles } {
-  const seed = Hct.fromInt(argbFromHex(isHexColor(seedHex) ? seedHex : DEFAULT_SEED));
+  const hex = isHexColor(seedHex) ? seedHex : DEFAULT_SEED;
+  const seed = Hct.fromInt(argbFromHex(hex));
+  const light = roles(makeScheme(seed, false, variant));
+  const dark = roles(makeScheme(seed, true, variant));
+  if (hex.toUpperCase() !== PENWORK_SEED) return { light, dark };
   return {
-    light: roles(makeScheme(seed, false, variant)),
-    dark: roles(makeScheme(seed, true, variant)),
+    light: { ...light, ...PENWORK_ROLES.light },
+    dark: { ...dark, ...PENWORK_ROLES.dark },
   };
 }
 
 /**
- * Fill opacity at each end of the glass gradient. High on purpose: chrome sits over white and
- * black slides, and text on it must reach 4.5:1 against either (theme.test.ts checks this).
+ * Fill opacity at each end of the glass gradient, from the design. App panels sit over the app's
+ * own background, never over a slide: the show's dock has its own colours (engine.css).
  */
 export const GLASS_ALPHA = {
-  thin: [0.78, 0.84],
-  regular: [0.82, 0.88],
-  thick: [0.93, 0.96],
+  dark: { thin: [0.42, 0.52], regular: [0.62, 0.72], thick: [0.86, 0.93] },
+  light: { thin: [0.6, 0.48], regular: [0.7, 0.58], thick: [0.82, 0.74] },
 } as const;
-export const GLASS_SHEEN = { light: 0.12, dark: 0.05 } as const;
+export const GLASS_SHEEN = { light: 0.12, dark: 0.03 } as const;
 
-/** "Tinted liquid": surface colors with a little primary mixed in. */
-export function glassBase(colors: ColorRoles): { from: string; to: string } {
+/** How strong each soft colour behind the glass is. */
+const AMBIENT_MIX = { dark: ["55%", "42%", "32%"], light: ["32%", "26%", "20%"] } as const;
+
+/** The surface colours of the fill: raised at the top left, falling to the background. */
+export function glassBase(
+  colors: ColorRoles,
+  scheme: "light" | "dark",
+): { from: string; to: string } {
   const primary = colors.primary ?? DEFAULT_SEED;
-  return {
-    from: mixHex(colors["surface-container-high"] ?? primary, primary, 0.1),
-    to: mixHex(colors.surface ?? primary, primary, 0.1),
-  };
+  if (scheme === "light") {
+    return {
+      from: colors["surface-container-lowest"] ?? primary,
+      to: colors["surface-container-low"] ?? primary,
+    };
+  }
+  const high = colors["surface-container-high"] ?? primary;
+  return { from: high, to: mixHex(colors.surface ?? primary, high, 0.1) };
 }
 
 export function glassOnVariant(colors: ColorRoles): string {
@@ -125,23 +178,26 @@ export function glassOnVariant(colors: ColorRoles): string {
  * panel (.pw-theme-dark inside a light app) gets its own glass and not the root's.
  */
 export function glassVars(colors: ColorRoles, scheme: "light" | "dark"): Record<string, string> {
-  const { from, to } = glassBase(colors);
+  const { from, to } = glassBase(colors, scheme);
   const fill = ([a, b]: readonly [number, number]) =>
     `linear-gradient(150deg, ${rgba(from, a)}, ${rgba(to, b)})`;
   const dark = scheme === "dark";
   const sheen = dark ? GLASS_SHEEN.dark : GLASS_SHEEN.light;
   return {
-    "thin-fill": fill(GLASS_ALPHA.thin),
-    "regular-fill": fill(GLASS_ALPHA.regular),
-    "thick-fill": fill(GLASS_ALPHA.thick),
+    "thin-fill": fill(GLASS_ALPHA[scheme].thin),
+    "regular-fill": fill(GLASS_ALPHA[scheme].regular),
+    "thick-fill": fill(GLASS_ALPHA[scheme].thick),
     // For surfaces with no blur (popovers, menus): the same look, fully opaque.
     "solid-fill": `linear-gradient(150deg, ${from}, ${to})`,
     // Secondary text on glass: nearer to on-surface, so it stays readable over any slide.
     "on-variant": glassOnVariant(colors),
-    rim: `1px solid rgb(255 255 255 / ${dark ? 0.18 : 0.8})`,
-    "rim-top": `inset 0 1px 0 rgb(255 255 255 / ${dark ? 0.3 : 0.95})`,
+    rim: `1px solid rgb(255 255 255 / ${dark ? 0.16 : 0.8})`,
+    "rim-top": `inset 0 1px 0 rgb(255 255 255 / ${dark ? 0.26 : 0.95})`,
     sheen: `linear-gradient(180deg, rgb(255 255 255 / ${sheen}), rgb(255 255 255 / 0) 48%)`,
     shadow: dark ? "0 18px 40px -14px rgb(0 0 0 / 0.6)" : "0 16px 36px -18px rgb(16 40 48 / 0.32)",
+    "ambient-a": AMBIENT_MIX[scheme][0],
+    "ambient-b": AMBIENT_MIX[scheme][1],
+    "ambient-c": AMBIENT_MIX[scheme][2],
   };
 }
 

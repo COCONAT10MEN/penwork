@@ -3,17 +3,9 @@ import { invoke } from "@tauri-apps/api/core";
 import { useState, type ReactNode } from "react";
 import { contrastRatio } from "../../lib/contrast";
 import { checkLogo } from "../../lib/logo";
-import {
-  Button,
-  ColorPicker,
-  Dialog,
-  LogoTile,
-  SegmentedButton,
-  Surface,
-  Switch,
-  useSnackbar,
-} from "../../ui";
+import { Button, ColorPicker, Dialog, LogoTile, SegmentedButton, Surface, Switch } from "../../ui";
 import type { ThemeMode, Transparency } from "../../theme/theme";
+import { showError } from "../../lib/windowsDialog";
 import { logoColor } from "./appearance";
 import type { ColorSource, Settings as SavedSettings } from "./settingsFile";
 import { useSettings } from "./settingsStore";
@@ -67,7 +59,6 @@ function ColorChoice({
 }
 
 function LogoSection() {
-  const notify = useSnackbar();
   const settings = useSettings((s) => s.settings);
   const systemSeed = useSettings((s) => s.systemSeed);
   const { logo, logoBackground: background } = settings;
@@ -87,7 +78,7 @@ function LogoSection() {
       : "";
     const result = checkLogo(path, text);
     if (!result.ok) {
-      notify({ message: result.message, duration: 10_000 });
+      showError(result.message);
       return;
     }
     update({ logo: { svg: result.svg, color: result.color } });
@@ -132,6 +123,7 @@ const THEMES = [
   { value: "dark", label: "Dark" },
 ];
 const COLORS = [
+  { value: "penwork", label: "Penwork teal" },
   { value: "logo", label: "Sync with logo" },
   { value: "deck", label: "Match the presentation" },
   { value: "custom", label: "Custom" },

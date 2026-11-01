@@ -38,7 +38,7 @@
   Buttons and links inside the card sit above it, so they stay clickable on their own.
 */
 .interactive {
-  cursor: pointer;
+  cursor: default;
 }
 .stretched {
   position: absolute;
@@ -48,7 +48,7 @@
   border: 0;
   border-radius: inherit;
   background: transparent;
-  cursor: pointer;
+  cursor: default;
 }
 .interactive :is(a, button, input, select, textarea):not(.stretched) {
   position: relative;

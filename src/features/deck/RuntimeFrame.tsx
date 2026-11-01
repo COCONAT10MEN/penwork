@@ -60,7 +60,7 @@ export const RuntimeFrame = forwardRef<RuntimeFrameHandle, RuntimeFrameProps>(fu
     <iframe
       ref={frame}
       className={cx(styles.frame, className)}
-      title={view === "sorter" ? `Slide list: ${title}` : `Slides: ${title}`}
+      aria-label={view === "sorter" ? `Slide list: ${title}` : `Slides: ${title}`}
       sandbox="allow-scripts"
       src={deckUrl(token, view)}
     />

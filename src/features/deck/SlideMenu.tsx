@@ -13,6 +13,8 @@ export function SlideMenu({
   target,
   hides,
   canPaste,
+  canHide,
+  canRemove,
   count,
   onClose,
   onAway,
@@ -22,6 +24,8 @@ export function SlideMenu({
   /** What Hide would do to these slides: hide them, or show them again. */
   hides: boolean;
   canPaste: boolean;
+  canHide: boolean;
+  canRemove: boolean;
   count: number;
   onClose: () => void;
   /** The user went elsewhere, so unlike onClose this leaves focus alone. */
@@ -81,12 +85,14 @@ export function SlideMenu({
     {
       label: `${hides ? "Hide" : "Show"} ${many ? `${count} slides` : "slide"}`,
       icon: hides ? "visibility_off" : "visibility",
+      disabled: !canHide,
       onSelect: () => on.hide(slide),
     },
     {
       label: many ? `Delete ${count} slides` : "Delete",
       icon: "delete",
       trailing: "Del",
+      disabled: !canRemove,
       onSelect: () => on.remove(slide),
     },
   ];

@@ -1,3 +1,4 @@
+import { snack } from "./demoAction";
 import { useState } from "react";
 import {
   Button,
@@ -9,7 +10,6 @@ import {
   NavigationRail,
   TopAppBar,
   type RailItem,
-  useSnackbar,
 } from "../../ui";
 import { useGalleryMaterial } from "./galleryMaterial";
 import { Section } from "./ShowcaseActions";
@@ -87,7 +87,6 @@ export function ShowcaseAppBar() {
 }
 
 export function ShowcaseCards() {
-  const snack = useSnackbar();
   const material = useGalleryMaterial();
   return (
     <Section title="Cards">

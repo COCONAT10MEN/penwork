@@ -58,7 +58,7 @@
   border-radius: var(--md-sys-shape-corner-full);
   background: var(--pw-logo-bk);
   color: var(--pw-logo-fg);
-  cursor: pointer;
+  cursor: default;
   /* Same timing as the capsule: one body. */
   transition:
     background-color var(--md-sys-motion-spatial-calm-duration)

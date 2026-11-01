@@ -1,3 +1,5 @@
+import { isTauri } from "@tauri-apps/api/core";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { MotionConfig } from "motion/react";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { useApp } from "./appStore";
@@ -6,7 +8,6 @@ import { RecoveryPrompt } from "./features/deck/RecoveryPrompt";
 import { useFileOpening } from "./features/deck/useFileOpening";
 import { Home } from "./features/library/Home";
 import { useSettings } from "./features/settings/settingsStore";
-import { SnackbarProvider } from "./ui";
 
 // Dev builds only: the import is behind import.meta.env.DEV, so release builds drop the Gallery.
 const Gallery = import.meta.env.DEV ? lazy(() => import("./features/gallery/Gallery")) : null;
@@ -38,6 +39,12 @@ function Screens() {
   useEffect(() => {
     void loadLibrary();
   }, [loadLibrary]);
+
+  // The real title bar follows the app's theme, not only Windows'.
+  const theme = useSettings((s) => s.settings.theme);
+  useEffect(() => {
+    if (isTauri()) void getCurrentWindow().setTheme(theme === "system" ? null : theme);
+  }, [theme]);
 
   // Browser reload keys would wipe the app's state, and an open presentation with it.
   useEffect(() => {
@@ -72,9 +79,7 @@ function App() {
   return (
     // Motion ignores the OS setting unless told otherwise.
     <MotionConfig reducedMotion={reduceMotion ? "always" : "user"}>
-      <SnackbarProvider>
-        <Screens />
-      </SnackbarProvider>
+      <Screens />
     </MotionConfig>
   );
 }

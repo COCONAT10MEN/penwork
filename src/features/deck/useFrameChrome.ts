@@ -16,6 +16,7 @@ export function useFrameChrome(stageRef: Frame, sorterRef: Frame) {
       accent: css.getPropertyValue("--md-sys-color-primary").trim(),
       text: css.getPropertyValue("--md-sys-color-on-surface").trim(),
       line: css.getPropertyValue("--md-sys-color-outline-variant").trim(),
+      muted: css.getPropertyValue("--md-sys-color-on-surface-variant").trim(),
       scheme: css.colorScheme,
     });
   }, [sorterRef]);

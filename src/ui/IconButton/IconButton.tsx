@@ -14,7 +14,7 @@ export interface IconButtonProps extends Omit<
   /** Required: icon-only buttons need a name for screen readers. Also shown as the tooltip. */
   label: string;
   variant?: IconButtonVariant;
-  size?: "small" | "medium";
+  size?: "small" | "compact" | "medium";
   /**
    * Makes it a toggle (aria-pressed). Toggles are rounded squares when off and morph to
    * circles when on, like toolbar tools (DESIGN.md).

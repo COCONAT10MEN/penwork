@@ -10,7 +10,7 @@
   justify-content: center;
   min-height: 40px;
   border: 0;
-  cursor: pointer;
+  cursor: default;
   font-size: var(--md-sys-typescale-label-large-size);
   line-height: var(--md-sys-typescale-label-large-line-height);
   letter-spacing: var(--md-sys-typescale-label-large-tracking);

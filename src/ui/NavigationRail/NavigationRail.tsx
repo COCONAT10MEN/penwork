@@ -28,6 +28,8 @@ export interface NavigationRailProps {
   header?: ReactNode;
   /** Bottom slot (settings, storage). */
   footer?: ReactNode;
+  /** Destinations at the bottom of the rail, drawn like the others. */
+  footerItems?: RailItem[];
   /** "glass" for floating chrome; "tonal" (default) is the solid look. */
   material?: SurfaceMaterial;
 }
@@ -41,8 +43,50 @@ export function NavigationRail({
   layout,
   header,
   footer,
+  footerItems = [],
   material = "tonal",
 }: NavigationRailProps) {
+  const entry = (item: RailItem) => {
+    const active = item.id === value;
+    const button = (
+      <button
+        type="button"
+        aria-current={active ? "page" : undefined}
+        aria-label={
+          layout !== "icons"
+            ? undefined
+            : item.badge
+              ? `${item.label}, ${item.badge} items`
+              : item.label
+        }
+        data-active={active || undefined}
+        className={cx("pw-state", styles.item)}
+        onClick={() => onChange(item.id)}
+      >
+        <span className={styles.iconWrap}>
+          <Icon name={item.icon} filled={active} />
+          {!!item.badge && (
+            <span className={styles.badge} aria-hidden="true">
+              {item.badge > 99 ? "99+" : item.badge}
+            </span>
+          )}
+        </span>
+        {layout !== "icons" && <span className={styles.label}>{item.label}</span>}
+        {!!item.badge && <span className="pw-visually-hidden">, {item.badge} items</span>}
+      </button>
+    );
+    return (
+      <li key={item.id}>
+        {layout !== "icons" ? (
+          button
+        ) : (
+          <Tooltip text={item.label} placement="right" describes={false}>
+            {button}
+          </Tooltip>
+        )}
+      </li>
+    );
+  };
   return (
     <nav
       aria-label={label}
@@ -54,49 +98,10 @@ export function NavigationRail({
       )}
     >
       {header && <div className={styles.header}>{header}</div>}
-      <ul className={styles.items}>
-        {items.map((item) => {
-          const active = item.id === value;
-          const button = (
-            <button
-              type="button"
-              aria-current={active ? "page" : undefined}
-              aria-label={
-                layout !== "icons"
-                  ? undefined
-                  : item.badge
-                    ? `${item.label}, ${item.badge} items`
-                    : item.label
-              }
-              data-active={active || undefined}
-              className={cx("pw-state", styles.item)}
-              onClick={() => onChange(item.id)}
-            >
-              <span className={styles.iconWrap}>
-                <Icon name={item.icon} filled={active} />
-                {!!item.badge && (
-                  <span className={styles.badge} aria-hidden="true">
-                    {item.badge > 99 ? "99+" : item.badge}
-                  </span>
-                )}
-              </span>
-              {layout !== "icons" && <span className={styles.label}>{item.label}</span>}
-              {!!item.badge && <span className="pw-visually-hidden">, {item.badge} items</span>}
-            </button>
-          );
-          return (
-            <li key={item.id}>
-              {layout !== "icons" ? (
-                button
-              ) : (
-                <Tooltip text={item.label} placement="right" describes={false}>
-                  {button}
-                </Tooltip>
-              )}
-            </li>
-          );
-        })}
-      </ul>
+      <ul className={styles.items}>{items.map(entry)}</ul>
+      {footerItems.length > 0 && (
+        <ul className={cx(styles.items, styles.end)}>{footerItems.map(entry)}</ul>
+      )}
       {footer && <div className={styles.footer}>{footer}</div>}
     </nav>
   );

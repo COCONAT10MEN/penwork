@@ -8,7 +8,6 @@ import {
   GLASS_SHEEN,
   generateColors,
   glassBase,
-  glassOnVariant,
   glassVars,
   themeCss,
   type SchemeVariant,
@@ -49,7 +48,7 @@ describe("generateColors", () => {
     );
   });
 
-  it("falls back to Ink blue for an invalid seed", () => {
+  it("falls back to Penwork's teal for an invalid seed", () => {
     expect(generateColors("not a color")).toEqual(generateColors(DEFAULT_SEED));
   });
 
@@ -81,20 +80,23 @@ function over(under: string, top: string, alpha: number): string {
   return rgbToHex(mix(0), mix(1), mix(2));
 }
 
-describe("text on glass, over the worst thing behind it", () => {
-  const seeds = ["#3F5BD4", "#0078D4", "#2E7D32", "#C2410C", "#FBD64A", "#6B7280"];
+describe("text on glass, over the app's own background", () => {
+  const seeds = ["#00687A", "#3F5BD4", "#0078D4", "#2E7D32", "#C2410C", "#FBD64A", "#6B7280"];
   for (const seed of seeds) {
-    it(`reaches 4.5:1 over white and black slides (${seed})`, () => {
+    it(`reaches 4.5:1 over the background and its soft colours (${seed})`, () => {
       const { light, dark } = generateColors(seed);
       for (const [scheme, colors] of [
         ["light", light],
         ["dark", dark],
       ] as const) {
-        const { from, to } = glassBase(colors);
+        const { from, to } = glassBase(colors, scheme);
         const sheen = GLASS_SHEEN[scheme];
+        const surface = colors.surface ?? "";
+        const glows = ["ambient-a", "ambient-b", "ambient-c"] as const;
+        const behinds = [surface, ...glows.map((g) => over(surface, colors[g] ?? "", 0.3))];
         for (const strength of ["thin", "regular", "thick"] as const) {
-          const [a, b] = GLASS_ALPHA[strength];
-          for (const behind of ["#ffffff", "#000000"]) {
+          const [a, b] = GLASS_ALPHA[scheme][strength];
+          for (const behind of behinds) {
             for (const [glass, alpha] of [
               [from, a],
               [to, b],
@@ -105,10 +107,6 @@ describe("text on glass, over the worst thing behind it", () => {
                 contrastRatio(colors["on-surface"] ?? "", painted),
                 label,
               ).toBeGreaterThanOrEqual(4.5);
-              if (strength !== "thin") {
-                const variant = contrastRatio(glassOnVariant(colors), painted);
-                expect(variant, `variant: ${label}`).toBeGreaterThanOrEqual(4.5);
-              }
             }
           }
         }
@@ -126,9 +124,9 @@ describe("glassVars", () => {
 
   it("makes fills stronger from thin to thick, and solid fully opaque", () => {
     const g = glassVars(generateColors(DEFAULT_SEED).dark, "dark");
-    expect(g["thin-fill"]).toContain(`/ ${GLASS_ALPHA.thin[0]}`);
-    expect(g["regular-fill"]).toContain(`/ ${GLASS_ALPHA.regular[0]}`);
-    expect(g["thick-fill"]).toContain(`/ ${GLASS_ALPHA.thick[0]}`);
+    expect(g["thin-fill"]).toContain(`/ ${GLASS_ALPHA.dark.thin[0]}`);
+    expect(g["regular-fill"]).toContain(`/ ${GLASS_ALPHA.dark.regular[0]}`);
+    expect(g["thick-fill"]).toContain(`/ ${GLASS_ALPHA.dark.thick[0]}`);
     expect(g["solid-fill"]).not.toContain("/");
   });
 

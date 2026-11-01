@@ -1,3 +1,4 @@
+import { snack } from "./demoAction";
 import { useState, type ReactNode } from "react";
 import {
   Button,
@@ -8,7 +9,6 @@ import {
   IconButton,
   SearchBar,
   SegmentedButton,
-  useSnackbar,
 } from "../../ui";
 import { useGalleryMaterial } from "./galleryMaterial";
 import styles from "./Gallery.module.css";
@@ -138,7 +138,6 @@ export function ShowcaseGroups() {
 }
 
 export function ShowcaseFabs() {
-  const snack = useSnackbar();
   return (
     <Section title="FAB · FAB menu">
       <div className={styles.row}>

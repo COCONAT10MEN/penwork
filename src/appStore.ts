@@ -22,14 +22,9 @@ import {
   setThumb,
   type Library,
 } from "./features/library/libraryFile";
+import { showError, showWarning } from "./lib/windowsDialog";
 import type { DeckParts } from "./lib/deck/deckParts";
 import type { DeckFacts } from "./lib/deck/facts";
-
-export interface AppNotice {
-  message: string;
-  duration?: number;
-}
-type Notify = (notice: AppNotice) => void;
 
 interface AppState {
   library: Library;
@@ -45,11 +40,11 @@ interface AppState {
   /** Set by the open presentation: asks about unsaved work before it's replaced or closed. */
   leaveGuard: (() => Promise<boolean>) | null;
   loadLibrary: () => Promise<void>;
-  openPath: (path: string, notify: Notify, options?: { present?: boolean }) => Promise<void>;
+  openPath: (path: string, options?: { present?: boolean }) => Promise<void>;
   /** New deck: makes the deck, then opens it. */
-  createDeck: (deck: DeckParts, generator: string, notify: Notify) => Promise<void>;
+  createDeck: (deck: DeckParts, generator: string) => Promise<void>;
   /** Opens a recovery copy of a presentation's unsaved work. */
-  recoverDeck: (id: string, path: string, notify: Notify) => Promise<void>;
+  recoverDeck: (id: string, path: string) => Promise<void>;
   deckSaved: (saved: {
     oldPath: string;
     rename: boolean;
@@ -71,9 +66,8 @@ function persist(library: Library): void {
   void invoke("write_app_file", { name: "library.json", text: JSON.stringify(library, null, 2) });
 }
 
-function reportError(error: unknown, notify: Notify): void {
-  const message = isDeckError(error) ? error.message : "This presentation couldn't be opened.";
-  notify({ message, duration: 10_000 });
+function reportError(error: unknown): void {
+  showError(isDeckError(error) ? error.message : "This presentation couldn't be opened.");
 }
 
 export const useApp = create<AppState>((set, get) => {
@@ -85,7 +79,7 @@ export const useApp = create<AppState>((set, get) => {
   const leaving = async () => (await get().leaveGuard?.()) ?? true;
 
   /** Puts a deck on screen and into the library, whichever way it arrived. */
-  const show = (deck: OpenDeck, notify: Notify, present = false) => {
+  const show = (deck: OpenDeck, present = false) => {
     const previous = get().deck;
     if (previous) closeDeckFile(previous.token);
     const library = recordOpen(
@@ -105,10 +99,7 @@ export const useApp = create<AppState>((set, get) => {
     commit(library);
     set({ deck, startSlide: library.decks[0]?.lastSlide ?? 0, presentOnOpen: present });
     if (deck.removed.length > 0) {
-      notify({
-        message: `Cleaned up while opening: ${deck.removed.join(", ")}`,
-        duration: 10_000,
-      });
+      showWarning(`Penwork removed this while opening the file: ${deck.removed.join(", ")}`);
     }
   };
 
@@ -132,30 +123,30 @@ export const useApp = create<AppState>((set, get) => {
       set({ library: markExisting(get().library, exists), libraryReady: true });
     },
 
-    openPath: async (path, notify, options) => {
+    openPath: async (path, options) => {
       if (!isDeckPath(path)) {
-        notify({ message: "Penwork opens .pwpptx presentations only." });
+        showError("Penwork opens .pwpptx presentations only.");
         return;
       }
       if (!(await leaving())) return;
       set({ opening: true });
       try {
-        show(await openDeckFile(path), notify, options?.present);
+        show(await openDeckFile(path), options?.present);
       } catch (error) {
         if (isDeckError(error) && error.code === "io") commit(markMissing(get().library, path));
-        reportError(error, notify);
+        reportError(error);
       } finally {
         set({ opening: false });
       }
     },
 
-    recoverDeck: async (id, path, notify) => {
+    recoverDeck: async (id, path) => {
       if (!(await leaving())) return;
       set({ opening: true });
       try {
-        show(await openRecoveryFile(id, path), notify);
+        show(await openRecoveryFile(id, path));
       } catch (error) {
-        reportError(error, notify);
+        reportError(error);
       } finally {
         set({ opening: false });
       }
@@ -173,13 +164,13 @@ export const useApp = create<AppState>((set, get) => {
       if (deck) set({ deck: { ...deck, path, stamp, draft: false, slideCount: slides } });
     },
 
-    createDeck: async (deck, generator, notify) => {
+    createDeck: async (deck, generator) => {
       if (!(await leaving())) return;
       set({ opening: true });
       try {
-        show(await createDraft(deck, generator), notify);
+        show(await createDraft(deck, generator));
       } catch (error) {
-        reportError(error, notify);
+        reportError(error);
       } finally {
         set({ opening: false });
       }

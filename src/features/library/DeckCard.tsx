@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { useApp } from "../../appStore";
-import { Card, COOKIE_PATH, Icon, IconButton, Menu, useSnackbar } from "../../ui";
+import { Card, COOKIE_PATH, Icon, IconButton, Menu } from "../../ui";
 import { useThumb } from "../deck/thumbnail";
 import { slidesLabel, whenOpened } from "./greeting";
 import type { LibraryDeck } from "./libraryFile";
@@ -24,7 +24,6 @@ export function DeckThumb({ deck, className }: { deck: LibraryDeck; className?: 
 }
 
 export function DeckMenu({ deck, onRemoved }: { deck: LibraryDeck; onRemoved?: () => void }) {
-  const notify = useSnackbar();
   const remove = useApp((s) => s.removeFromRecents);
   const toggleFavorite = useApp((s) => s.toggleFavorite);
   const [open, setOpen] = useState(false);
@@ -61,10 +60,6 @@ export function DeckMenu({ deck, onRemoved }: { deck: LibraryDeck; onRemoved?: (
             onSelect: () => {
               remove(deck.id);
               onRemoved?.();
-              notify({
-                message: "Removed from recents. The file wasn't touched.",
-                material: "glass",
-              });
             },
           },
         ]}
@@ -82,7 +77,6 @@ export function DeckCard({
   query?: string;
   onRemoved: () => void;
 }) {
-  const notify = useSnackbar();
   const openPath = useApp((s) => s.openPath);
   const meta = deck.missing
     ? "File not found"
@@ -92,11 +86,10 @@ export function DeckCard({
     <Card
       material="glass"
       actionLabel={`Open ${deck.title}${deck.missing ? ", file not found" : ""}`}
-      onClick={() => void openPath(deck.path, notify)}
+      onClick={() => void openPath(deck.path)}
       className={styles.deck}
     >
       <DeckThumb deck={deck} />
-      {deck.interactive && <span className={styles.badge}>Interactive</span>}
       <div className={styles.row}>
         <div className={styles.text}>
           <span className={styles.title}>
@@ -105,7 +98,9 @@ export function DeckCard({
           </span>
           <span className={styles.meta}>{meta}</span>
         </div>
-        <DeckMenu deck={deck} onRemoved={onRemoved} />
+        <span className={styles.more}>
+          <DeckMenu deck={deck} onRemoved={onRemoved} />
+        </span>
       </div>
     </Card>
   );

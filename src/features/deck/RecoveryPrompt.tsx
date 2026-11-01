@@ -1,14 +1,11 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import { useEffect } from "react";
 import { useApp } from "../../appStore";
-import { useSnackbar } from "../../ui";
-import { useChoice } from "./useChoice";
+import { askThreeWay } from "../../lib/windowsDialog";
 
 /** After a crash, unsaved work is waiting in a recovery copy. The user's file wasn't touched. */
 export function RecoveryPrompt() {
-  const notify = useSnackbar();
   const ready = useApp((s) => s.libraryReady);
-  const { dialog, ask } = useChoice();
 
   useEffect(() => {
     if (!ready || !isTauri()) return;
@@ -22,26 +19,23 @@ export function RecoveryPrompt() {
           id,
           path: entry.path,
         }).catch(() => true);
-        const answer = await ask({
-          headline: "Recover unsaved work?",
+        const answer = await askThreeWay({
+          title: "Recover unsaved work?",
           text: newer
             ? `Penwork closed with unsaved changes in "${entry.title}".`
             : `Penwork closed with unsaved changes in "${entry.title}", but the file has changed since. Saving what you recover would replace those changes.`,
-          icon: "history",
-          actions: [
-            { value: "discard", label: "Discard" },
-            { value: "recover", label: "Recover" },
-          ],
-          focus: "recover",
+          yes: "Recover",
+          no: "Discard",
+          cancel: "Not now",
         });
-        if (answer === "recover") {
-          await useApp.getState().recoverDeck(id, entry.path, notify);
+        if (answer === "yes") {
+          await useApp.getState().recoverDeck(id, entry.path);
           return;
         }
-        if (answer === "discard") await invoke("delete_recovery", { id });
+        if (answer === "no") await invoke("delete_recovery", { id });
       }
     })();
-  }, [ready, ask, notify]);
+  }, [ready]);
 
-  return dialog;
+  return null;
 }

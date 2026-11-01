@@ -2,6 +2,7 @@ import { MotionConfig } from "motion/react";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { useApp } from "./appStore";
 import { DeckView } from "./features/deck/DeckView";
+import { RecoveryPrompt } from "./features/deck/RecoveryPrompt";
 import { useFileOpening } from "./features/deck/useFileOpening";
 import { Home } from "./features/library/Home";
 import { useSettings } from "./features/settings/settingsStore";
@@ -54,10 +55,15 @@ function Screens() {
       </Suspense>
     );
   }
-  return deck ? (
-    <DeckView key={deck.token} deck={deck} start={startSlide} presentOnOpen={presentOnOpen} />
-  ) : (
-    <Home dragging={dragging} />
+  return (
+    <>
+      {deck ? (
+        <DeckView key={deck.token} deck={deck} start={startSlide} presentOnOpen={presentOnOpen} />
+      ) : (
+        <Home dragging={dragging} />
+      )}
+      <RecoveryPrompt />
+    </>
   );
 }
 

@@ -15,11 +15,12 @@ var slides=Array.prototype.slice.call(stage.querySelectorAll('.slide'));
 var N=slides.length, cur=-1, busy=null, anims=[], hidden=[], scaleF=1;
 var REDUCED=window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches;
 var EASE='cubic-bezier(.65,0,.25,1)', OUT='cubic-bezier(.2,.85,.25,1)';
-var meta=slides.map(function(s){
+function makeMeta(){return slides.map(function(s){
   var els=Array.prototype.slice.call(s.querySelectorAll('.st')),k=0;
   els.forEach(function(e){var a=e.getAttribute('data-st'); if(a==='='){} else k++; e._k=k;});
   return {els:els,max:k,step:0,init:false};
-});
+});}
+var meta=makeMeta();
 function $(s,r){return (r||document).querySelector(s);}
 function fit(){
   var s=Math.min(innerWidth/1920,innerHeight/1080);scaleF=s;
@@ -1067,7 +1068,7 @@ function ovKey(e){
 addEventListener('keydown',function(e){
   if(e.key==='F5'){e.preventDefault();keyUp(e);return;}
   var tg=e.target;if(tg&&((tg.tagName==='INPUT'&&tg.type!=='range'&&tg.type!=='checkbox')||tg.tagName==='TEXTAREA'||tg.isContentEditable))return;
-  if(mode!=='present'){if(SORTER&&/^(Arrow|Page|Home|End)/.test(e.key))e.preventDefault();keyUp(e);return;}
+  if(mode!=='present'){if(e.ctrlKey||e.altKey||(SORTER&&/^(Arrow|Page|Home|End)/.test(e.key)))e.preventDefault();keyUp(e);return;}
   if(e.ctrlKey&&(e.key==='z'||e.key==='Z')){e.preventDefault();if(!ovOpen){if(e.shiftKey)redo();else undo();}return;}
   if(e.ctrlKey&&(e.key==='y'||e.key==='Y')){e.preventDefault();if(!ovOpen)redo();return;}
   if(e.ctrlKey||e.altKey||e.metaKey){keyUp(e);return;}
@@ -1751,21 +1752,48 @@ function setMode(p){
   if(!hinted&&!UIS.hinted){hinted=UIS.hinted=true;saveSettings();setTimeout(function(){toast(HINT,5600);},900);}
 }
 
+/* New slides from the editor, in place, so the page keeps running and nothing flashes. */
+function setSlides(p){
+  flushInk();
+  var was={};
+  slides.forEach(function(s,i){was[s.getAttribute('data-id')]=i;s.remove();});
+  cancelAll();cleanup();clearTimeout(busy);
+  var t=document.createElement('template');t.innerHTML=p.html;
+  slides=Array.prototype.slice.call(t.content.querySelectorAll('.slide'));
+  slides.forEach(function(s){stage.appendChild(s);});
+  N=slides.length;meta=makeMeta();cur=-1;window.__n=N;
+  /* ink and its undo are kept by position here, so they have to move with their slides */
+  var move=function(o){
+    var n={};if(o.wb)n.wb=o.wb;
+    slides.forEach(function(s,i){var w=was[s.getAttribute('data-id')];if(w!==undefined&&o[w])n[i]=o[w];});
+    return n;
+  };
+  ink=move(ink);hist=move(hist);redoS=move(redoS);
+  if(window.__ui)window.__ui.ink=ink;
+  texAll(stage);
+  cells=[];ov.innerHTML='';
+  if(SORTER)sorterCells();
+  else preview(Math.max(0,Math.min(N-1,p.slide|0)));
+}
+
 /* ---------- the slide list in the edit view: the same thumbnails as the grid, in a column ---------- */
-function sorterSelect(i){
+function sorterSelect(i,sel){
   /* focus moves with the selection only if it's already in the list: the big slide keeps its own */
   var inside=ov.contains(document.activeElement);
   selCell(i,inside);
   cells.forEach(function(c,k){
     c.el.tabIndex=k===ovSel?0:-1; /* one Tab stop for the whole list, not one per slide */
     if(k===ovSel)c.el.setAttribute('aria-current','true');else c.el.removeAttribute('aria-current');
+    c.el.classList.toggle('sel',!!sel&&sel.indexOf(k)>=0&&sel.length>1);
   });
   if(cells[ovSel])cells[ovSel].el.scrollIntoView({block:'nearest'});
 }
-function bootSorter(){
-  document.documentElement.classList.add('sorter');
-  stage.setAttribute('aria-hidden','true');
-  ov.classList.add('show');
+function sorterLayout(){
+  var first=cells[0];if(!first)return;
+  var k=first.th.getBoundingClientRect().width/1920;
+  cells.forEach(function(c){c.tin.style.transform='scale('+k+')';});
+}
+function sorterCells(){
   buildOvShell();
   cells.forEach(function(c,i){
     var n=document.createElement('span');n.className='num';n.textContent=i+1;
@@ -1774,28 +1802,68 @@ function bootSorter(){
     c.el.tabIndex=-1;c.tin.inert=true; /* a thumbnail's own buttons and sliders aren't real controls */
     c.el.setAttribute('aria-label','Slide '+(i+1)+(hiddenSlide(i)?', hidden':''));
   });
-  var layout=function(){
-    var first=cells[0];if(!first)return;
-    var k=first.th.getBoundingClientRect().width/1920;
-    cells.forEach(function(c){c.tin.style.transform='scale('+k+')';});
-  };
-  /* a size change, not only a window resize: the scroll bar appears once the list fills up */
-  if(cells[0])new ResizeObserver(layout).observe(cells[0].th);
-  ov.addEventListener('click',function(e){
-    var c=e.target.closest('.cell');if(c){e.stopPropagation();send('pick',{slide:+c.getAttribute('data-i')});}
-  },true);
-  ov.addEventListener('keydown',function(e){
-    var c=e.target.closest&&e.target.closest('.cell');
-    if(!c||(e.key!=='Enter'&&e.key!==' '))return;
-    e.preventDefault();e.stopPropagation();send('pick',{slide:+c.getAttribute('data-i')});
-  },true);
+  sorterLayout();
   /* built a few at a time, so a long presentation doesn't hold up the window */
-  var i=0;
+  var i=0,mine=cells;
   (function build(){
-    var end=Math.min(N,i+4);
+    if(cells!==mine)return; /* new slides arrived meanwhile */
+    var end=Math.min(N,i+12);
     for(;i<end;i++)buildThumb(i);
     if(i<N)(window.requestIdleCallback||function(f){setTimeout(f,60);})(build,{timeout:300});
   })();
+}
+function bootSorter(){
+  document.documentElement.classList.add('sorter');
+  stage.setAttribute('aria-hidden','true');
+  ov.classList.add('show');
+  sorterCells();
+  /* a size change, not only a window resize: the scroll bar appears once the list fills up */
+  new ResizeObserver(sorterLayout).observe(ov);
+  var cellOf=function(t){return t&&t.closest?t.closest('.cell'):null;},indexOf=function(c){return +c.getAttribute('data-i');};
+  var drag=null,dropTo=-1,dragged=false;
+  var clearDrop=function(){cells.forEach(function(c){c.el.classList.remove('dropb','dropa');});};
+  ov.addEventListener('click',function(e){
+    var c=cellOf(e.target);if(!c)return;
+    e.stopPropagation();
+    if(dragged){dragged=false;return;}
+    send('pick',{slide:indexOf(c),ctrl:e.ctrlKey,shift:e.shiftKey});
+  },true);
+  ov.addEventListener('keydown',function(e){
+    var c=cellOf(e.target);
+    if(!c||(e.key!=='Enter'&&e.key!==' '))return;
+    e.preventDefault();e.stopPropagation();send('pick',{slide:indexOf(c),ctrl:e.ctrlKey,shift:e.shiftKey});
+  },true);
+  ov.addEventListener('contextmenu',function(e){
+    var c=cellOf(e.target);if(c)send('menu',{slide:indexOf(c),x:e.clientX,y:e.clientY});
+  });
+  ov.addEventListener('pointerdown',function(e){
+    var c=cellOf(e.target);
+    if(c&&e.button===0)drag={id:e.pointerId,i:indexOf(c),y:e.clientY,on:false};
+  });
+  ov.addEventListener('pointermove',function(e){
+    if(!drag||e.pointerId!==drag.id)return;
+    if(!drag.on){
+      if(Math.abs(e.clientY-drag.y)<6)return;
+      drag.on=true;dropTo=-1;
+      try{ov.setPointerCapture(e.pointerId);}catch(x){}
+    }
+    var c=cellOf(document.elementFromPoint(e.clientX,e.clientY));
+    if(c){
+      var r=c.getBoundingClientRect(),after=e.clientY>r.top+r.height/2;
+      clearDrop();c.classList.add(after?'dropa':'dropb');dropTo=indexOf(c)+(after?1:0);
+    }
+    if(e.clientY<36)ov.scrollTop-=14;else if(e.clientY>innerHeight-36)ov.scrollTop+=14;
+  });
+  var endDrag=function(e){
+    if(!drag||e.pointerId!==drag.id)return;
+    var d=drag;drag=null;
+    if(!d.on)return;
+    dragged=true;clearDrop();
+    if(e.type==='pointerup'&&dropTo>=0)send('move',{slide:d.i,to:dropTo});
+    setTimeout(function(){dragged=false;},300);
+  };
+  ov.addEventListener('pointerup',endDrag);
+  ov.addEventListener('pointercancel',endDrag);
 }
 
 function isHex(v){return /^#[0-9a-f]{6}$/i.test(v);}
@@ -1809,7 +1877,8 @@ addEventListener('message',function(e){
     case 'key':
       if(p.key)window.dispatchEvent(new KeyboardEvent('keydown',{key:p.key,shiftKey:!!p.shift,ctrlKey:!!p.ctrl,altKey:!!p.alt,bubbles:true,cancelable:true}));
       break;
-    case 'select':if(SORTER)sorterSelect(p.slide|0);break;
+    case 'select':if(SORTER)sorterSelect(p.slide|0,p.selected);break;
+    case 'slides':if(typeof p.html==='string')setSlides(p);break;
     case 'ink':setInk(p.slides||{});break;
     case 'toolbar':
       /* saved settings from the app. fixAll inside applyAll checks every value, as the template does */

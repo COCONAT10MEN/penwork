@@ -23,6 +23,15 @@ fn main() {
         "read_toolbar_file",
         "read_ink",
         "write_ink",
+        "save_deck",
+        "write_recovery",
+        "list_recovery",
+        "delete_recovery",
+        "open_recovery",
+        "delete_draft",
+        "copy_slide_assets",
+        "paste_slide_assets",
+        "delete_ink",
     ]);
     tauri_build::try_build(tauri_build::Attributes::new().app_manifest(manifest))
         .expect("failed to run the Tauri build script");

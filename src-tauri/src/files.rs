@@ -108,6 +108,13 @@ pub fn read_ink(app: AppHandle, id: String) -> Result<Option<String>, String> {
     }
 }
 
+/// After Save the ink is in the file, so the working copy can go.
+#[tauri::command]
+pub fn delete_ink(app: AppHandle, id: String) -> Result<(), String> {
+    let _ = fs::remove_file(ink_path(&app, &id)?);
+    Ok(())
+}
+
 #[tauri::command]
 pub fn write_ink(app: AppHandle, id: String, text: String) -> Result<(), String> {
     let path = ink_path(&app, &id)?;

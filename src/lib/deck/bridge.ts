@@ -8,7 +8,11 @@ export type RuntimeMessage =
   | { type: "state"; slide: number; step: number; steps: number; total: number }
   | { type: "key"; key: string; ctrl: boolean; shift: boolean; alt: boolean }
   /** A slide was clicked in the edit view's slide list. */
-  | { type: "pick"; slide: number }
+  | { type: "pick"; slide: number; ctrl: boolean; shift: boolean }
+  /** A right-click in the slide list, in page coordinates. */
+  | { type: "menu"; slide: number; x: number; y: number }
+  /** A slide was dragged, to land before the slide now at `to`. */
+  | { type: "move"; slide: number; to: number }
   /** The End show button, or F. */
   | { type: "end" }
   /** Toolbar settings changed. fixAll in the page checks them again when they're loaded. */
@@ -38,7 +42,15 @@ export function parseRuntimeMessage(data: unknown): RuntimeMessage | null {
         ? { type, key: p.key, ctrl: p.ctrl === true, shift: p.shift === true, alt: p.alt === true }
         : null;
     case "pick":
-      return isCount(p.slide) ? { type, slide: p.slide } : null;
+      return isCount(p.slide)
+        ? { type, slide: p.slide, ctrl: p.ctrl === true, shift: p.shift === true }
+        : null;
+    case "menu":
+      return isCount(p.slide) && typeof p.x === "number" && typeof p.y === "number"
+        ? { type, slide: p.slide, x: p.x, y: p.y }
+        : null;
+    case "move":
+      return isCount(p.slide) && isCount(p.to) ? { type, slide: p.slide, to: p.to } : null;
     case "end":
     case "importToolbar":
       return { type };

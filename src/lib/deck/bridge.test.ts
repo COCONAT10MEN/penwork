@@ -13,7 +13,23 @@ describe("parseRuntimeMessage", () => {
       steps: 3,
       total: 8,
     });
-    expect(parseRuntimeMessage(msg("pick", { slide: 4 }))).toEqual({ type: "pick", slide: 4 });
+    expect(parseRuntimeMessage(msg("pick", { slide: 4, ctrl: true }))).toEqual({
+      type: "pick",
+      slide: 4,
+      ctrl: true,
+      shift: false,
+    });
+    expect(parseRuntimeMessage(msg("menu", { slide: 1, x: 5, y: 6 }))).toEqual({
+      type: "menu",
+      slide: 1,
+      x: 5,
+      y: 6,
+    });
+    expect(parseRuntimeMessage(msg("move", { slide: 1, to: 3 }))).toEqual({
+      type: "move",
+      slide: 1,
+      to: 3,
+    });
     expect(parseRuntimeMessage(msg("end", {}))).toEqual({ type: "end" });
     expect(parseRuntimeMessage(msg("ink", { id: "s-1", strokes: [] }))).toEqual({
       type: "ink",
@@ -42,6 +58,8 @@ describe("parseRuntimeMessage", () => {
       msg("state", { slide: 1.5, step: 0, steps: 0, total: 8 }),
       msg("state", { slide: 1, total: 8 }),
       msg("pick", { slide: "1" }),
+      msg("menu", { slide: 1, x: "5", y: 6 }),
+      msg("move", { slide: 1, to: -1 }),
       msg("ink", { id: 5 }),
       msg("exportToolbar", { text: 5 }),
       msg("key", { key: 5 }),

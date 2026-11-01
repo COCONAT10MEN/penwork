@@ -4,6 +4,7 @@ import { deckAccent, deckFacts, type DeckFacts } from "../../lib/deck/facts";
 import { manifestFor, type DeckParts } from "../../lib/deck/deckParts";
 import { fileTitle, readManifest, type DeckManifest } from "../../lib/deck/manifest";
 import { sanitizeSlides } from "../../lib/deck/sanitize";
+import { splitSlides, type DeckSlide } from "../../lib/deck/slideOps";
 
 export interface OpenDeck {
   /** Names this deck on the private slide address. */
@@ -11,6 +12,12 @@ export interface OpenDeck {
   path: string;
   manifest: DeckManifest;
   slideCount: number;
+  /** The original, cleaned HTML of each slide: what the editor works on. */
+  slides: DeckSlide[];
+  /** Kept in the app's own folder, so its first Save asks where to put it. */
+  draft: boolean;
+  /** Unsaved work brought back from a recovery copy. */
+  recovered?: boolean;
   /** What the sanitiser took out, for the "Cleaned up while opening" note. */
   removed: string[];
   facts: DeckFacts;
@@ -27,6 +34,7 @@ interface OpenedFromRust {
   token: string;
   path: string;
   stamp: string;
+  draft: boolean;
   content: {
     manifest: unknown;
     slidesHtml: string;
@@ -58,14 +66,15 @@ async function publishSlides(token: string, rawHtml: string) {
   return { html, removed: clean.removed, slideCount: clean.slideCount };
 }
 
-export async function openDeckFile(path: string): Promise<OpenDeck> {
-  const opened = await invoke<OpenedFromRust>("open_deck", { path });
+async function fromRust(opened: OpenedFromRust, path: string): Promise<OpenDeck> {
   const slides = await publishSlides(opened.token, opened.content.slidesHtml);
   return {
     token: opened.token,
     path: opened.path,
     manifest: readManifest(opened.content.manifest, fileTitle(path)),
     slideCount: slides.slideCount,
+    slides: splitSlides(slides.html),
+    draft: opened.draft,
     removed: slides.removed,
     facts: deckFacts(slides.html),
     accent: deckAccent(opened.content.themeCss ?? ""),
@@ -73,6 +82,15 @@ export async function openDeckFile(path: string): Promise<OpenDeck> {
     hasInk: opened.content.ink !== null,
     ink: opened.content.ink,
   };
+}
+
+export async function openDeckFile(path: string): Promise<OpenDeck> {
+  return fromRust(await invoke<OpenedFromRust>("open_deck", { path }), path);
+}
+
+export async function openRecoveryFile(id: string, path: string): Promise<OpenDeck> {
+  const opened = await invoke<OpenedFromRust>("open_recovery", { id, path });
+  return { ...(await fromRust(opened, path)), recovered: true };
 }
 
 async function openParts(deck: DeckParts, generator: string) {
@@ -87,6 +105,8 @@ async function openParts(deck: DeckParts, generator: string) {
     token,
     manifest: readManifest(manifest, deck.title),
     slideCount: slides.slideCount,
+    slides: splitSlides(slides.html),
+    draft: true,
     removed: slides.removed,
     facts: deckFacts(slides.html),
     accent: deckAccent(deck.themeCss),
@@ -95,7 +115,7 @@ async function openParts(deck: DeckParts, generator: string) {
   };
 }
 
-/** A new deck with no file yet: it lives in the app's folder until Save as arrives in M4. */
+/** A new deck with no file yet: it lives in the app's folder until its first Save. */
 export async function createDraft(deck: DeckParts, generator: string): Promise<OpenDeck> {
   const opened = await openParts(deck, generator);
   const path = await invoke<string>("write_draft", { token: opened.token });

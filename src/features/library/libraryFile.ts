@@ -116,6 +116,15 @@ export function setFavorite(library: Library, id: string, favorite: boolean): Li
   return { ...library, decks: library.decks.map((d) => (d.id === id ? { ...d, favorite } : d)) };
 }
 
+/** A draft that was saved somewhere real is the same presentation, so it keeps its place. */
+export function renameDeck(library: Library, oldPath: string, path: string): Library {
+  const key = oldPath.toLowerCase();
+  return {
+    ...library,
+    decks: library.decks.map((d) => (d.path.toLowerCase() === key ? { ...d, path } : d)),
+  };
+}
+
 export function setInkFlag(library: Library, id: string, ink: boolean): Library {
   return { ...library, decks: library.decks.map((d) => (d.id === id ? { ...d, ink } : d)) };
 }

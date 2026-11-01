@@ -72,8 +72,26 @@ html.sorter #ov .grid {
   padding: 10px 12px 12px;
 }
 html.sorter #ov .cell {
+  position: relative;
   display: block;
   min-width: 0;
+}
+/* Where a dragged slide will land. */
+html.sorter #ov .cell.dropb::before,
+html.sorter #ov .cell.dropa::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--pw-accent, var(--acc));
+}
+html.sorter #ov .cell.dropb::before {
+  top: -9px;
+}
+html.sorter #ov .cell.dropa::after {
+  bottom: -9px;
 }
 html.sorter #ov .num {
   display: block;
@@ -91,6 +109,9 @@ html.sorter #ov .th {
 html.sorter #ov .cell:hover .th,
 html.sorter #ov .cell:focus-visible .th {
   box-shadow: 0 0 0 2px var(--pw-accent, var(--cy));
+}
+html.sorter #ov .cell.sel .th {
+  box-shadow: 0 0 0 2px var(--pw-accent, var(--acc));
 }
 html.sorter #ov .cell.cur .th {
   box-shadow: 0 0 0 3px var(--pw-accent, var(--acc));

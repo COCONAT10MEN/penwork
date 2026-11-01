@@ -6,6 +6,7 @@ import {
   isDeckError,
   isDeckPath,
   openDeckFile,
+  openRecoveryFile,
   type OpenDeck,
 } from "./features/deck/openDeck";
 import {
@@ -15,6 +16,7 @@ import {
   parseLibrary,
   recordOpen,
   removeDeck,
+  renameDeck,
   setFavorite,
   setInkFlag,
   setLastSlide,
@@ -22,6 +24,7 @@ import {
   type Library,
 } from "./features/library/libraryFile";
 import type { DeckParts } from "./lib/deck/deckParts";
+import type { DeckFacts } from "./lib/deck/facts";
 
 export interface AppNotice {
   message: string;
@@ -38,10 +41,25 @@ interface AppState {
   presentOnOpen: boolean;
   /** Set while a deck is loading, so the UI can show it. */
   opening: boolean;
+  /** True once the library has been read, so recovery can look decks up in it. */
+  libraryReady: boolean;
+  /** Set by the open presentation: asks about unsaved work before it's replaced or closed. */
+  leaveGuard: (() => Promise<boolean>) | null;
   loadLibrary: () => Promise<void>;
   openPath: (path: string, notify: Notify, options?: { present?: boolean }) => Promise<void>;
   /** New deck: makes the deck, then opens it. */
   createDeck: (deck: DeckParts, generator: string, notify: Notify) => Promise<void>;
+  /** Opens a recovery copy of a presentation's unsaved work. */
+  recoverDeck: (id: string, path: string, notify: Notify) => Promise<void>;
+  deckSaved: (saved: {
+    oldPath: string;
+    rename: boolean;
+    path: string;
+    stamp: string;
+    slides: number;
+    facts: DeckFacts;
+    ink: boolean;
+  }) => void;
   closeDeck: () => void;
   rememberSlide: (slide: number) => void;
   removeFromRecents: (id: string) => void;
@@ -66,10 +84,14 @@ export const useApp = create<AppState>((set, get) => {
     persist(library);
   };
 
+  const leaving = async () => (await get().leaveGuard?.()) ?? true;
+
   /** Puts a deck on screen and into the library, whichever way it arrived. */
   const show = (deck: OpenDeck, notify: Notify, present = false) => {
     const previous = get().deck;
     if (previous) closeDeckFile(previous.token);
+    const key = deck.path.toLowerCase();
+    const known = get().library.decks.find((d) => d.path.toLowerCase() === key);
     const library = recordOpen(
       get().library,
       {
@@ -78,7 +100,8 @@ export const useApp = create<AppState>((set, get) => {
         slides: deck.slideCount,
         quizzes: deck.facts.quizzes,
         interactive: deck.facts.interactive,
-        ink: deck.hasInk,
+        // Ink can also be waiting in the app's folder, for a presentation not saved since.
+        ink: deck.hasInk || known?.ink === true,
         text: deck.facts.text,
       },
       new Date().toISOString(),
@@ -100,6 +123,8 @@ export const useApp = create<AppState>((set, get) => {
     startSlide: 0,
     presentOnOpen: false,
     opening: false,
+    libraryReady: false,
+    leaveGuard: null,
 
     loadLibrary: async () => {
       if (!isTauri()) return;
@@ -109,7 +134,7 @@ export const useApp = create<AppState>((set, get) => {
       set({ library });
       const paths = library.decks.map((d) => d.path);
       const exists = await invoke<boolean[]>("existing_paths", { paths });
-      set({ library: markExisting(get().library, exists) });
+      set({ library: markExisting(get().library, exists), libraryReady: true });
     },
 
     openPath: async (path, notify, options) => {
@@ -117,6 +142,7 @@ export const useApp = create<AppState>((set, get) => {
         notify({ message: "Penwork opens .pwpptx presentations only." });
         return;
       }
+      if (!(await leaving())) return;
       set({ opening: true });
       try {
         show(await openDeckFile(path), notify, options?.present);
@@ -128,7 +154,31 @@ export const useApp = create<AppState>((set, get) => {
       }
     },
 
+    recoverDeck: async (id, path, notify) => {
+      set({ opening: true });
+      try {
+        show(await openRecoveryFile(id, path), notify);
+      } catch (error) {
+        reportError(error, notify);
+      } finally {
+        set({ opening: false });
+      }
+    },
+
+    deckSaved: ({ oldPath, rename, path, stamp, slides, facts, ink }) => {
+      const { library, deck } = get();
+      const start = rename ? renameDeck(library, oldPath, path) : library;
+      const title = deck?.manifest.title ?? path;
+      commit(
+        recordOpen(start, { path, title, slides, ink, ...facts }, new Date().toISOString(), () =>
+          crypto.randomUUID(),
+        ),
+      );
+      if (deck) set({ deck: { ...deck, path, stamp, draft: false, slideCount: slides } });
+    },
+
     createDeck: async (deck, generator, notify) => {
+      if (!(await leaving())) return;
       set({ opening: true });
       try {
         show(await createDraft(deck, generator), notify);

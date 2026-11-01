@@ -8,6 +8,7 @@
   "permissions": [
     "core:default",
     "core:window:allow-set-fullscreen",
+    "core:window:allow-destroy",
     "dialog:allow-open",
     "dialog:allow-save",
     "dialog:allow-message",
@@ -30,7 +31,16 @@
     "allow-export-toolbar",
     "allow-read-toolbar-file",
     "allow-read-ink",
-    "allow-write-ink"
+    "allow-write-ink",
+    "allow-save-deck",
+    "allow-write-recovery",
+    "allow-list-recovery",
+    "allow-delete-recovery",
+    "allow-open-recovery",
+    "allow-delete-draft",
+    "allow-copy-slide-assets",
+    "allow-paste-slide-assets",
+    "allow-delete-ink"
   ],
   "local": true
 }

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-delete-recovery"
+description = "Enables the delete_recovery command without any pre-configured scope."
+commands.allow = ["delete_recovery"]
+
+[[permission]]
+identifier = "deny-delete-recovery"
+description = "Denies the delete_recovery command without any pre-configured scope."
+commands.deny = ["delete_recovery"]

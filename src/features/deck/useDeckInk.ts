@@ -30,7 +30,7 @@ async function loadInk(deck: OpenDeck): Promise<InkBySlide> {
  * A presentation's ink. Until Save arrives in M4 it can't go into the file, so it's kept in the
  * app's own folder, on top of whatever ink the file already has.
  */
-export function useDeckInk(deck: OpenDeck, sorter: Frame) {
+export function useDeckInk(deck: OpenDeck, sorter: Frame, onChanged: () => void) {
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const dirty = useRef(false);
   const [loaded] = useState(() => loadInk(deck));
@@ -66,13 +66,20 @@ export function useDeckInk(deck: OpenDeck, sorter: Frame) {
         // An empty list is kept: it says this slide's ink was erased, over any ink in the file.
         ink[slide] = clean;
         dirty.current = true;
+        onChanged();
         clearTimeout(timer.current);
         timer.current = setTimeout(() => void flush(), SAVE_DELAY);
         sorter.current?.post("ink", { slides: { [slide]: clean } });
       });
     },
-    [loaded, flush, sorter],
+    [loaded, flush, sorter, onChanged],
   );
 
-  return { send, changed };
+  /** What goes into the file's ink.json on Save. */
+  const file = useCallback(async () => {
+    const ink = await loaded;
+    return hasInk(ink) ? { version: 1 as const, slides: ink } : null;
+  }, [loaded]);
+
+  return { send, changed, file };
 }

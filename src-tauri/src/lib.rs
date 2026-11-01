@@ -4,7 +4,7 @@ pub mod deck;
 mod files;
 mod window;
 
-use deck::session::{self, Sessions};
+use deck::session::{self, Sessions, SlideClipboard};
 use std::sync::Mutex;
 use tauri::{Emitter, Manager};
 use tauri_plugin_window_state::StateFlags;
@@ -46,6 +46,7 @@ pub fn run() {
                 .build(),
         )
         .manage(Sessions::default())
+        .manage(SlideClipboard::default())
         .manage(PendingOpen::default())
         .register_uri_scheme_protocol(session::SCHEME, |ctx, request| {
             session::handle(&ctx.app_handle().state::<Sessions>(), &request)
@@ -72,10 +73,19 @@ pub fn run() {
             files::read_toolbar_file,
             files::read_ink,
             files::write_ink,
+            files::delete_ink,
             session::open_deck,
             session::create_deck_session,
             session::add_deck_asset,
             session::write_draft,
+            session::save_deck,
+            session::write_recovery,
+            session::list_recovery,
+            session::delete_recovery,
+            session::open_recovery,
+            session::delete_draft,
+            session::copy_slide_assets,
+            session::paste_slide_assets,
             session::set_deck_slides,
             session::close_deck,
         ])

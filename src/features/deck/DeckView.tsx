@@ -5,9 +5,8 @@ import { useStore } from "zustand";
 import { useApp } from "../../appStore";
 import type { RuntimeMessage } from "../../lib/deck/bridge";
 import { isHidden } from "../../lib/deck/slideOps";
-import { AmbientBackground, Button, penworkLogoSvg, Surface } from "../../ui";
+import { AmbientBackground, Button, Surface } from "../../ui";
 import { cx } from "../../ui/cx";
-import { logoColor } from "../settings/appearance";
 import { useSettings } from "../settings/settingsStore";
 import { createDeckStore } from "./deckStore";
 import { EditHeader } from "./EditHeader";
@@ -16,6 +15,8 @@ import type { OpenDeck } from "./openDeck";
 import { SlideMenu, type SlideMenuTarget } from "./SlideMenu";
 import { useChoice } from "./useChoice";
 import { useDeckSave } from "./useDeckSave";
+import { useFrameChrome } from "./useFrameChrome";
+import { useLeaveGuard } from "./useLeaveGuard";
 import { useEditKeys } from "./useEditKeys";
 import { useSlideEditing } from "./useSlideEditing";
 import { exportToolbar, importToolbar, loadToolbar, saveToolbar } from "./toolbarFile";
@@ -45,7 +46,6 @@ export function DeckView({
   presentOnOpen: boolean;
 }) {
   const closeDeck = useApp((s) => s.closeDeck);
-  const notifyCleaned = useRef(false);
   const rememberSlide = useApp((s) => s.rememberSlide);
   const stage = useRef<RuntimeFrameHandle>(null);
   const sorter = useRef<RuntimeFrameHandle>(null);
@@ -68,70 +68,27 @@ export function DeckView({
   const { dialog, ask } = useChoice();
   const inkChanged = useCallback(() => store.setState({ inkChanged: true }), [store]);
   const ink = useDeckInk(deck, sorter, inkChanged);
+  const { send } = ink;
   const afterSync = useCallback(() => {
-    void ink.send(stage);
-    void ink.send(sorter);
+    void send(stage);
+    void send(sorter);
     setSyncs((n) => n + 1);
-  }, [ink]);
-  const editing = useSlideEditing({ deck, store, stage, sorter, slideRef: latestSlide, afterSync });
+  }, [send]);
+  const editing = useSlideEditing({
+    deck,
+    store,
+    stage,
+    sorter,
+    start,
+    slideRef: latestSlide,
+    afterSync,
+  });
   const { selected, setSelected } = editing;
 
-  // Once per presentation: after this Save, what was removed is gone from the file too.
-  const confirmCleaned = useCallback(async () => {
-    if (notifyCleaned.current) return true;
-    const answer = await ask({
-      headline: "Save the cleaned-up version?",
-      text: `Penwork removed this when opening the file: ${deck.removed.join(", ")}. Saving makes that permanent.`,
-      icon: "cleaning_services",
-      actions: [
-        { value: "cancel", label: "Cancel" },
-        { value: "save", label: "Save" },
-      ],
-    });
-    notifyCleaned.current = answer === "save";
-    return notifyCleaned.current;
-  }, [ask, deck.removed]);
-  const { dirty, save, discard } = useDeckSave({ deck, store, inkFile: ink.file, confirmCleaned });
+  const { dirty, save, discard } = useDeckSave({ deck, store, inkFile: ink.file, ask });
+  const guard = useLeaveGuard({ dirty, title: deck.manifest.title, ask, save, discard });
 
-  /** True when it's fine to move on: nothing unsaved, or the user has decided what to do with it. */
-  const guard = useCallback(async () => {
-    if (!dirty) return true;
-    const answer = await ask({
-      headline: "Save your changes?",
-      text: `"${deck.manifest.title}" has changes that aren't saved.`,
-      icon: "save",
-      actions: [
-        { value: "cancel", label: "Cancel" },
-        { value: "discard", label: "Don't save" },
-        { value: "save", label: "Save" },
-      ],
-    });
-    if (answer === "discard") discard();
-    return answer === "save" ? save() : answer === "discard";
-  }, [dirty, ask, deck.manifest.title, save, discard]);
-
-  useEffect(() => {
-    useApp.setState({ leaveGuard: guard });
-    return () => useApp.setState({ leaveGuard: null });
-  }, [guard]);
-
-  // Closing the window is one more way to leave.
-  const guardRef = useRef(guard);
-  const dirtyRef = useRef(dirty);
-  useEffect(() => {
-    guardRef.current = guard;
-    dirtyRef.current = dirty;
-  });
-  useEffect(() => {
-    if (!isTauri()) return;
-    const stop = getCurrentWindow().onCloseRequested(async (event) => {
-      if (!dirtyRef.current) return;
-      event.preventDefault();
-      if (await guardRef.current()) void getCurrentWindow().destroy();
-    });
-    return () => void stop.then((unlisten) => unlisten());
-  }, []);
-  const systemSeed = useSettings((s) => s.systemSeed);
+  const { postChrome, postLogo } = useFrameChrome(stage, sorter);
   const presentButton = useRef<HTMLButtonElement>(null);
   const wasPresenting = useRef(presenting);
 
@@ -140,34 +97,6 @@ export function DeckView({
     if (wasPresenting.current && !presenting) presentButton.current?.focus();
     wasPresenting.current = presenting;
   }, [presenting]);
-
-  const postChrome = useCallback(() => {
-    const css = getComputedStyle(document.documentElement);
-    sorter.current?.post("chrome", {
-      accent: css.getPropertyValue("--md-sys-color-primary").trim(),
-      text: css.getPropertyValue("--md-sys-color-on-surface").trim(),
-      line: css.getPropertyValue("--md-sys-color-outline-variant").trim(),
-      scheme: css.colorScheme,
-    });
-  }, []);
-
-  const postLogo = useCallback(() => {
-    const { settings, systemSeed: seed } = useSettings.getState();
-    stage.current?.post("logo", {
-      svg: settings.logo?.svg ?? penworkLogoSvg(),
-      color: logoColor(settings, seed),
-      background: settings.logoBackground,
-    });
-  }, []);
-
-  // The default theme follows Windows, which can change while a presentation is open.
-  useEffect(() => {
-    postChrome();
-    postLogo();
-    const dark = window.matchMedia("(prefers-color-scheme: dark)");
-    dark.addEventListener("change", postChrome);
-    return () => dark.removeEventListener("change", postChrome);
-  }, [postChrome, postLogo, systemSeed]);
 
   const modeMessage = (mode: "edit" | "present", from: number) => {
     const { reduceMotion, endOfShow } = useSettings.getState().settings;

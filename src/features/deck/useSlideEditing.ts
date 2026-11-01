@@ -30,13 +30,14 @@ export function useSlideEditing(options: {
   store: DeckStore;
   stage: Frame;
   sorter: Frame;
+  start: number;
   slideRef: RefObject<number>;
   /** Called after the page has new slides, as ink is matched to them by slide id. */
   afterSync: () => void;
 }) {
-  const { deck, store, stage, sorter, slideRef, afterSync } = options;
+  const { deck, store, stage, sorter, start, slideRef, afterSync } = options;
   const notify = useSnackbar();
-  const [selected, setSelected] = useState<number[]>([slideRef.current]);
+  const [selected, setSelected] = useState<number[]>([start]);
 
   /** Puts a list of slides on screen, in Rust too, so Save and a reload see the same thing. */
   const show = useCallback(

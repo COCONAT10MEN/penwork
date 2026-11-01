@@ -1,6 +1,6 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import { save as saveDialog } from "@tauri-apps/plugin-dialog";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useStore } from "zustand";
 import { useApp } from "../../appStore";
 import { deckFacts } from "../../lib/deck/facts";
@@ -9,6 +9,7 @@ import { joinSlides } from "../../lib/deck/slideOps";
 import { useSnackbar } from "../../ui";
 import { isDirty, markSaved, type DeckStore } from "./deckStore";
 import type { OpenDeck } from "./openDeck";
+import type { ChoiceOptions } from "./useChoice";
 
 /** Often enough to lose very little (docs/DECK-FORMAT.md §8). */
 const RECOVERY_EVERY = 5000;
@@ -27,16 +28,32 @@ export function useDeckSave(options: {
   store: DeckStore;
   /** The slides, as ink.json wants them. Null when there's no ink at all. */
   inkFile: () => Promise<{ version: 1; slides: InkBySlide } | null>;
-  /** Asked before the first Save of a file the sanitiser changed. */
-  confirmCleaned: () => Promise<boolean>;
+  ask: <T extends string>(question: ChoiceOptions<T>) => Promise<T | null>;
 }) {
-  const { deck, store, inkFile, confirmCleaned } = options;
+  const { deck, store, inkFile, ask } = options;
   const notify = useSnackbar();
   const dirty = useStore(store, isDirty);
+  const cleanedOk = useRef(false);
+
+  // Once per presentation: after this Save, what the sanitiser removed is gone from the file too.
+  const confirmCleaned = useCallback(async () => {
+    if (deck.removed.length === 0 || cleanedOk.current) return true;
+    const answer = await ask({
+      headline: "Save the cleaned-up version?",
+      text: `Penwork removed this when opening the file: ${deck.removed.join(", ")}. Saving makes that permanent.`,
+      icon: "cleaning_services",
+      actions: [
+        { value: "cancel", label: "Cancel" },
+        { value: "save", label: "Save" },
+      ],
+    });
+    cleanedOk.current = answer === "save";
+    return cleanedOk.current;
+  }, [ask, deck.removed]);
 
   const save = useCallback(
     async (saveAs = false): Promise<boolean> => {
-      if (deck.removed.length > 0 && !(await confirmCleaned())) return false;
+      if (!(await confirmCleaned())) return false;
       const needsPlace = saveAs || deck.draft;
       const chosen = needsPlace
         ? await saveDialog({

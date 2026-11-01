@@ -1,6 +1,6 @@
 import { useCallback, useEffect, type RefObject } from "react";
 import { penworkLogoSvg } from "../../ui";
-import { logoColor } from "../settings/appearance";
+import { dockColors } from "../settings/appearance";
 import { useSettings } from "../settings/settingsStore";
 import type { RuntimeFrameHandle } from "./RuntimeFrame";
 
@@ -25,8 +25,7 @@ export function useFrameChrome(stageRef: Frame, sorterRef: Frame) {
     const { settings, systemSeed: seed } = useSettings.getState();
     stageRef.current?.post("logo", {
       svg: settings.logo?.svg ?? penworkLogoSvg(),
-      color: logoColor(settings, seed),
-      background: settings.logoBackground,
+      ...dockColors(settings, seed),
     });
   }, [stageRef]);
 

@@ -1872,23 +1872,35 @@ function bootSorter(){
   ov.addEventListener('pointercancel',endDrag);
 }
 
-/* Browser tooltips give away a web page, so titles are moved onto the dock's own chip. */
-var tipEl=document.createElement('div'),tipT;
+/* Browser tooltips give away a web page, so titles become our own chip, which grows out of the tool it names. */
+var tipEl=document.createElement('div'),tipT,tipWarm=0;
 tipEl.id='tip';document.body.appendChild(tipEl);
-function tipOff(){clearTimeout(tipT);tipEl.classList.remove('on');}
+function tipOff(){clearTimeout(tipT);if(tipEl.classList.contains('on'))tipWarm=Date.now();tipEl.classList.remove('on');}
 function tipAt(t){
+  /* starts over at the new tool at once, or it would travel across from the last one */
+  tipEl.style.transition='none';tipEl.classList.remove('on');
   tipEl.textContent=t.getAttribute('data-tip');
-  var r=t.getBoundingClientRect(),w=tipEl.offsetWidth,h=tipEl.offsetHeight,y=r.top-h-8;
-  if(y<4)y=r.bottom+8;
-  tipEl.style.transform='translate('+Math.round(Math.max(4,Math.min(innerWidth-w-4,r.left+r.width/2-w/2)))+'px,'+Math.round(y)+'px)';
-  tipEl.classList.add('on');
+  var r=t.getBoundingClientRect(),w=tipEl.offsetWidth,h=tipEl.offsetHeight,cx=r.left+r.width/2,cy=r.top+r.height/2,x,y,ox,oy;
+  if(document.getElementById('dock').classList.contains('vert')){
+    var right=cx<innerWidth/2;
+    x=right?r.right+8:r.left-w-8;y=cy-h/2;ox=right?r.right:r.left;oy=cy;
+  }else{
+    var up=r.top-h-8>=4;
+    x=cx-w/2;y=up?r.top-h-8:r.bottom+8;ox=cx;oy=up?r.top:r.bottom;
+  }
+  x=Math.round(Math.max(4,Math.min(innerWidth-w-4,x)));y=Math.round(Math.max(4,Math.min(innerHeight-h-4,y)));
+  tipEl.style.left=x+'px';tipEl.style.top=y+'px';
+  tipEl.style.transformOrigin=Math.round(ox-x)+'px '+Math.round(oy-y)+'px';
+  void tipEl.offsetWidth;
+  tipEl.style.transition='';tipEl.classList.add('on');
 }
 document.addEventListener('pointerover',function(e){
   var t=e.target&&e.target.closest?e.target.closest('[title],[data-tip]'):null;
   tipOff();
   if(!t)return;
   if(t.hasAttribute('title')){t.setAttribute('data-tip',t.title);t.removeAttribute('title');}
-  if(e.pointerType==='mouse')tipT=setTimeout(function(){tipAt(t);},500);
+  /* once one is showing, the next tool's comes up straight away */
+  if(e.pointerType==='mouse')tipT=setTimeout(function(){tipAt(t);},Date.now()-tipWarm<400?0:120);
 },true);
 document.addEventListener('pointerdown',tipOff,true);
 

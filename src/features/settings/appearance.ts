@@ -1,8 +1,9 @@
 import { applyTheme, PENWORK_SEED, setThemeMode, setTransparency } from "../../theme/theme";
-import type { Settings } from "./settingsFile";
+import { DEFAULT_SETTINGS, type Settings } from "./settingsFile";
 
-/** The dock is dark in both themes, so its logo always takes the dark theme's teal. */
+/** The logo on Home sits on the design's dark teal, so it takes the dark theme's teal. */
 const PENWORK_LOGO = "#82D3E6";
+const DOCK_BACKGROUND = "#000000";
 
 /** The colour of the logo: its own for a custom logo, else teal or the Windows accent. */
 export function logoColor(settings: Settings, systemSeed: string): string {
@@ -19,6 +20,18 @@ export function chromeSeed(
   if (settings.colorSource === "custom") return settings.customColor;
   if (settings.colorSource === "deck" && deckAccent) return deckAccent;
   return logoColor(settings, systemSeed);
+}
+
+/**
+ * The toolbar during a show keeps the template's look: the Windows accent on black, not the app's
+ * teal, until a custom logo or a logo background picked in Settings says otherwise.
+ */
+export function dockColors(settings: Settings, systemSeed: string) {
+  const picked = settings.logoBackground !== DEFAULT_SETTINGS.logoBackground;
+  return {
+    color: settings.logo?.color ?? systemSeed,
+    background: picked ? settings.logoBackground : DOCK_BACKGROUND,
+  };
 }
 
 let lastSeed: string | null = null;

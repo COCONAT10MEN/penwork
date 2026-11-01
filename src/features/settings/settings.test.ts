@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from "vitest";
-import { applyAppearance, chromeSeed, logoColor } from "./appearance";
+import { applyAppearance, chromeSeed, dockColors, logoColor } from "./appearance";
 import { PENWORK_SEED } from "../../theme/theme";
 import { DEFAULT_SETTINGS, parseSettings, type Settings } from "./settingsFile";
 
@@ -39,6 +39,10 @@ describe("app colour", () => {
   it("defaults to Penwork's teal, whatever Windows is set to", () => {
     expect(chromeSeed(DEFAULT_SETTINGS, WINDOWS, null)).toBe(PENWORK_SEED);
     expect(logoColor(DEFAULT_SETTINGS, WINDOWS)).not.toBe(WINDOWS);
+    expect(dockColors(DEFAULT_SETTINGS, WINDOWS)).toEqual({
+      color: WINDOWS,
+      background: "#000000",
+    });
   });
 
   it("follows the Windows accent when the logo setting is chosen", () => {

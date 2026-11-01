@@ -39,7 +39,7 @@ glass uses a stronger color for the same reason.)
 A glass surface = fill + `backdrop-filter: blur(var(--blur)) saturate(var(--pw-glass-saturate))` + rim + rim-top +
 a `::before` sheen layer + (floating only) shadow. Build it **once** as a `Surface` primitive in `src/ui/`
 (`<Surface material="glass" strength="regular">` / `material="tonal"`) and make existing components
-(Card, Menu, Dialog, NavigationRail, TopAppBar, Snackbar, Tooltip, SearchBar) take a `material` prop instead
+(Card, Menu, Dialog, NavigationRail, TopAppBar, Tooltip, SearchBar) take a `material` prop instead
 of duplicating CSS.
 
 ## 3. What sits behind the glass
@@ -57,12 +57,14 @@ Glass needs colour behind it to look like glass.
 ## 4. Colour
 
 - **App colour** is a setting (the seed for all chrome):
-  - **Sync with logo (default):** the default Penwork logo uses the Windows accent colour (fallback Ink blue). A custom
-    logo uses its own single colour.
+  - **Penwork teal (default):** the design's own colours, set exactly in `src/theme/theme.ts`. The owner chose this on
+    2026-11-01 so that the app matches the mockups.
+  - **Sync with logo:** the default Penwork logo uses the Windows accent colour. A custom logo uses its own single colour.
   - **Match the open deck:** the chrome's seed becomes the deck's `--teal` accent while a deck is open.
   - **Custom colour:** chosen with the ColorPicker.
-- Glass text must reach **4.5:1** against the worst case behind it. Thin glass only carries short labels ≥ 13 px
-  bold. Long text goes on thick glass.
+- Glass text must reach **4.5:1** against the app's own background and its soft colours (`theme.test.ts`). App panels
+  never sit over a slide; the show's dock has its own colours. Thin glass only carries short labels ≥ 13 px bold.
+  Long text goes on thick glass.
 
 ## 5. Shape & type (unchanged from M3E, emphasised here)
 

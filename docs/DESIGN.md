@@ -17,7 +17,7 @@ Starting token values: `design/tokens.css` (hand-matched; M1 replaces them with 
 
 - Generated from a **seed color** with `@material/material-color-utilities`
   (`SchemeTonalSpot` by default; offer `SchemeVibrant` / `SchemeExpressive` as a setting).
-- Seed source on Windows: system accent color → fallback Ink blue `#3F5BD4` → user override in Settings.
+- Seed: Penwork teal `#00687A` by default. Settings can follow the Windows accent or a custom colour.
 - Expose every role as a CSS variable: `--md-sys-color-<role>`, e.g.
   `primary, on-primary, primary-container, on-primary-container, secondary…, tertiary…, error…,
   surface, surface-dim, surface-bright, surface-container-lowest|low|(none)|high|highest,
@@ -28,7 +28,6 @@ Starting token values: `design/tokens.css` (hand-matched; M1 replaces them with 
   - Selected nav item / selected chip: `secondary-container` + `on-secondary-container`.
   - Floating toolbar: `primary-container`; its selected tool: `primary` + `on-primary`.
   - Paired action button next to the toolbar (insert, undo on phone): `tertiary-container`.
-  - Snackbar: `inverse-surface`.
 - Highlighter colors are **content colors**, not theme colors: yellow `#FBD64A`, green `#A8E6B8`,
   pink `#F9B8DC`, blue `#A9C7FF`, orange `#FFC89A`, all at ~55% opacity (multiply blend).
 
@@ -99,7 +98,7 @@ when selected. Bundle the font locally.
 - Hero "Continue" card (primary-container, radius 28) + pinned card (tertiary-container).
 - Recent grid of cards (surface-container, radius 24) with page thumbnails.
 - FAB menu bottom-right: Import PDF / New notebook / Quick note.
-- Import progress uses the wavy linear progress inside a snackbar.
+- Import progress uses the wavy linear progress in the screen it belongs to, never a pop-up.
 
 ### PDF viewer + annotate (`pdf-desktop.html`)
 - Top app bar: back, file name, subtitle, search, page chip, Sign (tonal tertiary), Save copy (filled).

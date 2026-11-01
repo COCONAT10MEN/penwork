@@ -115,3 +115,9 @@ colour from a seed) and the **tinted liquid-glass** look of the owner's toolbar.
     decision 3 above. The template routes pen, finger and mouse through one page: the pen always draws while a finger
     navigates and palms are ignored. An overlay in the app can't take a pen and let a finger through, so the exact behaviour
     needs ink in the same page as the slides. The page stays sandboxed, and the app checks everything it sends.
+16. **It must feel like a Windows app, not a web page (2026-11-01).** No snackbars or toasts: routine results show in the
+    app's own status, blocked actions are greyed out, and what needs attention is a real Windows dialog. WebView2's browser
+    menus, shortcuts, zoom and autofill are off. The one exception is the short hints the template gives during a show.
+17. **The design is copied exactly (2026-11-01).** Teal is the default colour. The dock takes the design's look, with every
+    template feature kept. The owner's later decisions still beat the mockups: "presentation", no Paste from AI, no `.html`,
+    and slide numbers above each slide.

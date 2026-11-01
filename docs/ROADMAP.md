@@ -18,12 +18,12 @@ Tick boxes only when finished and verified in the running app.
 ## M1 — Theme & Material 3 Expressive component kit
 - [x] Theme generation from a seed color with material-color-utilities → CSS variables (light + dark)
 - [x] Follow system light/dark; manual override in settings later (M2)
-- [x] Seed from the Windows accent color (Rust command), fallback to Ink blue `#3F5BD4`
+- [x] Seed from the Windows accent color (Rust command), now a Settings choice; teal `#00687A` is the default
 - [x] Typography, shape, elevation and state-layer tokens (`docs/DESIGN.md`)
 - [x] Motion presets (springs) + reduced-motion fallback
 - [x] Components in `src/ui/`: Button (filled, tonal, outlined, text; small/medium/large), IconButton (standard, filled, tonal, toggle),
       ButtonGroup (connected, shape morph on select), SplitButton, FAB, FAB menu, Chip (filter/assist), SearchBar,
-      NavigationRail, TopAppBar, Card, List + ListItem, Menu, Dialog, SideSheet, Snackbar, Tooltip, Slider, Switch,
+      NavigationRail, TopAppBar, Card, List + ListItem, Menu, Dialog, SideSheet, Tooltip, Slider, Switch,
       SegmentedButton, FloatingToolbar, LinearProgress (wavy + flat), CircularProgress (wavy), LoadingIndicator (shape morph)
 - [x] A hidden "Gallery" screen (dev builds only) showing every component in light and dark
 - [x] Keyboard focus ring and hover/pressed state layers on everything interactive
@@ -32,7 +32,7 @@ Tick boxes only when finished and verified in the running app.
 - [x] `Surface` primitive: `material="glass" | "tonal"`, `strength="thin|regular|thick"` (`docs/DESIGN-GLASS.md`)
 - [x] Glass tokens generated per theme (light + dark), Transparency setting (Glass / Reduced) wired up
 - [x] No-bounce spring preset (ratio 1.0) for dock, panels, popovers and menus
-- [x] Existing components take `material`: Card, Menu, Dialog, NavigationRail, TopAppBar, SearchBar, Snackbar, Tooltip
+- [x] Existing components take `material`: Card, Menu, Dialog, NavigationRail, TopAppBar, SearchBar, Tooltip
 - [x] Remaining components: SideSheet, SplitButton, FloatingToolbar (generic capsule container), LinearProgress (wavy + flat),
       CircularProgress (wavy), LoadingIndicator, **ColorPicker** (SV square, hue, hex, live preview), **TextField**, **Breadcrumb**
 - [x] Expressive shapes in `src/ui/shapes.ts` (cookie, clover) + the cookie app logo

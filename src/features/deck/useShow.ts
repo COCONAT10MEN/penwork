@@ -1,6 +1,7 @@
 import { isTauri } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
+import { flushSync } from "react-dom";
 import { useSettings } from "../settings/settingsStore";
 import type { RuntimeFrameHandle } from "./RuntimeFrame";
 
@@ -13,6 +14,35 @@ function modeMessage(mode: "edit" | "present", from: number) {
   return { mode, slide: from, reduced: reduceMotion, loop: endOfShow === "loop" };
 }
 
+const afterLayout = () =>
+  new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+
+/** The slide's frame, full window size, drawn over its place in the edit view. */
+function inSlot(slot: DOMRect): Keyframe {
+  const scale = slot.width / window.innerWidth;
+  const y = slot.top + (slot.height - window.innerHeight * scale) / 2;
+  return {
+    transform: `translate(${slot.left}px, ${y}px) scale(${scale})`,
+    borderRadius: `${10 / scale}px`,
+  };
+}
+
+/**
+ * Glides the frame between its place and the whole window, on the spring for full-screen moves.
+ * The window itself jumps, so that happens first and this plays out inside it.
+ */
+function glide(frame: HTMLElement, slot: DOMRect, to: "full" | "slot"): Animation | null {
+  const motion = getComputedStyle(document.documentElement);
+  const duration = parseFloat(motion.getPropertyValue("--md-sys-motion-spatial-slow-duration"));
+  if (!duration) return null;
+  const full = { transform: "none", borderRadius: "0px" };
+  return frame.animate(to === "full" ? [inSlot(slot), full] : [full, inSlot(slot)], {
+    duration,
+    easing: motion.getPropertyValue("--md-sys-motion-spatial-slow-easing"),
+    fill: "forwards",
+  });
+}
+
 /** Starting and ending the full-screen show. */
 export function useShow(
   stage: RefObject<RuntimeFrameHandle | null>,
@@ -20,6 +50,9 @@ export function useShow(
   presentOnOpen: boolean,
 ) {
   const [presenting, setPresenting] = useState(presentOnOpen);
+  // The frame is out of the layout. It stays out after a show ends, until it has glided back.
+  const [lifted, setLifted] = useState(presentOnOpen);
+  const isLifted = useRef(presentOnOpen);
   // For code that runs outside a render: a show can start while the page is still being set up.
   const showing = useRef(presentOnOpen);
   const presentButton = useRef<HTMLButtonElement>(null);
@@ -34,12 +67,23 @@ export function useShow(
   const present = useCallback(
     (from: number) => {
       showing.current = true;
-      setPresenting(true);
       // The show starts once the window is full size, so its opening isn't seen at the old size.
-      void setFullscreen(true).then(() => {
-        stage.current?.post("mode", modeMessage("present", from));
-        stage.current?.focus();
-      });
+      void setFullscreen(true)
+        .then(afterLayout)
+        .then(() => {
+          const frame = stage.current?.element();
+          const slot = frame?.parentElement?.getBoundingClientRect();
+          const rise = !isLifted.current;
+          isLifted.current = true;
+          flushSync(() => {
+            setPresenting(true);
+            setLifted(true);
+          });
+          stage.current?.post("mode", modeMessage("present", from));
+          stage.current?.focus();
+          const moving = rise && frame && slot ? glide(frame, slot, "full") : null;
+          void moving?.finished.then(() => moving.cancel()).catch(() => {});
+        });
     },
     [stage],
   );
@@ -47,8 +91,18 @@ export function useShow(
   const endShow = useCallback(() => {
     showing.current = false;
     stage.current?.post("mode", modeMessage("edit", latestSlide.current));
-    setPresenting(false);
-    void setFullscreen(false);
+    void setFullscreen(false)
+      .then(afterLayout)
+      .then(async () => {
+        const frame = stage.current?.element();
+        const slot = frame?.parentElement?.getBoundingClientRect();
+        setPresenting(false);
+        const moving = frame && slot ? glide(frame, slot, "slot") : null;
+        await moving?.finished.catch(() => {});
+        isLifted.current = false;
+        flushSync(() => setLifted(false));
+        moving?.cancel();
+      });
   }, [stage, latestSlide]);
 
   // A show must not leave the window full screen if the app moves on without ending it.
@@ -57,5 +111,5 @@ export function useShow(
     return () => void setFullscreen(false);
   }, [presentOnOpen]);
 
-  return { presenting, present, endShow, modeMessage, showing, presentButton };
+  return { presenting, lifted, present, endShow, modeMessage, showing, presentButton };
 }

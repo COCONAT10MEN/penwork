@@ -60,19 +60,24 @@
   color: var(--md-sys-color-on-primary-container);
   box-shadow: var(--md-sys-elevation-floating);
   cursor: default;
+  /* Corners on an effects spring: a bouncy one overshoots past zero and shows a sharp rectangle. */
   transition:
-    width var(--md-sys-motion-spatial-default-duration) var(--md-sys-motion-spatial-default-easing),
-    height var(--md-sys-motion-spatial-default-duration) var(--md-sys-motion-spatial-default-easing),
-    margin var(--md-sys-motion-spatial-default-duration) var(--md-sys-motion-spatial-default-easing),
-    border-radius var(--md-sys-motion-spatial-default-duration)
-      var(--md-sys-motion-spatial-default-easing);
+    width var(--md-sys-motion-spatial-fast-duration) var(--md-sys-motion-spatial-fast-easing),
+    height var(--md-sys-motion-spatial-fast-duration) var(--md-sys-motion-spatial-fast-easing),
+    margin var(--md-sys-motion-spatial-fast-duration) var(--md-sys-motion-spatial-fast-easing),
+    border-radius var(--md-sys-motion-effects-default-duration)
+      var(--md-sys-motion-effects-default-easing),
+    background-color var(--md-sys-motion-effects-fast-duration)
+      var(--md-sys-motion-effects-fast-easing),
+    color var(--md-sys-motion-effects-fast-duration) var(--md-sys-motion-effects-fast-easing);
 }
 .fab[data-open] {
   width: 56px;
   height: 56px;
   /* Keeps the button's center where it was, so the icon doesn't jump. */
   margin: 12px;
-  border-radius: var(--md-sys-shape-corner-full);
+  /* 50%, not the "full" token: a huge radius would finish the morph in its first frame. */
+  border-radius: 50%;
   background: var(--md-sys-color-primary);
   color: var(--md-sys-color-on-primary);
 }

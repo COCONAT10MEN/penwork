@@ -39,7 +39,7 @@ export function Home({ dragging }: { dragging: boolean }) {
   const [newDeckOpen, setNewDeckOpen] = useState(false);
   const main = useRef<HTMLElement>(null);
   const glide = useSpring("spatialDefault");
-  const fade = useSpring("effectsDefault");
+  const fade = useSpring("effectsFast");
   const reduce = useReduceMotion();
 
   const onOpen = async () => {
@@ -140,7 +140,7 @@ export function Home({ dragging }: { dragging: boolean }) {
             Open presentation
           </Button>
         </div>
-        <AnimatePresence mode="wait" initial={false}>
+        <AnimatePresence mode="popLayout">
           <motion.div
             key={query ? "search" : page}
             className={styles.page}

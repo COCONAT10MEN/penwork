@@ -291,8 +291,7 @@
 
 /* The first look at Home, and coming back to it. */
 .rail,
-.top,
-.page {
+.top {
   animation: rise var(--md-sys-motion-spatial-slow-duration)
     var(--md-sys-motion-spatial-slow-easing);
 }

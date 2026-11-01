@@ -15,7 +15,8 @@ export function DeckThumb({ deck, className }: { deck: LibraryDeck; className?: 
     <div className={`${styles.thumb} ${className ?? ""}`} aria-hidden="true">
       {url ? (
         <img src={url} alt="" className={styles.picture} />
-      ) : (
+      ) : deck.thumb ? null : (
+        // Only when there's no picture yet: one still loading must not flash this first.
         <svg viewBox="0 0 100 100" width="56" height="56">
           <path d={COOKIE_PATH} />
         </svg>

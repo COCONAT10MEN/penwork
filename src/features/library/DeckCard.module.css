@@ -103,3 +103,12 @@
   font-size: var(--md-sys-typescale-body-small-size);
   line-height: var(--md-sys-typescale-body-small-line-height);
 }
+.picture {
+  animation: picture-in var(--md-sys-motion-effects-default-duration)
+    var(--md-sys-motion-effects-default-easing);
+}
+@keyframes picture-in {
+  from {
+    opacity: 0;
+  }
+}

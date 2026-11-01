@@ -85,13 +85,26 @@
   overflow: hidden;
   border-radius: var(--md-sys-shape-corner-extra-large);
 }
+/* The list melts away just above the button, instead of being cut off in a straight line. */
 .sorterList {
   flex: 1;
   min-height: 0;
+  mask-image: linear-gradient(#000 calc(100% - 14px), transparent);
 }
+.sorterList > iframe,
+.stage > iframe {
+  opacity: 0;
+  transition: opacity var(--md-sys-motion-effects-default-duration)
+    var(--md-sys-motion-effects-default-easing);
+}
+.sorterList[data-ready] > iframe,
+.stage[data-ready] > iframe {
+  opacity: 1;
+}
+/* 12px on every side, with corners that follow the panel's own. */
 .addSlide.addSlide {
   flex: none;
-  margin: 4px 12px 14px;
+  margin: 12px;
   padding: 0 16px;
   gap: 6px;
   --pw-corner: var(--md-sys-shape-corner-large);
@@ -116,6 +129,7 @@
   width: min(100cqw, calc((100cqh - 60px) * 16 / 9));
   overflow: hidden;
   border-radius: var(--pw-shape-stage);
+  background: var(--md-sys-color-surface-container);
   box-shadow: var(--pw-glass-shadow);
 }
 .status {
@@ -160,18 +174,42 @@
   z-index: 10;
   width: 100vw;
   height: 100vh;
+  transform-origin: 0 0;
 }
-.view[data-presenting] {
-  background: var(--md-sys-color-scrim);
-}
-.view[data-presenting] .stage {
+.view[data-lifted] .stage {
   overflow: visible;
   box-shadow: none;
+}
+/* The tools slide off the edges as the slide grows, and come back as it settles. */
+.header,
+.sorter,
+.status {
+  transition:
+    translate var(--md-sys-motion-spatial-default-duration)
+      var(--md-sys-motion-spatial-default-easing),
+    opacity var(--md-sys-motion-effects-default-duration)
+      var(--md-sys-motion-effects-default-easing);
 }
 .view[data-presenting] .header,
 .view[data-presenting] .sorter,
 .view[data-presenting] .status {
+  opacity: 0;
   visibility: hidden;
+  transition:
+    translate var(--md-sys-motion-spatial-default-duration)
+      var(--md-sys-motion-spatial-default-easing),
+    opacity var(--md-sys-motion-effects-default-duration)
+      var(--md-sys-motion-effects-default-easing),
+    visibility 0s linear var(--md-sys-motion-effects-default-duration);
+}
+.view[data-presenting] .header {
+  translate: 0 -24px;
+}
+.view[data-presenting] .sorter {
+  translate: -24px 0;
+}
+.view[data-presenting] .status {
+  translate: 0 24px;
 }
 
 .menuPoint {

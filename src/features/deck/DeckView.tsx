@@ -14,6 +14,7 @@ import { SlideListPanel } from "./SlideListPanel";
 import { SlideMenu, type SlideMenuTarget } from "./SlideMenu";
 import { useDeckSave } from "./useDeckSave";
 import { useFrameChrome } from "./useFrameChrome";
+import { useCoverThumb } from "./useCoverThumb";
 import { useShow } from "./useShow";
 import { useLeaveGuard } from "./useLeaveGuard";
 import { useEditKeys, type KeyPress } from "./useEditKeys";
@@ -21,11 +22,9 @@ import { useSlideEditing } from "./useSlideEditing";
 import { exportToolbar, importToolbar, loadToolbar, saveToolbar } from "./toolbarFile";
 import { useDeckInk } from "./useDeckInk";
 import { RuntimeFrame, type RuntimeFrameHandle } from "./RuntimeFrame";
-import { captureThumb } from "./thumbnail";
 import styles from "./DeckView.module.css";
 
 /** Long enough for the slide to be drawn after it appears. */
-const CAPTURE_DELAY = 500;
 
 /**
  * A presentation on screen: the edit view, or the full-screen show. Both are the same slide page,
@@ -44,7 +43,6 @@ export function DeckView({
   const rememberSlide = useApp((s) => s.rememberSlide);
   const stage = useRef<RuntimeFrameHandle>(null);
   const sorter = useRef<RuntimeFrameHandle>(null);
-  const captureTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const [slide, setSlide] = useState(start);
   const [steps, setSteps] = useState(0);
   const [total, setTotal] = useState(deck.slideCount);
@@ -55,6 +53,11 @@ export function DeckView({
   const slides = useStore(store, (doc) => doc.slides);
   const [gallery, setGallery] = useState(false);
   const [shrunk, setShrunk] = useState(false);
+  // Each page stays out of sight until it has something to show, or it flashes blank first.
+  const [stageReady, setStageReady] = useState(false);
+  // The page starts on a slide of its own choosing, so only the one it's sent to counts.
+  const firstSlide = useRef<number | null>(null);
+  const [listReady, setListReady] = useState(false);
   const [menu, setMenu] = useState<SlideMenuTarget | null>(null);
   const [syncs, setSyncs] = useState(0);
   const sorterBox = useRef<HTMLDivElement>(null);
@@ -81,13 +84,13 @@ export function DeckView({
   const guard = useLeaveGuard({ dirty, title: deck.manifest.title, save, discard });
 
   const { postChrome, postLogo } = useFrameChrome(stage, sorter);
-  const { presenting, present, endShow, modeMessage, showing, presentButton } = useShow(
+  const { presenting, lifted, present, endShow, modeMessage, showing, presentButton } = useShow(
     stage,
     latestSlide,
     presentOnOpen,
   );
 
-  useEffect(() => () => clearTimeout(captureTimer.current), []);
+  const cover = useCoverThumb(deck, stage);
 
   const showSlide = useCallback(
     (next: number) => {
@@ -113,30 +116,25 @@ export function DeckView({
     sorter.current?.post("select", { slide, selected });
   }, [slide, selected, syncs]);
 
-  // Waits until the first slide has stayed on screen, so moving on quickly can't catch another.
-  const thumbOnFirstSlide = (shown: number) => {
-    clearTimeout(captureTimer.current);
-    const { library, thumbSaved } = useApp.getState();
-    const key = deck.path.toLowerCase();
-    const entry = library.decks.find((d) => d.path.toLowerCase() === key);
-    if (shown !== 0 || presenting || !entry || entry.thumb === deck.stamp) return;
-    captureTimer.current = setTimeout(() => {
-      const rect = stage.current?.rect();
-      if (!rect) return;
-      void captureThumb(rect, entry.id).then((saved) => {
-        if (saved) thumbSaved(entry.id, deck.stamp);
-      });
-    }, CAPTURE_DELAY);
-  };
-
   /** Everything the page needs before anything is shown: saved settings, the logo, the ink. */
   const startStage = async (from: number) => {
     const toolbar = await loadToolbar();
     if (toolbar) stage.current?.post("toolbar", toolbar);
     postLogo();
     ink.send(stage);
-    if (showing.current) present(from);
-    else stage.current?.post("mode", modeMessage("edit", from));
+    if (showing.current) {
+      setStageReady(true);
+      present(from);
+      return;
+    }
+    // Reopened part-way through, the first slide would never be seen to take its picture.
+    const needsCover = from > 0 && cover.stale();
+    firstSlide.current = needsCover ? 0 : from;
+    if (needsCover) {
+      stage.current?.post("mode", modeMessage("edit", 0));
+      await cover.takeNow();
+    }
+    stage.current?.post("mode", modeMessage("edit", from));
   };
 
   /**
@@ -159,7 +157,8 @@ export function DeckView({
       setTotal(message.total);
       rememberSlide(message.slide);
       setSelected((now) => (now.includes(message.slide) ? now : [message.slide]));
-      thumbOnFirstSlide(message.slide);
+      if (message.slide === firstSlide.current) setStageReady(true);
+      cover.slideShown(message.slide, presenting);
     } else if (message.type === "key") {
       onFrameKey(message);
     } else if (message.type === "end") {
@@ -180,6 +179,7 @@ export function DeckView({
       postChrome();
       sorter.current?.post("select", { slide, selected });
       ink.send(sorter);
+      setListReady(true);
     } else if (message.type === "key") {
       onFrameKey(message);
     } else if (message.type === "scrolled") {
@@ -218,7 +218,11 @@ export function DeckView({
   };
 
   return (
-    <div className={styles.view} data-presenting={presenting || undefined}>
+    <div
+      className={styles.view}
+      data-presenting={presenting || undefined}
+      data-lifted={lifted || undefined}
+    >
       <AmbientBackground layout="edit" />
       <EditHeader
         title={deck.manifest.title}
@@ -249,15 +253,16 @@ export function DeckView({
           boxRef={sorterBox}
           frameRef={sorter}
           onMessage={onSorterMessage}
+          ready={listReady}
           onAdd={() => setGallery(true)}
         />
         <main className={styles.main}>
-          <div className={styles.stage}>
+          <div className={styles.stage} data-ready={stageReady || undefined}>
             <RuntimeFrame
               ref={stage}
               token={deck.token}
               title={deck.manifest.title}
-              className={cx(presenting && styles.fullFrame)}
+              className={cx(lifted && styles.fullFrame)}
               onMessage={onStageMessage}
             />
           </div>

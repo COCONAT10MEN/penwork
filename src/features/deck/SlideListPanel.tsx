@@ -11,6 +11,7 @@ export function SlideListPanel({
   boxRef,
   frameRef,
   onMessage,
+  ready,
   onAdd,
 }: {
   token: string;
@@ -18,11 +19,12 @@ export function SlideListPanel({
   boxRef: Ref<HTMLDivElement>;
   frameRef: Ref<RuntimeFrameHandle>;
   onMessage: (message: RuntimeMessage) => void;
+  ready: boolean;
   onAdd: () => void;
 }) {
   return (
     <Surface material="glass" className={styles.sorter} role="complementary" aria-label="Slides">
-      <div ref={boxRef} className={styles.sorterList}>
+      <div ref={boxRef} className={styles.sorterList} data-ready={ready || undefined}>
         <RuntimeFrame
           ref={frameRef}
           token={token}

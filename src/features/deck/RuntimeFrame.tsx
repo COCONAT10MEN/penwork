@@ -10,6 +10,7 @@ export interface RuntimeFrameHandle {
   focus: () => void;
   /** Where the slide page is on screen, for cropping a thumbnail. */
   rect: () => DOMRect | null;
+  element: () => HTMLIFrameElement | null;
 }
 
 interface RuntimeFrameProps {
@@ -43,6 +44,7 @@ export const RuntimeFrame = forwardRef<RuntimeFrameHandle, RuntimeFrameProps>(fu
       ),
     focus: () => frame.current?.focus(),
     rect: () => frame.current?.getBoundingClientRect() ?? null,
+    element: () => frame.current,
   }));
 
   useEffect(() => {

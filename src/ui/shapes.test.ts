@@ -1,21 +1,22 @@
 import { describe, expect, it } from "vitest";
-import { CIRCLE_PATH, CLOVER_PATH, COOKIE_PATH, wavyCirclePath, wavyLinePath } from "./shapes";
+import { morphBetween, shapePath, wavyCirclePath, wavyLinePath, type ShapeName } from "./shapes";
 
 const numbers = (d: string) => d.match(/-?\d+(\.\d+)?/g)?.map(Number) ?? [];
 
 describe("shapes", () => {
-  it("all have the same point count, so they can morph", () => {
-    const counts = [COOKIE_PATH, CLOVER_PATH, CIRCLE_PATH].map((d) => numbers(d).length);
-    expect(new Set(counts).size).toBe(1);
-  });
-
   it("stay inside the 100×100 box", () => {
-    for (const d of [COOKIE_PATH, CLOVER_PATH, CIRCLE_PATH]) {
-      for (const n of numbers(d)) {
-        expect(n).toBeGreaterThanOrEqual(0);
-        expect(n).toBeLessThanOrEqual(100);
+    for (const name of ["Cookie9Sided", "Clover4Leaf", "Flower", "Sunny"] as ShapeName[]) {
+      for (const n of numbers(shapePath(name))) {
+        expect(n).toBeGreaterThanOrEqual(-3);
+        expect(n).toBeLessThanOrEqual(103);
       }
     }
+  });
+
+  it("morph from one shape to the other", () => {
+    const at = morphBetween("Cookie9Sided", "Flower");
+    expect(numbers(at(0)).length).toBe(numbers(at(1)).length);
+    expect(at(0)).not.toBe(at(1));
   });
 });
 

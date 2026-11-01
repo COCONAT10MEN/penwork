@@ -52,7 +52,12 @@
   stroke: var(--md-sys-color-primary);
   stroke-width: 4;
   stroke-linecap: round;
-  animation: wave 1100ms linear infinite;
+  /* One wavelength a second, and flat at both ends of the bar, as Google draws it. */
+  animation: wave 1000ms linear infinite;
+  transform: scaleY(var(--pw-amp, 1));
+  transform-origin: 50% 6px;
+  transition: transform var(--md-sys-motion-effects-slow-duration)
+    var(--md-sys-motion-effects-slow-easing);
 }
 /* One wavelength (32px), so the loop has no visible jump. */
 @keyframes wave {
@@ -158,4 +163,9 @@
 }
 :global(:root[data-reduce-motion]) .spinning .circleWave {
   animation: pulse 1600ms ease-in-out infinite;
+}
+
+/* One slow turn under the morphs, as Google's has (4666 ms). */
+.turning {
+  animation: spin 4666ms linear infinite;
 }

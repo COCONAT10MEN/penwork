@@ -24,6 +24,7 @@ Licenses below were checked against the installed packages (`package.json` / `LI
 | Motion (`motion`, with `framer-motion`) | Motion B.V. / Framer B.V. (Matt Perry) | MIT | Spring animations |
 | `windows` crate (Windows only) | Microsoft | MIT / Apache-2.0 | Reading the Windows accent color; thumbnail capture |
 | perfect-freehand | Steve Ruiz | MIT | Drawing ink strokes |
+| material-shapes-ts | Ruan Spies | Apache-2.0 | Material 3 Expressive's 35 shapes and morphing between them |
 | webview2-com (Windows only) | Bill Avery and contributors | MIT | Capturing deck thumbnails from WebView2 |
 
 Tauri pulls in about 240 smaller Rust crates. Almost all are MIT, Apache-2.0, BSD, Zlib, Unicode-3.0

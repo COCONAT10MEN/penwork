@@ -1,37 +1,37 @@
-/** Expressive shapes as SVG paths in a 100×100 box. Pure math, so they can be tested. */
+import {
+  MaterialShapes,
+  Morph,
+  morphToPath,
+  roundedPolygonToPath,
+  type MaterialShapeName,
+} from "material-shapes-ts";
 
-const CENTER = 50;
-const RADIUS = 49;
+/** Material 3 Expressive's 35 shapes as SVG paths in a 100×100 box, and morphs between them. */
+export type ShapeName = MaterialShapeName;
 
-/**
- * A closed shape from a radius function. Every shape has the same number of points, which is
- * what lets LoadingIndicator morph between them.
- */
-export function radialPath(radiusAt: (angle: number) => number, samples = 120): string {
-  const points: string[] = [];
-  for (let i = 0; i < samples; i++) {
-    const a = (i / samples) * Math.PI * 2 - Math.PI / 2;
-    const r = radiusAt(a);
-    const x = CENTER + Math.cos(a) * r;
-    const y = CENTER + Math.sin(a) * r;
-    points.push(`${x.toFixed(2)} ${y.toFixed(2)}`);
+// The library works in a 0..1 box; ours is 100, so a pen stroke can be drawn over the logo.
+const inHundreds = (d: string) =>
+  d.replace(/-?\d*\.?\d+(e-?\d+)?/g, (n) => (Number(n) * 100).toFixed(2));
+
+const paths = new Map<ShapeName, string>();
+
+export function shapePath(name: ShapeName): string {
+  let path = paths.get(name);
+  if (!path) {
+    path = inHundreds(roundedPolygonToPath(MaterialShapes.byName(name)).toSvgPathData());
+    paths.set(name, path);
   }
-  return `M${points.join("L")}Z`;
+  return path;
 }
 
-/** Soft scallops, like a cookie. */
-export function scallopPath(lobes: number, depth = 0.08): string {
-  return radialPath((a) => RADIUS * (1 - depth + depth * Math.cos(lobes * a)));
+/** The path partway from one shape to another. Springs may ask for a little past 1. */
+export function morphBetween(from: ShapeName, to: ShapeName): (progress: number) => string {
+  const morph = new Morph(MaterialShapes.byName(from), MaterialShapes.byName(to));
+  return (progress) => inHundreds(morphToPath(morph, progress).toSvgPathData());
 }
 
-/** Deep rounded leaves, like a clover. */
-export function cloverPath(leaves = 4): string {
-  return radialPath((a) => RADIUS * (0.55 + 0.45 * Math.abs(Math.cos((leaves / 2) * a)) ** 0.7));
-}
-
-export const COOKIE_PATH = scallopPath(9);
-export const CLOVER_PATH = cloverPath(4);
-export const CIRCLE_PATH = radialPath(() => RADIUS);
+export const COOKIE_PATH = shapePath("Cookie9Sided");
+export const CLOVER_PATH = shapePath("Clover4Leaf");
 
 /** A sine line from x=0 to x=width around y=mid, as one smooth path. */
 export function wavyLinePath(width: number, wavelength: number, amplitude: number, mid: number) {

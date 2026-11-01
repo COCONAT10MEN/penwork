@@ -181,8 +181,10 @@
   background: var(--md-sys-color-primary);
   color: var(--pw-logo-background);
 }
-.shape {
-  fill: var(--md-sys-color-tertiary);
+.shapeButton {
+  padding: 0;
+  border: 0;
+  background: none;
 }
 
 .heroText {

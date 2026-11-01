@@ -17,9 +17,9 @@ import {
   TextField,
   ToolbarDivider,
 } from "../../ui";
-import { CLOVER_PATH, COOKIE_PATH } from "../../ui/shapes";
 import { useGalleryMaterial } from "./galleryMaterial";
 import { Section } from "./ShowcaseActions";
+import { ShapeMorphDemo } from "./ShowcaseShapes";
 import styles from "./Gallery.module.css";
 
 export function ShowcaseSurfaces() {
@@ -237,24 +237,7 @@ export function ShowcaseShapes() {
           <LogoTile size={52} label="Penwork on its background" />
           <LogoTile size={72} svg={SAMPLE_LOGO} label="A custom logo on its background" />
         </Surface>
-        <svg
-          width="56"
-          height="56"
-          viewBox="0 0 100 100"
-          className={styles.shape}
-          aria-hidden="true"
-        >
-          <path d={COOKIE_PATH} />
-        </svg>
-        <svg
-          width="56"
-          height="56"
-          viewBox="0 0 100 100"
-          className={styles.shape}
-          aria-hidden="true"
-        >
-          <path d={CLOVER_PATH} />
-        </svg>
+        <ShapeMorphDemo />
       </div>
     </Section>
   );

@@ -19,7 +19,9 @@ export { Icon, type IconProps } from "./Icon";
 export { IconButton, type IconButtonProps } from "./IconButton/IconButton";
 export { List, ListIcon, ListItem, type ListItemProps } from "./List/List";
 export { LogoTile, PenworkLogo, PenworkMark } from "./Logo/Logo";
-export { CLOVER_PATH, COOKIE_PATH, penworkLogoSvg } from "./shapes";
+export { CLOVER_PATH, COOKIE_PATH, penworkLogoSvg, type ShapeName } from "./shapes";
+export { Shape, type ShapeProps } from "./Shape/Shape";
+export { ColorSwatches, type ColorSwatchesProps } from "./ColorSwatches/ColorSwatches";
 export { Menu, type MenuEntry, type MenuProps } from "./Menu/Menu";
 export {
   NavigationRail,

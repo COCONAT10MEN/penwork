@@ -1,0 +1,30 @@
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+.swatch {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: default;
+  --pw-corner: 50%;
+  --pw-press-depth: 0.1;
+}
+.swatch::after {
+  content: none;
+}
+.shape {
+  transition:
+    width var(--md-sys-motion-spatial-default-duration) var(--md-sys-motion-spatial-default-easing),
+    height var(--md-sys-motion-spatial-default-duration) var(--md-sys-motion-spatial-default-easing);
+}
+/* Any colour can be picked, so the tick takes white with a shadow, which reads on all of them. */
+.tick.tick {
+  color: var(--pw-on-swatch);
+  filter: drop-shadow(0 1px 1px var(--md-sys-color-scrim));
+}

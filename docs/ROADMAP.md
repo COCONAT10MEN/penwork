@@ -61,12 +61,12 @@ Tick boxes only when finished and verified in the running app.
 ## M3: Slide runtime & Present
 - [x] Opening a presentation lands in the edit view, like PowerPoint: slide list, big slide, Present button (owner, 2026-11-01)
 - [x] Runtime ported from `reference/lop-deck/deck-template.html` into `src/runtime/` (engine only, no dock/ink)
-- [ ] Typed bridge, including forwarded keys and pointer events (`docs/ARCHITECTURE-DECKS.md`). Keys are done; pointer events come with ink
+- [x] Typed bridge, including forwarded keys (`docs/ARCHITECTURE-DECKS.md`). Pointer events stay in the page, with the ink (PIVOT decision 15)
 - [x] **Parity test**: 8 demo slides match the original template (`npm run test:parity`, using the Edge on Windows)
-- [ ] `docs/TEMPLATE-PARITY.md` §1 and §2 all ticked: slide engine and navigation input, including clicker use
+- [x] `docs/TEMPLATE-PARITY.md` §1 and §2 all ticked: slide engine and navigation input, including clicker use
 - [x] Present mode: fullscreen, steps, Morph, quiz, widgets, maths. F5 from the start, Shift+F5 from the current slide, Esc or F ends it
 - [x] Hidden slides skipped; last slide → back to cover (template behaviour) or stop (setting)
-- [ ] Minimal dock shell: logo → capsule (one body, no bounce), buttons: grid, edit, full screen, settings (tools come in M5). So far: grid and End show
+- [x] Dock: the template's full dock replaces the planned minimal shell (see M5)
 - [x] Overview grid: `docs/TEMPLATE-PARITY.md` §8
 - [x] Remember last slide per deck; "Continue" on Home opens there
 
@@ -89,12 +89,12 @@ Tick boxes only when finished and verified in the running app.
 ## M5: Dock, ink & whiteboard (everything in the template)
 - [ ] `docs/TEMPLATE-PARITY.md` §3–§7 and §9–§11 all ticked. **Not a single feature may be missing**
 - [ ] Input devices: stylus (pressure, barrel button, eraser end), touch, palm rejection, tablet mode, tool-shaped cursors
-- [ ] Dock, every tool and its settings, ColorPicker, ink with undo/redo and animations
+- [x] Dock, every tool and its settings, colour picker, ink with undo/redo and animations
 - [ ] The selection slides between tools as one shape (DESIGN-GLASS §6), and the toolbar gets arrow keys
-- [ ] Whiteboard with all backgrounds
-- [ ] Toolbar settings, including Export/Import compatible with files from the template, validated on load
-- [ ] Ink kept in the deck by default, setting to keep it on this device only; ink drawn on overview thumbnails
-- [ ] Every popover tested in the real WebView2 window (handoff §8 blanking bug)
+- [x] Whiteboard with all backgrounds
+- [x] Toolbar settings, including Export/Import compatible with files from the template, validated on load
+- [ ] Ink kept in the deck by default, setting to keep it on this device only; ink drawn on overview thumbnails. Ink on thumbnails is done, and ink is saved in app data until Save exists (M4)
+- [x] Every popover tested in the real WebView2 window (handoff §8 blanking bug)
 - [ ] Tested with a real stylus and touch, if the owner has the hardware; otherwise say so plainly
 
 ## M6: Presentation complete

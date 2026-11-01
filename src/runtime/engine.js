@@ -438,6 +438,7 @@ function snap_(el,P){var cs=getComputedStyle(el),o={};P.forEach(function(p){o[p]
 function px_(o){var r={};for(var k in o)r[k]=o[k]+'px';return r;}
 function collapse(el,hide,ani,axis){
   if(!el)return null;
+  if(REDUCED)ani=false;
   if(el._hid===hide)return el._an?el._an[0]:null;
   var init=el._hid===undefined;el._hid=hide;
   var P=axis==='h'?['height','paddingTop','paddingBottom','borderTopWidth','borderBottomWidth','marginTop','marginBottom']:['width','paddingLeft','paddingRight','borderLeftWidth','borderRightWidth','marginLeft','marginRight'];

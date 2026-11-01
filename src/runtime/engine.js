@@ -558,7 +558,7 @@ function setMode(p){
 /* ---------- keyboard: same keys as the template. What isn't a slide key goes up to the app ---------- */
 function keyUp(e){send('key',{key:e.key,ctrl:e.ctrlKey,shift:e.shiftKey,alt:e.altKey||e.metaKey});}
 function onKey(e){
-  if(e.key==='F5')e.preventDefault();
+  if(e.key==='F5'||(SORTER&&e.preventDefault&&/^(Arrow|Page|Home|End)/.test(e.key)))e.preventDefault();
   if(e.ctrlKey||e.altKey||e.metaKey||mode!=='present'){keyUp(e);return;}
   if(ovOpen){ovKey(e);return;}
   var k=e.key,h=true;
@@ -608,8 +608,14 @@ document.addEventListener('contextmenu',function(e){e.preventDefault();},true);
 
 /* ---------- the slide list in the edit view: the same thumbnails as the grid, in a column ---------- */
 function sorterSelect(i){
-  selCell(i);
-  if(cells[i])cells[i].el.scrollIntoView({block:'nearest'});
+  /* focus moves with the selection only if it's already in the list: the big slide keeps its own */
+  var inside=ov.contains(document.activeElement);
+  selCell(i,inside);
+  cells.forEach(function(c,k){
+    c.el.tabIndex=k===ovSel?0:-1; /* one Tab stop for the whole list, not one per slide */
+    if(k===ovSel)c.el.setAttribute('aria-current','true');else c.el.removeAttribute('aria-current');
+  });
+  if(cells[ovSel])cells[ovSel].el.scrollIntoView({block:'nearest'});
 }
 function bootSorter(){
   document.documentElement.classList.add('sorter');
@@ -618,7 +624,9 @@ function bootSorter(){
   buildOvShell();
   cells.forEach(function(c,i){
     var n=document.createElement('span');n.className='num';n.textContent=i+1;
+    if(hiddenSlide(i)){var h=document.createElement('b');h.textContent='Hidden';n.appendChild(h);}
     c.el.insertBefore(n,c.th);c.el.setAttribute('role','button');
+    c.el.tabIndex=-1;c.tin.inert=true; /* a thumbnail's own buttons and sliders aren't real controls */
     c.el.setAttribute('aria-label','Slide '+(i+1)+(hiddenSlide(i)?', hidden':''));
   });
   var layout=function(){
@@ -630,6 +638,11 @@ function bootSorter(){
   if(cells[0])new ResizeObserver(layout).observe(cells[0].th);
   ov.addEventListener('click',function(e){
     var c=e.target.closest('.cell');if(c)send('pick',{slide:+c.getAttribute('data-i')});
+  },true);
+  ov.addEventListener('keydown',function(e){
+    var c=e.target.closest&&e.target.closest('.cell');
+    if(!c||(e.key!=='Enter'&&e.key!==' '))return;
+    e.preventDefault();e.stopPropagation();send('pick',{slide:+c.getAttribute('data-i')});
   },true);
   /* built a few at a time, so a long presentation doesn't hold up the window */
   var i=0;
@@ -652,6 +665,7 @@ addEventListener('message',function(e){
     case 'chrome':
       if(/^#[0-9a-f]{6}$/i.test(p.accent))document.documentElement.style.setProperty('--pw-accent',p.accent);
       if(/^#[0-9a-f]{6}$/i.test(p.text))document.documentElement.style.setProperty('--pw-text',p.text);
+      if(/^#[0-9a-f]{6}$/i.test(p.line))document.documentElement.style.setProperty('--pw-line',p.line);
       /* a see-through page must match the app, or the browser paints it white */
       if(p.scheme==='dark'||p.scheme==='light')document.documentElement.style.colorScheme=p.scheme;
       break;

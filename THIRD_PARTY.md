@@ -23,7 +23,6 @@ Licenses below were checked against the installed packages (`package.json` / `LI
 | Material Color Utilities (`@material/material-color-utilities`) | Google (material-foundation) | Apache-2.0 | Generating the color theme from a seed |
 | Motion (`motion`, with `framer-motion`) | Motion B.V. / Framer B.V. (Matt Perry) | MIT | Spring animations |
 | `windows` crate (Windows only) | Microsoft | MIT / Apache-2.0 | Reading the Windows accent color; thumbnail capture |
-| playwright-core, pixelmatch, pngjs (tests only, not in the app) | Microsoft; Mapbox; pngjs contributors | Apache-2.0 / ISC / MIT | Comparing slides with the template |
 | webview2-com (Windows only) | Bill Avery and contributors | MIT | Capturing deck thumbnails from WebView2 |
 
 Tauri pulls in about 240 smaller Rust crates. Almost all are MIT, Apache-2.0, BSD, Zlib, Unicode-3.0
@@ -46,6 +45,7 @@ them unmodified. They come with every Tauri app. Run `cargo metadata` in `src-ta
 | globals | Sindre Sorhus | MIT | Browser/Node global names for ESLint |
 | Prettier | James Long and contributors | MIT | Code formatting |
 | Vitest | Anthony Fu and contributors | MIT | Unit tests |
+| playwright-core, pixelmatch, pngjs | Microsoft; Mapbox; pngjs contributors | Apache-2.0 / ISC / MIT | Comparing slides with the template (tests only) |
 | Testing Library (`@testing-library/react`, `@testing-library/dom`) | Kent C. Dodds and contributors | MIT | Component behavior tests |
 | jsdom | Elijah Insua and contributors | MIT | Browser-like environment for tests |
 | `@types/react`, `@types/react-dom`, `@types/node` | DefinitelyTyped contributors | MIT | Type definitions |

@@ -14,7 +14,7 @@ body.still #stage * {
 html:not(.sorter) #ov .cell.off {
   display: none;
 }
-html.sorter #ov .cell.off .th {
+html.sorter #ov .cell.off .tin {
   opacity: 0.45;
 }
 
@@ -57,7 +57,7 @@ html.sorter #ov .th {
   border-radius: 8px;
   content-visibility: visible;
   contain-intrinsic-size: none;
-  box-shadow: 0 0 0 1px rgb(127 127 127 / 0.35);
+  box-shadow: 0 0 0 1px var(--pw-line, transparent);
 }
 html.sorter #ov .cell:hover .th,
 html.sorter #ov .cell:focus-visible .th {
@@ -65,4 +65,13 @@ html.sorter #ov .cell:focus-visible .th {
 }
 html.sorter #ov .cell.cur .th {
   box-shadow: 0 0 0 3px var(--pw-accent, var(--acc));
+}
+/* After the rule above: the current slide's ring must not hide that the keyboard is on it. */
+html.sorter #ov .cell:focus-visible .th {
+  outline: 3px solid var(--pw-text, #e6f6fb);
+  outline-offset: 2px;
+}
+html.sorter #ov .num b {
+  margin-left: 6px;
+  font-weight: 600;
 }

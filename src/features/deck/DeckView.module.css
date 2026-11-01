@@ -58,6 +58,7 @@
 }
 
 .main {
+  container-type: size;
   flex: 1;
   min-width: 0;
   display: flex;
@@ -69,7 +70,7 @@
 /* The largest 16:9 box that fits, whichever of width or height runs out first. */
 .stage {
   aspect-ratio: 16 / 9;
-  width: min(100%, calc((100vh - 170px) * 16 / 9));
+  width: min(100cqw, calc((100cqh - 56px) * 16 / 9));
   overflow: hidden;
   border-radius: var(--md-sys-shape-corner-small);
   box-shadow: var(--pw-glass-shadow);
@@ -83,7 +84,7 @@
   line-height: var(--md-sys-typescale-body-medium-line-height);
 }
 .status b {
-  font-weight: var(--md-sys-typescale-body-medium-weight-emphasized, 700);
+  font-weight: var(--md-sys-typescale-label-large-weight-emphasized);
 }
 
 /*

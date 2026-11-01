@@ -43,6 +43,33 @@ export function DeckView({
   const [total, setTotal] = useState(deck.slideCount);
   const [presenting, setPresenting] = useState(presentOnOpen);
   const [gridOpen, setGridOpen] = useState(false);
+  const systemSeed = useSettings((s) => s.systemSeed);
+  const presentButton = useRef<HTMLButtonElement>(null);
+  const wasPresenting = useRef(presenting);
+
+  // The button that ended the show is gone, so focus needs somewhere sensible to land.
+  useEffect(() => {
+    if (wasPresenting.current && !presenting) presentButton.current?.focus();
+    wasPresenting.current = presenting;
+  }, [presenting]);
+
+  const postChrome = useCallback(() => {
+    const css = getComputedStyle(document.documentElement);
+    sorter.current?.post("chrome", {
+      accent: css.getPropertyValue("--md-sys-color-primary").trim(),
+      text: css.getPropertyValue("--md-sys-color-on-surface").trim(),
+      line: css.getPropertyValue("--md-sys-color-outline-variant").trim(),
+      scheme: css.colorScheme,
+    });
+  }, []);
+
+  // The default theme follows Windows, which can change while a presentation is open.
+  useEffect(() => {
+    postChrome();
+    const dark = window.matchMedia("(prefers-color-scheme: dark)");
+    dark.addEventListener("change", postChrome);
+    return () => dark.removeEventListener("change", postChrome);
+  }, [postChrome, systemSeed]);
 
   const modeMessage = (mode: "edit" | "present", from: number) => {
     const { reduceMotion, endOfShow } = useSettings.getState().settings;
@@ -157,12 +184,7 @@ export function DeckView({
 
   const onSorterMessage = (message: RuntimeMessage) => {
     if (message.type === "ready") {
-      const css = getComputedStyle(document.documentElement);
-      sorter.current?.post("chrome", {
-        accent: css.getPropertyValue("--md-sys-color-primary").trim(),
-        text: css.getPropertyValue("--md-sys-color-on-surface").trim(),
-        scheme: css.colorScheme,
-      });
+      postChrome();
       sorter.current?.post("select", { slide });
     } else if (message.type === "pick") {
       showSlide(message.slide);
@@ -174,13 +196,14 @@ export function DeckView({
   return (
     <div className={styles.view} data-presenting={presenting || undefined}>
       <AmbientBackground />
-      <Surface material="glass" className={styles.header}>
+      <Surface material="glass" floating className={styles.header}>
         <IconButton icon="arrow_back" label="Back to Home" onClick={closeDeck} />
         <div className={styles.titles}>
           <h1 className={styles.title}>{deck.manifest.title}</h1>
           <p className={styles.meta}>{slidesLabel(total)}</p>
         </div>
         <Button
+          ref={presentButton}
           size="medium"
           icon="play_arrow"
           aria-label="Present from this slide"
@@ -190,7 +213,12 @@ export function DeckView({
         </Button>
       </Surface>
       <div className={styles.body}>
-        <Surface material="glass" className={styles.sorter}>
+        <Surface
+          material="glass"
+          className={styles.sorter}
+          role="complementary"
+          aria-label="Slides"
+        >
           <RuntimeFrame
             ref={sorter}
             token={deck.token}
@@ -210,7 +238,7 @@ export function DeckView({
               onMessage={onStageMessage}
             />
           </div>
-          <Surface material="glass" className={styles.status}>
+          <Surface material="glass" className={styles.status} role="status">
             <span>
               <b>Slide {slide + 1}</b> of {total}
             </span>

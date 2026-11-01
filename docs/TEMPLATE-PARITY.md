@@ -10,6 +10,8 @@ The look changes to Glass Expressive. The behaviour, settings and defaults below
 
 Milestone: slide engine items land in **M3**, dock, ink and whiteboard in **M5**.
 
+Ticked items were checked in the running app, with simulated pen and touch input. Real stylus and touch hardware hasn't been tried.
+
 ## 1. Slide engine (ported as-is, M3)
 
 - [x] 1920×1080 stage scaled and centred to fit any window, re-fit on resize

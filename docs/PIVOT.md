@@ -111,3 +111,7 @@ colour from a seed) and the **tinted liquid-glass** look of the owner's toolbar.
     Esc or F ends it on the slide it stopped at, and there is no windowed show. So the template's full-screen toggle becomes
     End show. Present on Home is the one way to open straight into a show.
 14. **The template comes first (2026-11-01).** M5 (dock, ink, whiteboard) moves ahead of M4 (mini edits).
+15. **The dock, ink, whiteboard and grid are ported into the slide page, not rebuilt in React (2026-11-01).** This replaces
+    decision 3 above. The template routes pen, finger and mouse through one page: the pen always draws while a finger
+    navigates and palms are ignored. An overlay in the app can't take a pen and let a finger through, so the exact behaviour
+    needs ink in the same page as the slides. The page stays sandboxed, and the app checks everything it sends.

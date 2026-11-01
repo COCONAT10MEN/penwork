@@ -4,8 +4,9 @@
 React app (src/)                          Slide runtime (src/runtime/, its own bundle)
 ├─ Home, Settings, Edit chrome, Dock      ├─ ported LoP engine: stage scaling, mini-LaTeX,
 ├─ Deck store (Zustand) + undo stack      │  Morph transitions, steps (st), background blobs,
-├─ Ink overlay (canvas over the iframe)   │  quiz, widgets (W.*), data-hl highlighting
-└─ Bridge (typed postMessage)  ◄───────►  └─ Edit helpers: hit-testing, inline editing, mapping to source
+├─ Saves ink and toolbar settings        │  quiz, widgets (W.*), data-hl highlighting, dock, ink,
+└─ Bridge (typed postMessage)  ◄───────►  │  whiteboard, overview grid
+                                          └─ Edit helpers: hit-testing, inline editing, mapping to source
           │
 Tauri core (src-tauri/): open/save dialogs, read/write zip bytes, file associations (.pwpptx, open-with),
 single instance, window state/fullscreen, Mica, accent colour, app-data paths, recovery files
@@ -57,11 +58,12 @@ runtime, so it can forge any runtime message.
 
 ## 4. Ink (milestone M5)
 
-- An overlay canvas above the iframe in the React app, positioned and scaled exactly like the stage (1920×1080 units).
+- Canvases inside the slide page, as in the template (PIVOT decision 15), positioned and scaled like the stage (1920×1080 units).
+- The page sends each slide's strokes to the app, which checks them (`src/lib/deck/ink.ts`) before saving or showing them.
 - Strokes are stored in stage units per slide id (format in `DECK-FORMAT.md` §6), with per-slide snapshot history
   (max 60), highlighter multiply compositing, and a laser trail that is never stored. See handoff §3.7.
-- Kept **in the deck** (`ink.json`) by default, so it travels with the file. With "Keep ink in the deck" off, it stays in app
-  data `<AppData>/Penwork/ink/<deckId>.json` (deckId = a uuid stored in the manifest on first save).
+- Goes **into the deck** (`ink.json`) on Save, so it travels with the file. Until Save arrives in M4 it is kept in app data,
+  `<AppData>/ink/<library id>.json`, on top of any ink already in the file. A slide's empty list means its ink was erased.
 - The whiteboard's ink uses the key `wb` in the same store.
 
 ## 5. Thumbnails

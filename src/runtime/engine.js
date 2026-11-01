@@ -753,7 +753,8 @@ function endGesture(){
     pushHist(g.slide,g.snap);
   }else if(g.mode==='erase'&&g.erased)pushHist(g.slide,g.snap);
   else if(g.mode==='laser'){trail.push([lx,ly,performance.now(),1]);laserKick();}
-  swallowUntil=performance.now()+350;busy_(false);
+  if(g.mode!=='pending')swallowUntil=performance.now()+350;
+  busy_(false);
 }
 function moveGesture(e){
   var g=G,er=isEraserBtn(e);
@@ -1816,7 +1817,7 @@ addEventListener('message',function(e){
     case 'toolbarFile':importText(p.text);break;
     case 'logo':{
       var l=document.querySelector('#logo .lg');if(l&&typeof p.svg==='string')l.innerHTML=p.svg;
-      setVar('--pw-logo',p.color);setVar('--pw-logo-bg',p.background);break;
+      setVar('--pw-dock-accent',p.color);setVar('--pw-dock-on',p.background);setVar('--acc',p.color);break;
     }
     case 'chrome':
       setVar('--pw-accent',p.accent);setVar('--pw-text',p.text);setVar('--pw-line',p.line);

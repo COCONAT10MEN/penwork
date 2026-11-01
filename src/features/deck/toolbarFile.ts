@@ -39,12 +39,12 @@ export async function exportToolbar(text: string): Promise<void> {
   if (path) await invoke("export_toolbar", { path, text });
 }
 
-export async function importToolbar(use: (text: string) => void): Promise<void> {
+export async function importToolbar(apply: (text: string) => void): Promise<void> {
   const path = await open({
     multiple: false,
     directory: false,
     filters: [{ name: "Toolbar settings", extensions: ["json"] }],
   });
   if (typeof path !== "string") return;
-  use(await invoke<string>("read_toolbar_file", { path }).catch(() => ""));
+  apply(await invoke<string>("read_toolbar_file", { path }).catch(() => ""));
 }

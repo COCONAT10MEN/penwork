@@ -219,7 +219,7 @@
   box-shadow: var(--pw-glass-shadow);
 }
 .sheet[data-dark-pages] :global(.fortune-sheet-canvas) {
-  filter: invert(1) hue-rotate(180deg);
+  filter: invert(0.88) hue-rotate(180deg);
 }
 .sheet :global(.fortune-toolbar) {
   position: absolute;
@@ -330,4 +330,11 @@
     opacity: 0;
     translate: 0 24px;
   }
+}
+/* The outline pane sits at the top left of the page area, which reaches up behind the bar. */
+.word :global(.docx-editor) :global(.docx-nav) {
+  inset-block-start: 84px;
+}
+.word :global(.docx-editor) {
+  background: transparent !important;
 }

@@ -48,6 +48,7 @@ export {
 } from "./Surface/Surface";
 export { Switch, type SwitchProps } from "./Switch/Switch";
 export { SplitButton, type SplitButtonProps } from "./SplitButton/SplitButton";
+export { Tabs, type TabItem, type TabsProps } from "./Tabs/Tabs";
 export { TextField, type TextFieldProps } from "./TextField/TextField";
 export { Tooltip, type TooltipProps } from "./Tooltip/Tooltip";
 export { TopAppBar, type TopAppBarProps } from "./TopAppBar/TopAppBar";

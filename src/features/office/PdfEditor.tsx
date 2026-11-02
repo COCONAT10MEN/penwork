@@ -24,7 +24,10 @@ interface Loaded {
 
 export default function PdfEditor({ file, handleRef, toolsSlot, onChange }: OfficeEditorProps) {
   const { bytes } = file;
-  const darkPages = useSettings((s) => s.settings.darkPages);
+  const { darkPages, pdfZoom, pdfTwoPages, pdfPen, pdfHighlight, pdfPenSize } = useSettings(
+    (s) => s.settings,
+  );
+  const startZoom = pdfZoom === "100" ? "1" : pdfZoom;
   const container = useRef<HTMLDivElement>(null);
   const pdf = useRef<Loaded | null>(null);
   const [ready, setReady] = useState(false);
@@ -63,7 +66,16 @@ export default function PdfEditor({ file, handleRef, toolsSlot, onChange }: Offi
       const viewer = new parts.PDFViewer(options);
       links.setViewer(viewer);
       bus.on("pagesinit", () => {
-        viewer.currentScaleValue = "auto";
+        viewer.currentScaleValue = startZoom;
+        viewer.spreadMode = pdfTwoPages ? 1 : 0;
+        // AnnotationEditorParamsType: INK_COLOR, INK_THICKNESS and HIGHLIGHT_COLOR.
+        for (const [type, value] of [
+          [21, pdfPen],
+          [22, pdfPenSize],
+          [31, pdfHighlight],
+        ]) {
+          bus.dispatch("switchannotationeditorparams", { source: null, type, value });
+        }
       });
       bus.on("pagechanging", (e: { pageNumber: number }) => setPage(e.pageNumber));
       bus.on("updatefindmatchescount", (e: { matchesCount: { current: number; total: number } }) =>
@@ -99,7 +111,7 @@ export default function PdfEditor({ file, handleRef, toolsSlot, onChange }: Offi
       pdf.current = null;
       void opened?.destroy();
     };
-  }, [bytes, darkPages]);
+  }, [bytes, darkPages, startZoom, pdfTwoPages, pdfPen, pdfHighlight, pdfPenSize]);
 
   useEffect(() => {
     handleRef.current = {
@@ -158,6 +170,7 @@ export default function PdfEditor({ file, handleRef, toolsSlot, onChange }: Offi
       {ready && toolsSlot && (
         <PdfToolbar
           slot={toolsSlot}
+          startColours={{ draw: pdfPen, highlight: pdfHighlight }}
           page={page}
           pages={pages}
           tool={tool}

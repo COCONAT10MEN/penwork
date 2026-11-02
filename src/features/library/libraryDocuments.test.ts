@@ -5,7 +5,7 @@ import {
   markMissing,
   parseLibrary,
   recordDocument,
-  removeDocument,
+  removeFiles,
 } from "./libraryFile";
 
 const NOW = "2026-11-02T10:00:00Z";
@@ -52,7 +52,7 @@ describe("documents in the library", () => {
 
   it("removes one row and leaves the rest", () => {
     const library = add("C:\\b.pdf", add("C:\\a.pdf"));
-    const left = removeDocument(library, "id-C:\\a.pdf");
+    const left = removeFiles(library, ["id-C:\\a.pdf"]);
     expect(left.documents.map((d) => d.name)).toEqual(["b.pdf"]);
   });
 

@@ -1,6 +1,7 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import { create } from "zustand";
-import { useApp } from "../../appStore";
+import { getCurrentWebview } from "@tauri-apps/api/webview";
+import { setRecentLimit, useApp } from "../../appStore";
 import { getSystemSeed, onSystemSeedChange } from "../../theme/accent";
 import { DEFAULT_SEED } from "../../theme/theme";
 import { applyAppearance } from "./appearance";
@@ -33,9 +34,16 @@ function saveSoon(settings: Settings): void {
   }, 300);
 }
 
+let scale = 100;
+
 function apply(): void {
   const { settings, systemSeed } = useSettings.getState();
   applyAppearance(settings, systemSeed, useApp.getState().deck?.accent ?? null);
+  setRecentLimit(settings.recentLimit);
+  if (settings.uiScale !== scale && isTauri()) {
+    scale = settings.uiScale;
+    void getCurrentWebview().setZoom(scale / 100);
+  }
 }
 
 /** Loads settings and starts keeping the page in step. Runs before the first render. */

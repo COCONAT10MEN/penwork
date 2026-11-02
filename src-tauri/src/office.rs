@@ -5,6 +5,7 @@ use std::collections::hash_map::DefaultHasher;
 use std::fs;
 use std::hash::{Hash, Hasher};
 use std::path::{Path, PathBuf};
+use std::process::Command;
 use tauri::ipc::{InvokeBody, Request, Response};
 use tauri::{AppHandle, Manager};
 
@@ -69,7 +70,8 @@ pub fn save_office_file(app: AppHandle, request: Request<'_>) -> Result<(), Stri
     };
     let (path, file) = split_body(body).ok_or("damaged request")?;
     let path = checked(&path)?;
-    if path.is_file() {
+    let keep = request.headers().get("keep-previous").is_none_or(|v| v != "0");
+    if keep && path.is_file() {
         keep_previous(&app, &path)?;
     }
     let mut temp = path.clone().into_os_string();
@@ -79,6 +81,34 @@ pub fn save_office_file(app: AppHandle, request: Request<'_>) -> Result<(), Stri
         let _ = fs::remove_file(&temp);
         e.to_string()
     })
+}
+
+/// Opens Explorer with the file selected. Explorer needs the path quoted its own way, and Windows
+/// paths can't contain a quote, so the path can't break out of it.
+#[tauri::command]
+pub fn show_in_folder(path: String) -> Result<(), String> {
+    if !Path::new(&path).is_file() {
+        return Err("missing".into());
+    }
+    let mut explorer = Command::new("explorer");
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        explorer.raw_arg(format!("/select,\"{path}\""));
+    }
+    explorer.spawn().map(|_| ()).map_err(|e| e.to_string())
+}
+
+/// Only these folders: this is not a way to open anything else.
+#[tauri::command]
+pub fn open_app_folder(app: AppHandle, name: String) -> Result<(), String> {
+    let folder = match name.as_str() {
+        "before-save" => app.path().app_data_dir().map_err(|e| e.to_string())?.join(name),
+        "licenses" => app.path().resource_dir().map_err(|e| e.to_string())?.join(name),
+        _ => return Err("not an app folder".into()),
+    };
+    fs::create_dir_all(&folder).map_err(|e| e.to_string())?;
+    Command::new("explorer").arg(folder).spawn().map(|_| ()).map_err(|e| e.to_string())
 }
 
 /// Stays in the same folder with the same type, and never replaces another file.

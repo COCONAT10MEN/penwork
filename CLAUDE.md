@@ -1,13 +1,13 @@
 # Penwork — project instructions for Claude Code
 
-Penwork is a desktop app for **opening, presenting and making small edits to slide decks**, styled as
+Penwork is an **office suite** for Windows: presentations, documents, spreadsheets and PDFs, styled as
 **Glass Expressive** (Material 3 Expressive with tinted liquid glass). "Penwork" is a working name.
 Read `docs/PIVOT.md` first: where it disagrees with an older doc, it wins.
 
 ## Scope right now (v1)
 
 - **Platform: Windows 10/11 only.** Linux and Android come later. Keep the frontend platform-neutral.
-- **Product: a presentation app.** Open `.pwpptx` decks, present them, and make small edits in the app. See `docs/PIVOT.md`.
+- **Product: an office suite (decision 19 in `docs/PIVOT.md`).** Presentations are one file type of four, not the centre of the app. Word, Excel and PDF are finished first, then the rest of the presentation work.
 - **Office files:** Word (`.docx`), Excel (`.xlsx`, `.csv`) and PDF open in `src/features/office/`, on free libraries. See decision 17 in `docs/PIVOT.md`.
 - **Paused:** notebooks, Linux, Android.
 - **Input:** mouse, keyboard, touchpad, touch and stylus, exactly as the template does it. Use Pointer Events.

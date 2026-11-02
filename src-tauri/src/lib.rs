@@ -77,6 +77,8 @@ pub fn run() {
             office::read_office_file,
             office::save_office_file,
             office::rename_office_file,
+            office::show_in_folder,
+            office::open_app_folder,
             session::open_deck,
             session::create_deck_session,
             session::add_deck_asset,

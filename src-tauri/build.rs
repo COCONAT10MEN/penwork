@@ -30,6 +30,8 @@ fn main() {
         "read_office_file",
         "save_office_file",
         "rename_office_file",
+        "show_in_folder",
+        "open_app_folder",
         "save_deck",
         "write_recovery",
         "list_recovery",

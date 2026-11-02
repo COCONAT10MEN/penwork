@@ -1,5 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { save } from "@tauri-apps/plugin-dialog";
+import { useSettings } from "../settings/settingsStore";
 import { fileExtension, fileName, officeKind, saveBody, type OfficeKind } from "../../lib/office";
 
 export interface OfficeFile {
@@ -49,7 +50,10 @@ export function newOfficeFile(kind: "word" | "sheet"): OfficeFile {
 }
 
 export async function writeOfficeFile(path: string, file: Uint8Array): Promise<void> {
-  await invoke("save_office_file", saveBody(path, file));
+  const { keepPrevious } = useSettings.getState().settings;
+  await invoke("save_office_file", saveBody(path, file), {
+    headers: { "keep-previous": keepPrevious ? "1" : "0" },
+  });
 }
 
 const SAVE_FILTERS: Record<OfficeKind, { name: string; extensions: string[] }[]> = {
@@ -67,5 +71,7 @@ export async function pickSavePath(file: OfficeFile): Promise<string | null> {
   const filters = [...SAVE_FILTERS[file.kind]].sort(
     (a, b) => Number(b.extensions.includes(own)) - Number(a.extensions.includes(own)),
   );
-  return save({ defaultPath: file.path ?? file.name, filters });
+  const { saveFolder } = useSettings.getState().settings;
+  const start = saveFolder ? `${saveFolder}\\${file.name}` : file.name;
+  return save({ defaultPath: file.path ?? start, filters });
 }

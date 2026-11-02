@@ -8,6 +8,7 @@ import {
   ListIcon,
   ListItem,
   NavigationRail,
+  Tabs,
   TopAppBar,
   type RailItem,
 } from "../../ui";
@@ -165,5 +166,21 @@ export function ShowcaseList() {
         </List>
       </div>
     </Section>
+  );
+}
+
+export function ShowcaseTabs() {
+  const [tab, setTab] = useState("all");
+  return (
+    <Tabs
+      label="Example tabs"
+      tabs={[
+        { id: "all", label: "All", icon: "apps" },
+        { id: "docs", label: "Documents", icon: "description" },
+        { id: "pdf", label: "PDFs" },
+      ]}
+      value={tab}
+      onChange={setTab}
+    />
   );
 }

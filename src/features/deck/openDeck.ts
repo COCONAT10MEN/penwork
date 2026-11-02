@@ -1,4 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
+import { useSettings } from "../settings/settingsStore";
 import { extractImages } from "../../lib/deck/assets";
 import { deckAccent, deckFacts, type DeckFacts } from "../../lib/deck/facts";
 import { manifestFor, type DeckParts } from "../../lib/deck/deckParts";
@@ -113,7 +114,11 @@ export async function openRecoveryFile(id: string, path: string): Promise<OpenDe
 }
 
 async function openParts(deck: DeckParts, generator: string) {
-  const manifest = manifestFor(deck, generator, new Date().toISOString());
+  const { newKeepInk } = useSettings.getState().settings;
+  const manifest = {
+    ...manifestFor(deck, generator, new Date().toISOString()),
+    ...(newKeepInk ? {} : { settings: { keepInk: false } }),
+  };
   const token = await invoke<string>("create_deck_session", {
     manifest,
     themeCss: deck.themeCss,

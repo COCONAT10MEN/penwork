@@ -27,8 +27,11 @@ export interface LibraryDocument {
   path: string;
   name: string;
   kind: OfficeKind;
+  favorite: boolean;
   lastOpened: string;
   missing: boolean;
+  /** When the cached picture of the first page was taken. Null when there is none yet. */
+  thumb: string | null;
 }
 
 export interface Library {
@@ -73,8 +76,10 @@ function readDocument(value: unknown): LibraryDocument | null {
     path: d.path,
     name: fileName(d.path),
     kind,
+    favorite: d.favorite === true,
     lastOpened: typeof d.lastOpened === "string" ? d.lastOpened : new Date(0).toISOString(),
     missing: d.missing === true,
+    thumb: typeof d.thumb === "string" ? d.thumb : null,
   };
 }
 
@@ -138,19 +143,23 @@ export function recordDocument(
     path,
     name: fileName(path),
     kind,
+    favorite: existing?.favorite ?? false,
     lastOpened: now,
     missing: false,
+    thumb: existing?.thumb ?? null,
   };
   const others = library.documents.filter((d) => !keys.includes(d.path.toLowerCase()));
   return { ...library, documents: [updated, ...others] };
 }
 
-export function removeDocument(library: Library, id: string): Library {
-  return { ...library, documents: library.documents.filter((d) => d.id !== id) };
-}
-
-export function removeDeck(library: Library, id: string): Library {
-  return { ...library, decks: library.decks.filter((d) => d.id !== id) };
+/** Takes these files off the lists, whatever type they are. The files themselves aren't touched. */
+export function removeFiles(library: Library, ids: string[]): Library {
+  const gone = new Set(ids);
+  return {
+    ...library,
+    decks: library.decks.filter((d) => !gone.has(d.id)),
+    documents: library.documents.filter((d) => !gone.has(d.id)),
+  };
 }
 
 export function markMissing(library: Library, path: string): Library {
@@ -171,7 +180,8 @@ export function setLastSlide(library: Library, path: string, slide: number): Lib
 }
 
 export function setFavorite(library: Library, id: string, favorite: boolean): Library {
-  return { ...library, decks: library.decks.map((d) => (d.id === id ? { ...d, favorite } : d)) };
+  const mark = <T extends { id: string }>(d: T) => (d.id === id ? { ...d, favorite } : d);
+  return { ...library, decks: library.decks.map(mark), documents: library.documents.map(mark) };
 }
 
 /** A draft that was saved somewhere real is the same presentation, so it keeps its place. */
@@ -188,10 +198,8 @@ export function renameDeck(library: Library, oldPath: string, path: string): Lib
 }
 
 export function setThumb(library: Library, id: string, stamp: string): Library {
-  return {
-    ...library,
-    decks: library.decks.map((d) => (d.id === id ? { ...d, thumb: stamp } : d)),
-  };
+  const mark = <T extends { id: string }>(d: T) => (d.id === id ? { ...d, thumb: stamp } : d);
+  return { ...library, decks: library.decks.map(mark), documents: library.documents.map(mark) };
 }
 
 /** Files moved or deleted since last time. `exists` lines up with the decks, then the documents. */

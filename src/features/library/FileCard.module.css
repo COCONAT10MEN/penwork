@@ -1,0 +1,164 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+}
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Each type has its own colour role, so a mixed list can be read at a glance. */
+[data-kind="deck"] {
+  --pw-kind: var(--md-sys-color-primary);
+  --pw-on-kind: var(--md-sys-color-on-primary);
+}
+[data-kind="word"] {
+  --pw-kind: var(--md-sys-color-tertiary);
+  --pw-on-kind: var(--md-sys-color-on-tertiary);
+}
+[data-kind="sheet"] {
+  --pw-kind: var(--md-sys-color-secondary);
+  --pw-on-kind: var(--md-sys-color-on-secondary);
+}
+[data-kind="pdf"] {
+  --pw-kind: var(--md-sys-color-error);
+  --pw-on-kind: var(--md-sys-color-on-error);
+}
+
+.mark {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  color: var(--pw-on-kind);
+}
+.mark.mark * {
+  color: var(--pw-on-kind);
+}
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  padding: 10px 10px 12px;
+  --pw-surface-fill: var(--pw-glass-thin-fill);
+  transition: box-shadow var(--md-sys-motion-effects-duration) var(--md-sys-motion-effects-easing);
+}
+.card:hover {
+  box-shadow: var(--pw-glass-rim-top), var(--pw-glass-shadow);
+}
+.thumb {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: var(--pw-shape-thumb);
+  background: color-mix(in srgb, var(--pw-kind) 14%, transparent);
+}
+.picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+  animation: picture-in var(--md-sys-motion-effects-default-duration)
+    var(--md-sys-motion-effects-default-easing);
+}
+@keyframes picture-in {
+  from {
+    opacity: 0;
+  }
+}
+.row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 40px;
+}
+.text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  text-align: start;
+}
+/* The card is clean at rest, as designed. Touch has no hover, so there it always shows. */
+.more {
+  opacity: 0;
+  transition: opacity var(--md-sys-motion-effects-duration) var(--md-sys-motion-effects-easing);
+}
+.card:hover .more,
+.more:focus-within {
+  opacity: 1;
+}
+@media (hover: none) {
+  .more {
+    opacity: 1;
+  }
+}
+.title {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  font-size: var(--md-sys-typescale-title-small-size);
+  line-height: var(--md-sys-typescale-title-small-line-height);
+  font-weight: var(--md-sys-typescale-title-small-weight-emphasized);
+}
+.star {
+  flex: none;
+  color: var(--md-sys-color-primary);
+}
+.titleText,
+.meta,
+.folder {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.meta,
+.folder {
+  color: var(--pw-glass-on-variant);
+  font-size: var(--md-sys-typescale-body-small-size);
+  line-height: var(--md-sys-typescale-body-small-line-height);
+}
+
+.listRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-inline-end: 8px;
+  border-radius: var(--md-sys-shape-corner-large);
+  background: var(--pw-glass-thin-fill);
+  animation: row-in var(--md-sys-motion-spatial-default-duration)
+    var(--md-sys-motion-spatial-default-easing) backwards;
+}
+@keyframes row-in {
+  from {
+    opacity: 0;
+    translate: 0 8px;
+  }
+}
+.rowButton {
+  position: relative;
+  flex: 1;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: var(--md-sys-shape-corner-large);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+}

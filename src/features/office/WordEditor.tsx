@@ -9,7 +9,9 @@ import styles from "./OfficeView.module.css";
 
 export default function WordEditor({ file, handleRef, onChange, onSave }: OfficeEditorProps) {
   const editor = useRef<DocxEditorRef>(null);
-  const darkPages = useSettings((s) => s.settings.darkPages);
+  const { darkPages, wordRuler, wordOutline, wordAuthor, wordZoom } = useSettings(
+    (s) => s.settings,
+  );
   const openPath = useApp((s) => s.openPath);
 
   useEffect(() => {
@@ -32,7 +34,10 @@ export default function WordEditor({ file, handleRef, onChange, onSave }: Office
         document={file.bytes ?? "blank"}
         mode="edit"
         title={file.name}
-        rulers={false}
+        rulers={wordRuler}
+        navigation={wordOutline}
+        author={wordAuthor || undefined}
+        zoom={wordZoom === "fit" ? undefined : Number(wordZoom) / 100}
         colorMode={darkPages ? "dark" : "light"}
         menu={{ reportIssue: false }}
         onSave={onSave}

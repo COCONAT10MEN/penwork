@@ -113,6 +113,13 @@ Tick boxes only when finished and verified in the running app.
 - [ ] README with screenshots
 - [ ] (Optional) Mica on Windows 11, only if it proves worthwhile
 
+## Office suite: done first (decision 19)
+
+- [x] Files and Favorites for every file type, Home shows the last file of any type
+- [x] Settings on tabs, with every setting in the app
+- [ ] Spreadsheet default font (the library has no setting for it)
+- [ ] Word default font
+
 ## Office files (Word, Excel, PDF)
 
 Decision 17 in `docs/PIVOT.md`. The code is in `src/features/office/`.

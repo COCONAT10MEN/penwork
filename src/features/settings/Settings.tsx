@@ -1,252 +1,58 @@
-import { open } from "@tauri-apps/plugin-dialog";
-import { invoke } from "@tauri-apps/api/core";
-import { useState, type ReactNode } from "react";
-import { contrastRatio } from "../../lib/contrast";
-import { checkLogo } from "../../lib/logo";
-import {
-  Button,
-  ButtonGroup,
-  ColorPicker,
-  ColorSwatches,
-  Dialog,
-  LogoTile,
-  Shape,
-  Surface,
-  Switch,
-} from "../../ui";
-import type { ThemeMode, Transparency } from "../../theme/theme";
-import { showError } from "../notices/notices";
-import { saveAiKit } from "./aiKit";
-import { logoColor } from "./appearance";
-import type { ColorSource, Settings as SavedSettings } from "./settingsFile";
-import { useSettings } from "./settingsStore";
+import { motion } from "motion/react";
+import { useState } from "react";
+import { useReduceMotion, useSpring } from "../../theme/motion";
+import { Tabs, type TabItem } from "../../ui";
+import { AppearanceTab } from "./AppearanceTab";
+import { AboutTab, AiTab, AnimationsTab, PresentationsTab, ShortcutsTab } from "./AppTabs";
+import { FilesSavingTab, GeneralTab, PdfTab, SheetTab, WordTab } from "./FileSettingsTabs";
 import styles from "./Settings.module.css";
 
-/** Below this a logo starts to disappear into its background (the rule for non-text shapes). */
-const MIN_LOGO_CONTRAST = 3;
-
-function Section({ title, hint, children }: { title: string; hint?: string; children: ReactNode }) {
-  return (
-    <Surface material="glass" blur={false} className={styles.section}>
-      <h2 className={styles.title}>{title}</h2>
-      {hint && <p className={styles.hint}>{hint}</p>}
-      {children}
-    </Surface>
-  );
-}
-
-function ColorChoice({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  onChange: (hex: string) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className={styles.color}>
-      <Shape name="Cookie9Sided" size={44} solid color={value} />
-      <span className={styles.hex}>{value.toUpperCase()}</span>
-      <Button variant="tonal" size="small" onClick={() => setOpen(true)}>
-        {label}
-      </Button>
-      <Dialog
-        open={open}
-        onClose={() => setOpen(false)}
-        headline={label}
-        material="glass"
-        actions={
-          <Button size="medium" onClick={() => setOpen(false)}>
-            Done
-          </Button>
-        }
-      >
-        <ColorPicker value={value} onChange={onChange} />
-      </Dialog>
-    </div>
-  );
-}
-
-function LogoSection() {
-  const settings = useSettings((s) => s.settings);
-  const systemSeed = useSettings((s) => s.systemSeed);
-  const { logo, logoBackground: background } = settings;
-  const hardToSee = contrastRatio(logoColor(settings, systemSeed), background) < MIN_LOGO_CONTRAST;
-  const update = useSettings((s) => s.update);
-
-  const choose = async () => {
-    const path = await open({
-      multiple: false,
-      directory: false,
-      // PNG and JPG are listed so that picking one gets an explanation, not a greyed-out file.
-      filters: [{ name: "Logo", extensions: ["svg", "png", "jpg", "jpeg"] }],
-    });
-    if (typeof path !== "string") return;
-    const text = path.toLowerCase().endsWith(".svg")
-      ? await invoke<string>("read_logo_file", { path }).catch(() => "")
-      : "";
-    const result = checkLogo(path, text);
-    if (!result.ok) {
-      showError(result.message);
-      return;
-    }
-    update({ logo: { svg: result.svg, color: result.color } });
-  };
-
-  return (
-    <Section
-      title="Logo"
-      hint="An .svg file: square, one colour, transparent, 200 KB or smaller. Text must be converted to shapes."
-    >
-      <div className={styles.logoRow}>
-        <LogoTile size={72} svg={logo?.svg} label="Logo preview" />
-        <div className={styles.actions}>
-          <Button variant="tonal" size="small" icon="upload" onClick={() => void choose()}>
-            Choose logo
-          </Button>
-          {logo && (
-            <Button variant="text" size="small" onClick={() => update({ logo: null })}>
-              Use the Penwork logo
-            </Button>
-          )}
-        </div>
-      </div>
-      <h3 className={styles.subtitle}>Logo background</h3>
-      <ColorChoice
-        label="Change background"
-        value={background}
-        onChange={(logoBackground) => update({ logoBackground })}
-      />
-      {hardToSee && (
-        <p className={styles.hint} role="status">
-          The logo is hard to see on this background.
-        </p>
-      )}
-    </Section>
-  );
-}
-
-const THEMES = [
-  { value: "system", label: "System" },
-  { value: "light", label: "Light" },
-  { value: "dark", label: "Dark" },
+const TABS: TabItem[] = [
+  { id: "general", label: "General" },
+  { id: "appearance", label: "Appearance" },
+  { id: "animations", label: "Animations" },
+  { id: "files", label: "Files & saving" },
+  { id: "word", label: "Word" },
+  { id: "sheet", label: "Spreadsheets" },
+  { id: "pdf", label: "PDF" },
+  { id: "deck", label: "Presentations" },
+  { id: "ai", label: "AI" },
+  { id: "keys", label: "Shortcuts" },
+  { id: "about", label: "About" },
 ];
-// Options to pick from, so these are data, not theme colours.
-const PRESET_COLORS = ["#00687A", "#3F5BD4", "#7A4FBF", "#B4287A", "#C2410C", "#2E7D32"];
-const COLORS = [
-  { value: "penwork", label: "Penwork teal" },
-  { value: "logo", label: "Sync with logo" },
-  { value: "deck", label: "Match the presentation" },
-  { value: "custom", label: "Custom" },
-];
-const END_OF_SHOW = [
-  { value: "loop", label: "Back to the first" },
-  { value: "stop", label: "Stay on it" },
-];
-const TRANSPARENCY = [
-  { value: "auto", label: "Follow Windows" },
-  { value: "glass", label: "Glass" },
-  { value: "reduced", label: "Reduced" },
-];
+
+const PAGES: Record<string, () => React.JSX.Element> = {
+  general: GeneralTab,
+  appearance: AppearanceTab,
+  animations: AnimationsTab,
+  files: FilesSavingTab,
+  word: WordTab,
+  sheet: SheetTab,
+  pdf: PdfTab,
+  deck: PresentationsTab,
+  ai: AiTab,
+  keys: ShortcutsTab,
+  about: AboutTab,
+};
 
 export function Settings() {
-  const settings = useSettings((s) => s.settings);
-  const update = useSettings((s) => s.update);
+  const [tab, setTab] = useState("general");
+  const reduce = useReduceMotion();
+  const rise = useSpring("spatialDefault");
+  const Page = PAGES[tab] ?? GeneralTab;
   return (
     <div className={styles.settings}>
       <h1 className={styles.heading}>Settings</h1>
-      <div className={styles.columns}>
-        <Section title="Theme">
-          <ButtonGroup
-            stretch
-            label="Theme"
-            required
-            options={THEMES}
-            value={settings.theme}
-            onChange={(theme) => update({ theme: theme as ThemeMode })}
-          />
-          <Switch
-            label="Dark pages"
-            description="The pages of Word, Excel and PDF files go dark too. When this is off they stay white, like paper."
-            checked={settings.darkPages}
-            onCheckedChange={(darkPages) => update({ darkPages })}
-          />
-        </Section>
-        <Section
-          title="App colour"
-          hint={
-            settings.colorSource === "deck"
-              ? "The app takes the presentation's main colour while one is open."
-              : undefined
-          }
-        >
-          <ButtonGroup
-            stretch
-            label="App colour"
-            required
-            options={COLORS}
-            value={settings.colorSource}
-            onChange={(colorSource) => update({ colorSource: colorSource as ColorSource })}
-          />
-          {settings.colorSource === "custom" && (
-            <ColorSwatches
-              label="Choose a colour"
-              colors={PRESET_COLORS}
-              value={settings.customColor}
-              onChange={(customColor) => update({ customColor })}
-            />
-          )}
-          {settings.colorSource === "custom" && (
-            <ColorChoice
-              label="Change colour"
-              value={settings.customColor}
-              onChange={(customColor) => update({ customColor })}
-            />
-          )}
-        </Section>
-        <LogoSection />
-        <Section
-          title="Transparency"
-          hint="Reduced uses solid surfaces, which is easier on older laptops."
-        >
-          <ButtonGroup
-            stretch
-            label="Transparency"
-            required
-            options={TRANSPARENCY}
-            value={settings.transparency}
-            onChange={(transparency) => update({ transparency: transparency as Transparency })}
-          />
-        </Section>
-        <Section title="Last slide of a show">
-          <ButtonGroup
-            stretch
-            label="Last slide of a show"
-            required
-            options={END_OF_SHOW}
-            value={settings.endOfShow}
-            onChange={(endOfShow) => update({ endOfShow: endOfShow as SavedSettings["endOfShow"] })}
-          />
-        </Section>
-        <Section
-          title="AI kit"
-          hint="What an AI needs to write a Penwork presentation: the guide, a packing tool, an example and a prompt."
-        >
-          <Button variant="tonal" size="small" icon="download" onClick={() => void saveAiKit()}>
-            Get the AI kit
-          </Button>
-        </Section>
-        <Section title="Motion">
-          <Switch
-            label="Reduce motion"
-            description="When this is off, Penwork follows your Windows setting."
-            checked={settings.reduceMotion}
-            onCheckedChange={(reduceMotion) => update({ reduceMotion })}
-          />
-        </Section>
-      </div>
+      <Tabs label="Settings" tabs={TABS} value={tab} onChange={setTab} />
+      <motion.div
+        key={tab}
+        role="tabpanel"
+        aria-label={TABS.find((t) => t.id === tab)?.label}
+        initial={reduce ? { opacity: 0 } : { opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0, transition: rise }}
+      >
+        <Page />
+      </motion.div>
     </div>
   );
 }

@@ -1,25 +1,6 @@
 import type { LibraryDeck } from "./libraryFile";
 
-export type DeckFilter = "all" | "favorites" | "quizzes" | "interactive";
-
 const words = (query: string) => query.toLocaleLowerCase().split(/\s+/).filter(Boolean);
-
-function matchesFilter(deck: LibraryDeck, filter: DeckFilter): boolean {
-  if (filter === "favorites") return deck.favorite;
-  if (filter === "quizzes") return deck.quizzes > 0;
-  if (filter === "interactive") return deck.interactive;
-  return true;
-}
-
-/** Every word must appear somewhere in the deck's title or slides. */
-export function findDecks(decks: LibraryDeck[], query: string, filter: DeckFilter): LibraryDeck[] {
-  const wanted = words(query);
-  return decks.filter((deck) => {
-    if (!matchesFilter(deck, filter)) return false;
-    const haystack = `${deck.title} ${deck.text}`.toLocaleLowerCase();
-    return wanted.every((word) => haystack.includes(word));
-  });
-}
 
 /** A few words around the match in the slides, to show why a deck was found. */
 export function matchSnippet(deck: LibraryDeck, query: string): string | null {

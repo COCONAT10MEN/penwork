@@ -16,18 +16,15 @@ import {
 import { pickFile } from "../deck/useFileOpening";
 import { Settings } from "../settings/Settings";
 import { useSettings } from "../settings/settingsStore";
-import { OPEN_BUTTON_ID } from "./DeckCard";
-import { DecksPage } from "./DecksPage";
-import { DocumentsPage } from "./DocumentsPage";
+import { OPEN_BUTTON_ID } from "./FileCard";
+import { FilesPage } from "./FilesPage";
 import { HomePage } from "./HomePage";
 import { NewDeckDialog } from "./NewDeckDialog";
 import styles from "./Home.module.css";
 
 const NAV: RailItem[] = [
   { id: "home", label: "Home", icon: "home" },
-  { id: "decks", label: "Presentations", icon: "desktop_windows" },
-  { id: "documents", label: "Documents", icon: "description" },
-  { id: "layouts", label: "Layouts", icon: "grid_view" },
+  { id: "files", label: "Files", icon: "folder" },
   { id: "favorites", label: "Favorites", icon: "star" },
 ];
 const NAV_END: RailItem[] = [{ id: "settings", label: "Settings", icon: "settings" }];
@@ -57,32 +54,22 @@ export function Home({ dragging }: { dragging: boolean }) {
   };
 
   const content = () => {
-    if (query && page === "documents") return <DocumentsPage key="search" query={query} />;
-    if (query) return <DecksPage key="search" query={query} title="Search results" />;
+    if (query) return <FilesPage key="search" title="Search results" query={query} />;
     switch (page) {
       case "home":
         return (
           <HomePage
             dragging={dragging}
-            onSeeAll={() => go("decks")}
+            onSeeAll={() => go("files")}
             onNewDeck={() => setNewDeckOpen(true)}
           />
         );
-      case "decks":
-        return <DecksPage key="decks" query="" title="Presentations" />;
-      case "documents":
-        return <DocumentsPage key="documents" />;
+      case "files":
+        return <FilesPage key="files" title="Files" />;
       case "favorites":
-        return <DecksPage key="favorites" query="" title="Favorites" start="favorites" />;
-      case "settings":
-        return <Settings />;
+        return <FilesPage key="favorites" title="Favorites" favorites />;
       default:
-        return (
-          <>
-            <h1 className={styles.pageTitle}>Layouts</h1>
-            <p className={styles.sub}>The layout gallery arrives with editing.</p>
-          </>
-        );
+        return <Settings />;
     }
   };
 
@@ -127,7 +114,6 @@ export function Home({ dragging }: { dragging: boolean }) {
                       onSelect: () => void newOffice("sheet"),
                     },
                     { label: "Open a file", icon: "folder", onSelect: () => void onOpen() },
-                    { label: "From a layout", icon: "grid_view", onSelect: () => go("layouts") },
                   ]}
                 />
               </span>
@@ -145,7 +131,7 @@ export function Home({ dragging }: { dragging: boolean }) {
           <div className={styles.search}>
             <SearchBar
               material="glass"
-              label={page === "documents" ? "Search documents" : "Search presentations and slides"}
+              label="Search all your files"
               value={query}
               onChange={setQuery}
             />

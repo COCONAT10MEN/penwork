@@ -23,7 +23,13 @@ import {
   ShowcaseGroups,
   ShowcaseIconButtons,
 } from "./ShowcaseActions";
-import { ShowcaseAppBar, ShowcaseCards, ShowcaseList, ShowcaseRail } from "./ShowcaseContainers";
+import {
+  ShowcaseAppBar,
+  ShowcaseCards,
+  ShowcaseList,
+  ShowcaseRail,
+  ShowcaseTabs,
+} from "./ShowcaseContainers";
 import { ShowcaseInputs, ShowcaseOverlays } from "./ShowcaseOverlays";
 import {
   ShowcaseFields,
@@ -60,6 +66,7 @@ function Showcase({ scheme }: { scheme: "light" | "dark" }) {
       <ShowcaseFabs />
       <ShowcaseChipsSearch />
       <ShowcaseRail />
+      <ShowcaseTabs />
       <ShowcaseAppBar />
       <ShowcaseCards />
       <ShowcaseList />

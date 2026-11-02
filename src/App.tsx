@@ -1,7 +1,7 @@
 import { isTauri } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { MotionConfig } from "motion/react";
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { useApp } from "./appStore";
 import { DeckView } from "./features/deck/DeckView";
 import { RecoveryPrompt } from "./features/deck/RecoveryPrompt";
@@ -43,6 +43,17 @@ function Screens() {
   useEffect(() => {
     void loadLibrary();
   }, [loadLibrary]);
+
+  // Waits for the library, and gives way to a file Windows asked to open.
+  const libraryReady = useApp((s) => s.libraryReady);
+  const startChecked = useRef(false);
+  useEffect(() => {
+    if (!libraryReady || startChecked.current) return;
+    startChecked.current = true;
+    const { deck: open, office: openOffice, opening, openLast } = useApp.getState();
+    const lastFile = useSettings.getState().settings.startOn === "last";
+    if (lastFile && !open && !openOffice && !opening) void openLast();
+  }, [libraryReady]);
 
   // The real title bar follows the app's theme, not only Windows'.
   const theme = useSettings((s) => s.settings.theme);

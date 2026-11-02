@@ -1,4 +1,5 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
+import { useSettings } from "../settings/settingsStore";
 import { save as saveDialog } from "@tauri-apps/plugin-dialog";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useStore } from "zustand";
@@ -12,7 +13,11 @@ import { isDirty, markSaved, type DeckStore } from "./deckStore";
 import { inkCopyName, type OpenDeck } from "./openDeck";
 
 /** Often enough to lose very little (docs/DECK-FORMAT.md §8). */
-const RECOVERY_EVERY = 5000;
+
+function saveStart(name: string): string {
+  const { saveFolder } = useSettings.getState().settings;
+  return saveFolder ? `${saveFolder}\\${name}` : name;
+}
 
 function libraryId(path: string): string | undefined {
   const key = path.toLowerCase();
@@ -59,7 +64,7 @@ export function useDeckSave(options: {
       const needsPlace = saveAs || deck.draft;
       const chosen = needsPlace
         ? await saveDialog({
-            defaultPath: `${deck.manifest.title}.pwpptx`,
+            defaultPath: saveStart(`${deck.manifest.title}.pwpptx`),
             filters: [{ name: "Penwork presentations", extensions: ["pwpptx"] }],
           })
         : null;
@@ -154,7 +159,7 @@ export function useDeckSave(options: {
         .finally(() => {
           writing.current = null;
         });
-    }, RECOVERY_EVERY);
+    }, useSettings.getState().settings.recoverySeconds * 1000);
     return () => clearInterval(timer);
   }, [dirty, deck.path, deck.token, store, inkFile]);
 

@@ -72,3 +72,10 @@
   width: 83vmin;
   height: 83vmin;
 }
+
+/* Settings can turn the colours off, for a plain background. */
+:root[data-no-ambient] .a,
+:root[data-no-ambient] .b,
+:root[data-no-ambient] .c {
+  display: none;
+}

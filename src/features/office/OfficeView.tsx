@@ -7,6 +7,7 @@ import { useLeaveGuard } from "../deck/useLeaveGuard";
 import { notify, showError } from "../notices/notices";
 import { EditorBoundary } from "./EditorBoundary";
 import { OfficeBar } from "./OfficeBar";
+import { useOfficeThumb } from "./useOfficeThumb";
 import { pickSavePath, writeOfficeFile, type OfficeEditor, type OfficeFile } from "./officeFile";
 import "./office-theme.css";
 import styles from "./OfficeView.module.css";
@@ -17,6 +18,9 @@ const EDITORS = {
   sheet: lazy(() => import("./SheetEditor")),
   pdf: lazy(() => import("./PdfEditor")),
 };
+
+// Long enough for the "Saved" notice to have gone, or it ends up in the picture.
+const AFTER_SAVE_MS = 3500;
 
 /** Tells the editors exactly where the bar's free space is, so their tools can sit in it. */
 function useSlotPlace() {
@@ -45,6 +49,7 @@ export function OfficeView({ file }: { file: OfficeFile }) {
   const [saving, setSaving] = useState(false);
   const [menusOpen, setMenusOpen] = useState(false);
   const { view, slot, setSlot } = useSlotPlace();
+  const takeThumb = useOfficeThumb(file.kind, file.path);
   const Editor = EDITORS[file.kind];
 
   const writeTo = async (path: string) => {
@@ -56,6 +61,7 @@ export function OfficeView({ file }: { file: OfficeFile }) {
       await writeOfficeFile(path, bytes);
       editor.current.saved();
       officeSaved(file, path);
+      takeThumb(AFTER_SAVE_MS);
       setDirty(false);
       notify("Saved");
       return true;

@@ -23,6 +23,37 @@ export interface Settings {
   reduceMotion: boolean;
   /** Dark mode is for the app. Pages stay white like paper unless this is on. */
   darkPages: boolean;
+  startOn: "home" | "last";
+  /** How many recent files to list. Zero keeps them all. */
+  recentLimit: number;
+  filesView: "grid" | "list";
+  filesSort: "recent" | "name" | "type";
+  ambient: boolean;
+  /** Size of everything in the app, in percent. */
+  uiScale: number;
+  animationSpeed: "slow" | "normal" | "fast";
+  /** The bar, tools and page arriving one after another when a file opens. */
+  openingAnimation: boolean;
+  /** Where Save as starts. Null lets Windows choose. */
+  saveFolder: string | null;
+  /** Keep what Save replaced in the app's own folder. */
+  keepPrevious: boolean;
+  /** How often unsaved work in a presentation goes to its recovery copy. */
+  recoverySeconds: number;
+  wordRuler: boolean;
+  wordOutline: boolean;
+  wordAuthor: string;
+  wordZoom: "fit" | "100" | "125" | "150";
+  sheetFontSize: number;
+  sheetGridlines: boolean;
+  sheetZoom: number;
+  pdfZoom: "auto" | "page-fit" | "page-width" | "100";
+  pdfTwoPages: boolean;
+  pdfPen: string;
+  pdfHighlight: string;
+  pdfPenSize: number;
+  /** Whether a new presentation starts with its ink saved into the file. */
+  newKeepInk: boolean;
   /** What "next" does on the last slide of a show. Back to the first is the template's way. */
   endOfShow: "loop" | "stop";
 }
@@ -37,6 +68,30 @@ export const DEFAULT_SETTINGS: Settings = {
   transparency: "auto",
   reduceMotion: false,
   darkPages: false,
+  startOn: "home",
+  recentLimit: 0,
+  filesView: "grid",
+  filesSort: "recent",
+  ambient: true,
+  uiScale: 100,
+  animationSpeed: "normal",
+  openingAnimation: true,
+  saveFolder: null,
+  keepPrevious: true,
+  recoverySeconds: 5,
+  wordRuler: false,
+  wordOutline: true,
+  wordAuthor: "",
+  wordZoom: "fit",
+  sheetFontSize: 10,
+  sheetGridlines: true,
+  sheetZoom: 1,
+  pdfZoom: "auto",
+  pdfTwoPages: false,
+  pdfPen: "#1b1b1f",
+  pdfHighlight: "#ffff98",
+  pdfPenSize: 2,
+  newKeepInk: true,
   endOfShow: "loop",
 };
 
@@ -49,6 +104,10 @@ function logoBackgroundOf(d: Record<string, unknown>): unknown {
 }
 
 function oneOf<T extends string>(value: unknown, options: readonly T[], fallback: T): T {
+  return options.includes(value as T) ? (value as T) : fallback;
+}
+
+function choice<T>(value: unknown, options: readonly T[], fallback: T): T {
   return options.includes(value as T) ? (value as T) : fallback;
 }
 
@@ -89,6 +148,34 @@ export function parseSettings(text: string | null): Settings {
     ),
     reduceMotion: d.reduceMotion === true,
     darkPages: d.darkPages === true,
+    startOn: d.startOn === "last" ? "last" : "home",
+    recentLimit: choice(d.recentLimit, [0, 25, 50, 100], DEFAULT_SETTINGS.recentLimit),
+    filesView: d.filesView === "list" ? "list" : "grid",
+    filesSort: oneOf(d.filesSort, ["recent", "name", "type"], DEFAULT_SETTINGS.filesSort),
+    ambient: d.ambient !== false,
+    uiScale: choice(d.uiScale, [90, 100, 110, 125], DEFAULT_SETTINGS.uiScale),
+    animationSpeed: oneOf(
+      d.animationSpeed,
+      ["slow", "normal", "fast"],
+      DEFAULT_SETTINGS.animationSpeed,
+    ),
+    openingAnimation: d.openingAnimation !== false,
+    saveFolder: typeof d.saveFolder === "string" && d.saveFolder ? d.saveFolder : null,
+    keepPrevious: d.keepPrevious !== false,
+    recoverySeconds: choice(d.recoverySeconds, [5, 15, 30, 60], DEFAULT_SETTINGS.recoverySeconds),
+    wordRuler: d.wordRuler === true,
+    wordOutline: d.wordOutline !== false,
+    wordAuthor: typeof d.wordAuthor === "string" ? d.wordAuthor.slice(0, 80) : "",
+    wordZoom: oneOf(d.wordZoom, ["fit", "100", "125", "150"], DEFAULT_SETTINGS.wordZoom),
+    sheetFontSize: choice(d.sheetFontSize, [10, 11, 12, 14], DEFAULT_SETTINGS.sheetFontSize),
+    sheetGridlines: d.sheetGridlines !== false,
+    sheetZoom: choice(d.sheetZoom, [0.75, 1, 1.25, 1.5], DEFAULT_SETTINGS.sheetZoom),
+    pdfZoom: oneOf(d.pdfZoom, ["auto", "page-fit", "page-width", "100"], DEFAULT_SETTINGS.pdfZoom),
+    pdfTwoPages: d.pdfTwoPages === true,
+    pdfPen: hex(d.pdfPen, DEFAULT_SETTINGS.pdfPen),
+    pdfHighlight: hex(d.pdfHighlight, DEFAULT_SETTINGS.pdfHighlight),
+    pdfPenSize: choice(d.pdfPenSize, [1, 2, 4, 8], DEFAULT_SETTINGS.pdfPenSize),
+    newKeepInk: d.newKeepInk !== false,
     endOfShow: d.endOfShow === "stop" ? "stop" : "loop",
   };
 }

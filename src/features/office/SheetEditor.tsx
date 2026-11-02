@@ -63,7 +63,13 @@ const BLANK: Sheet[] = [{ name: "Sheet1", celldata: [], order: 0, status: 1 }];
 
 /** Without a starting selection the name box reads "A1:NaN" and the toolbar stays greyed out. */
 function withSelection(sheet: Sheet): Sheet {
-  return { ...sheet, luckysheet_select_save: [{ row: [0, 0], column: [0, 0] }] };
+  const { sheetGridlines, sheetZoom } = useSettings.getState().settings;
+  return {
+    ...sheet,
+    luckysheet_select_save: [{ row: [0, 0], column: [0, 0] }],
+    showGridLines: sheetGridlines ? 1 : 0,
+    zoomRatio: sheetZoom,
+  };
 }
 
 /**
@@ -141,6 +147,7 @@ function themeIcons(box: HTMLElement): boolean {
 
 export default function SheetEditor({ file, handleRef, onChange }: OfficeEditorProps) {
   const darkPages = useSettings((s) => s.settings.darkPages);
+  const sheetFontSize = useSettings((s) => s.settings.sheetFontSize);
   const workbook = useRef<WorkbookInstance>(null);
   const [sheets, setSheets] = useState(() => firstSheets(file));
   const [version, setVersion] = useState(0);
@@ -217,6 +224,7 @@ export default function SheetEditor({ file, handleRef, onChange }: OfficeEditorP
         data={sheets}
         lang="en"
         toolbarItems={TOOLS}
+        defaultFontSize={sheetFontSize}
         onChange={report}
       />
     </div>

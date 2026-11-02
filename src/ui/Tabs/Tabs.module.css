@@ -1,0 +1,47 @@
+.tabs {
+  display: inline-flex;
+  flex: none;
+  gap: 2px;
+  max-width: 100%;
+  padding: 4px;
+  overflow-x: auto;
+  box-sizing: border-box;
+  border: var(--pw-glass-rim);
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--pw-glass-thin-fill);
+  box-shadow: var(--pw-glass-rim-top);
+  scrollbar-width: none;
+}
+.tab {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 16px;
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: transparent;
+  color: var(--md-sys-color-on-surface-variant);
+  font: inherit;
+  font-size: var(--md-sys-typescale-label-large-size);
+  font-weight: var(--md-sys-typescale-label-large-weight-emphasized);
+  white-space: nowrap;
+  transition: color var(--md-sys-motion-effects-fast-duration)
+    var(--md-sys-motion-effects-fast-easing);
+}
+.tab[aria-selected="true"] {
+  overflow: visible;
+  color: var(--md-sys-color-on-primary);
+}
+.jewel {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-primary);
+}
+.label {
+  position: relative;
+}

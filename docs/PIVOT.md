@@ -143,3 +143,9 @@ colour from a seed) and the **tinted liquid-glass** look of the owner's toolbar.
     on. Every document has one floating top bar with the name, which renames the real file when edited, and the tools. Pages
     sit straight on the ambient background. Every feature stays, but less-used ones may be a click or two deeper. Tools,
     menus and pop-ups from the libraries are restyled and animated to match, and nothing stacks under the top bar.
+19. **Penwork is an office suite (2026-11-02).** This replaces "a presentation app" at the top of this file. Presentations,
+    documents, spreadsheets and PDFs are equal: one Files tab with a filter for each type, Favorites for all of them, and
+    Home shows the last file of any type. The Presentations and Layouts tabs are gone, and starting layouts stay in New
+    presentation. Word, Excel and PDF are finished first because they stand on libraries, then the presentation work carries
+    on, since that is built from the ground up. Settings holds every setting, on its own tabs, and a setting gets a control
+    only when it really works.

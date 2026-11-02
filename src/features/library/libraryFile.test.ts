@@ -4,7 +4,7 @@ import {
   markMissing,
   parseLibrary,
   recordOpen,
-  removeDeck,
+  removeFiles,
   renameDeck,
   setLastSlide,
 } from "./libraryFile";
@@ -78,8 +78,8 @@ describe("recordOpen", () => {
 describe("removeDeck and markMissing", () => {
   it("removes only that entry", () => {
     const lib = open();
-    expect(removeDeck(lib, "new-id").decks).toEqual([]);
-    expect(removeDeck(lib, "other").decks).toHaveLength(1);
+    expect(removeFiles(lib, ["new-id"]).decks).toEqual([]);
+    expect(removeFiles(lib, ["other"]).decks).toHaveLength(1);
   });
 
   it("marks a deck that couldn't be found", () => {

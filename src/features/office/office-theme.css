@@ -166,3 +166,15 @@
     animation: none;
   }
 }
+:root[data-quiet-open]
+  :is(
+    .docx-toolbar > *,
+    .fortune-toolbar > *,
+    .docx-content-mount,
+    .pdfViewer,
+    .fortune-sheet-container,
+    .luckysheet-sheet-area,
+    .fortune-fx-editor
+  ) {
+  animation: none;
+}

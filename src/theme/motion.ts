@@ -27,6 +27,19 @@ export const springs = Object.fromEntries(
   Object.entries(SPRING_SPECS).map(([name, spec]) => [name, springTransition(spec)]),
 ) as Record<SpringName, Transition>;
 
+/** Slower or quicker than Google's own timing, from Settings. 1 is exactly theirs. */
+let timeScale = 1;
+export function setTimeScale(scale: number): void {
+  timeScale = scale;
+}
+
+/** A spring stretched in time keeps its shape: stiffness over k², damping over k. */
+function scaled(spec: Transition): Transition {
+  if (timeScale === 1 || !("stiffness" in spec) || !spec.stiffness || !spec.damping) return spec;
+  const stiffness = spec.stiffness / timeScale ** 2;
+  return { ...spec, stiffness, damping: spec.damping / timeScale };
+}
+
 /** What spatial springs become when the user asks for less motion. */
 export const REDUCED_MOTION_FADE: Transition = { type: "tween", duration: 0.15, ease: "linear" };
 
@@ -36,7 +49,7 @@ export function isSpatial(name: SpringName): boolean {
 
 /** Pick a transition, honoring reduced motion. Effects (color/opacity) don't move, so they stay. */
 export function transitionFor(name: SpringName, reduceMotion: boolean): Transition {
-  return reduceMotion && isSpatial(name) ? REDUCED_MOTION_FADE : springs[name];
+  return reduceMotion && isSpatial(name) ? REDUCED_MOTION_FADE : scaled(springs[name]);
 }
 
 /**
@@ -84,6 +97,9 @@ export function springEasing(spec: { ratio: number; stiffness: number }): {
   return { durationMs: Math.round(duration * 1000), easing: `linear(${points.join(", ")})` };
 }
 
+export const SLOW = 1.5;
+export const FAST = 0.7;
+
 function kebab(name: string): string {
   return name.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`);
 }
@@ -95,14 +111,20 @@ function kebab(name: string): string {
 export function motionCss(): string {
   const vars: string[] = [];
   const reduced: string[] = [];
+  const slow: string[] = [];
+  const fast: string[] = [];
   for (const [name, spec] of Object.entries(SPRING_SPECS)) {
     const { durationMs, easing } = springEasing(spec);
     const key = `--md-sys-motion-${kebab(name)}`;
     vars.push(`  ${key}-duration: ${durationMs}ms;`, `  ${key}-easing: ${easing};`);
+    slow.push(`  ${key}-duration: ${Math.round(durationMs * SLOW)}ms;`);
+    fast.push(`  ${key}-duration: ${Math.round(durationMs * FAST)}ms;`);
     if (isSpatial(name as SpringName)) reduced.push(`  ${key}-duration: 0ms;`);
   }
   return [
     `:root {\n${vars.join("\n")}\n}`,
+    `:root[data-motion-speed="slow"] {\n${slow.join("\n")}\n}`,
+    `:root[data-motion-speed="fast"] {\n${fast.join("\n")}\n}`,
     `@media (prefers-reduced-motion: reduce) {\n:root {\n${reduced.join("\n")}\n}\n}`,
     `:root[data-reduce-motion] {\n${reduced.join("\n")}\n}`,
   ].join("\n\n");

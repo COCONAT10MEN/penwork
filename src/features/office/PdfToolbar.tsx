@@ -24,6 +24,7 @@ const COLOURS: Record<PdfTool, string[]> = {
 
 export function PdfToolbar({
   slot,
+  startColours,
   page,
   pages,
   tool,
@@ -36,6 +37,7 @@ export function PdfToolbar({
   onSearch,
 }: {
   slot: HTMLElement;
+  startColours: { draw: string; highlight: string };
   page: number;
   pages: number;
   tool: PdfTool;
@@ -49,8 +51,8 @@ export function PdfToolbar({
 }) {
   const [picked, setPicked] = useState<Record<PdfTool, string>>({
     select: "",
-    highlight: COLOURS.highlight[0] ?? "",
-    draw: COLOURS.draw[0] ?? "",
+    highlight: startColours.highlight,
+    draw: startColours.draw,
     text: COLOURS.text[0] ?? "",
   });
   const glide = useSpring("spatialDefault");

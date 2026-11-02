@@ -85,3 +85,7 @@
   min-width: 0;
   height: 48px;
 }
+/* Its shadow falls on the page, and would end up in the file's picture. */
+:root[data-capturing] .place {
+  visibility: hidden;
+}

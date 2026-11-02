@@ -299,17 +299,17 @@
   animation-name: rise-side;
 }
 /* Cards arrive one after another. */
-.page section:nth-of-type(2) > :last-child > * {
+.page section:last-of-type > :last-child > * {
   animation: rise var(--md-sys-motion-spatial-slow-duration)
     var(--md-sys-motion-spatial-slow-easing) backwards;
 }
-.page section:nth-of-type(2) > :last-child > :nth-child(2) {
+.page section:last-of-type > :last-child > :nth-child(2) {
   animation-delay: 50ms;
 }
-.page section:nth-of-type(2) > :last-child > :nth-child(3) {
+.page section:last-of-type > :last-child > :nth-child(3) {
   animation-delay: 100ms;
 }
-.page section:nth-of-type(2) > :last-child > :nth-child(4) {
+.page section:last-of-type > :last-child > :nth-child(4) {
   animation-delay: 150ms;
 }
 @keyframes rise {
@@ -338,7 +338,30 @@
 .drop[data-dragging] {
   scale: 1.02;
 }
-.documents {
-  padding: 8px;
+.fileBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.new {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 10px;
+}
+.newCard {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  padding: 10px 14px;
+  border: var(--pw-glass-rim);
   border-radius: var(--md-sys-shape-corner-extra-large);
+  background: var(--pw-glass-thin-fill);
+  color: inherit;
+  font: inherit;
+  font-size: var(--md-sys-typescale-title-small-size);
+  font-weight: var(--md-sys-typescale-title-small-weight-emphasized);
+  text-align: start;
 }

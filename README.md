@@ -1,6 +1,6 @@
 # Penwork
 
-A presentation app for Windows (Linux and Android later): open `.pwpptx` decks, present them, and make small edits without asking an AI. It also opens and edits Word, Excel, CSV and PDF files. PDFs and notebooks are paused.
+An office suite for Windows (Linux and Android later): presentations, documents, spreadsheets and PDFs. Present `.pwpptx` files and make small edits without asking an AI. It opens and edits Word, Excel, CSV and PDF files too. PDFs and notebooks are paused.
 Designed as Glass Expressive: Material 3 Expressive with tinted liquid glass.
 
 **Status:** M0 done, M1 in progress. Why it changed: [`docs/PIVOT.md`](docs/PIVOT.md).

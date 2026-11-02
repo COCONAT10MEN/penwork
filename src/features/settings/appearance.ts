@@ -1,4 +1,5 @@
 import { applyTheme, PENWORK_SEED, setThemeMode, setTransparency } from "../../theme/theme";
+import { FAST, SLOW, setTimeScale } from "../../theme/motion";
 import { DEFAULT_SETTINGS, type Settings } from "./settingsFile";
 
 /** The logo on Home sits on the design's dark teal, so it takes the dark theme's teal. */
@@ -48,6 +49,13 @@ export function applyAppearance(
   setTransparency(settings.transparency, doc);
   if (settings.reduceMotion) root.dataset.reduceMotion = "";
   else delete root.dataset.reduceMotion;
+  setTimeScale({ slow: SLOW, normal: 1, fast: FAST }[settings.animationSpeed]);
+  if (settings.animationSpeed === "normal") delete root.dataset.motionSpeed;
+  else root.dataset.motionSpeed = settings.animationSpeed;
+  if (settings.ambient) delete root.dataset.noAmbient;
+  else root.dataset.noAmbient = "";
+  if (settings.openingAnimation) delete root.dataset.quietOpen;
+  else root.dataset.quietOpen = "";
   root.style.setProperty("--pw-logo-color", logoColor(settings, systemSeed));
   root.style.setProperty("--pw-logo-background", settings.logoBackground);
 

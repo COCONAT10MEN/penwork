@@ -16,14 +16,14 @@ import {
   parseLibrary,
   recordDocument,
   recordOpen,
-  removeDeck,
-  removeDocument,
+  removeFiles,
   renameDeck,
   setFavorite,
   setLastSlide,
   setThumb,
   type Library,
 } from "./features/library/libraryFile";
+import { allFiles, overLimit } from "./features/library/libraryFiles";
 import { showError, showWarning } from "./features/notices/notices";
 import { newOfficeFile, openOfficeFile, type OfficeFile } from "./features/office/officeFile";
 import type { DeckParts } from "./lib/deck/deckParts";
@@ -57,7 +57,6 @@ interface AppState {
   officeSaved: (file: OfficeFile, path: string) => void;
   /** A new file that hasn't been saved: only its name changes. */
   officeNamed: (file: OfficeFile, name: string) => void;
-  removeDocument: (id: string) => void;
   /** New deck: makes the deck, then opens it. */
   createDeck: (deck: DeckParts, generator: string) => Promise<void>;
   /** Opens a recovery copy of a presentation's unsaved work. */
@@ -77,8 +76,18 @@ interface AppState {
   endLaunch: () => void;
   rememberSlide: (slide: number) => void;
   removeFromRecents: (id: string) => void;
+  /** Empties the lists, keeping favorites. No file is touched. */
+  clearRecents: () => void;
+  /** Reopens the newest file, for the "last file" start setting. */
+  openLast: () => Promise<void>;
   toggleFavorite: (id: string) => void;
   thumbSaved: (id: string, stamp: string) => void;
+}
+
+/** How many recent files to keep. Settings owns this, and importing it here would go in a circle. */
+let recentLimit = 0;
+export function setRecentLimit(limit: number): void {
+  recentLimit = limit;
 }
 
 function persist(library: Library): void {
@@ -91,9 +100,15 @@ function reportError(error: unknown): void {
 }
 
 export const useApp = create<AppState>((set, get) => {
+  const forget = (library: Library, ids: string[]) => {
+    if (isTauri()) for (const id of ids) void invoke("delete_thumb", { id });
+    return ids.length > 0 ? removeFiles(library, ids) : library;
+  };
+
   const commit = (library: Library) => {
-    set({ library });
-    persist(library);
+    const kept = forget(library, overLimit(library, recentLimit));
+    set({ library: kept });
+    persist(kept);
   };
 
   const leaving = async () => (await get().leaveGuard?.()) ?? true;
@@ -215,8 +230,6 @@ export const useApp = create<AppState>((set, get) => {
       if (office?.id === file.id) set({ office: { ...office, name } });
     },
 
-    removeDocument: (id) => commit(removeDocument(get().library, id)),
-
     recoverDeck: async (id, path) => {
       if (!(await leaving())) return;
       set({ opening: true });
@@ -264,15 +277,23 @@ export const useApp = create<AppState>((set, get) => {
       if (deck) commit(setLastSlide(library, deck.path, slide));
     },
 
-    removeFromRecents: (id) => {
-      commit(removeDeck(get().library, id));
-      if (isTauri()) void invoke("delete_thumb", { id });
+    removeFromRecents: (id) => commit(forget(get().library, [id])),
+
+    clearRecents: () => {
+      const { library } = get();
+      const ids = allFiles(library).filter((f) => !f.favorite);
+      commit(forget(library, ids.map((f) => f.id)));
+    },
+
+    openLast: async () => {
+      const last = allFiles(get().library).find((f) => !f.missing);
+      if (last) await get().openPath(last.path);
     },
 
     toggleFavorite: (id) => {
       const { library } = get();
-      const deck = library.decks.find((d) => d.id === id);
-      if (deck) commit(setFavorite(library, id, !deck.favorite));
+      const file = allFiles(library).find((f) => f.id === id);
+      if (file) commit(setFavorite(library, id, !file.favorite));
     },
 
     thumbSaved: (id, stamp) => commit(setThumb(get().library, id, stamp)),

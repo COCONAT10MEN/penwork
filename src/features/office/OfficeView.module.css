@@ -190,6 +190,7 @@
 }
 .sheet :global(.fortune-toolbar) svg,
 .sheet :global(.luckysheet-sheet-area) svg {
+  color: var(--md-sys-color-on-surface);
   fill: currentColor;
 }
 .sheet :global(.fortune-toolbar-divider) {
@@ -246,7 +247,13 @@
 .sheet :global(.luckysheet-sheets-item-name) {
   color: inherit;
 }
-/* The icons are a sprite with their colours written in, so they are changed at the source. */
-.sheet symbol :not([fill="none"]) {
-  fill: currentColor;
+/* The library writes the "on" colour straight onto the button, so only !important can replace it. */
+.sheet :global(.fortune-toolbar-button)[style*="background-color"] {
+  border-radius: var(--md-sys-shape-corner-small);
+  background-color: var(--md-sys-color-secondary-container) !important;
+  color: var(--md-sys-color-on-secondary-container);
+}
+/* Penwork's own header already names the file, and the title has no class of its own. */
+.word div:has(> :global(.docx-menubar)) > :not(:global(.docx-menubar)) {
+  display: none;
 }

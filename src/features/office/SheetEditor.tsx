@@ -19,14 +19,15 @@ function withSelection(sheet: Sheet): Sheet {
 
 /**
  * The library reads numbers from a file as text and writes them back that way, which would break
- * every sum in Excel. Text typed as text ("007") has its own cell type, so it isn't touched.
+ * every sum in Excel. Text such as "007" is marked as text in the file, so it isn't touched.
  */
 function withNumbers(sheet: Sheet): Sheet {
   const data = sheet.data?.map((row) =>
     row.map((cell) => {
-      const general = cell?.ct?.t === "g" || cell?.ct?.t === "n";
+      const type = cell?.ct?.t;
+      const plain = !cell?.qp && (type === undefined || type === "g" || type === "n");
       const number = typeof cell?.v === "string" && NUMBER.test(cell.v);
-      return cell && general && number ? { ...cell, v: Number(cell.v) } : cell;
+      return cell && plain && number ? { ...cell, v: Number(cell.v) } : cell;
     }),
   );
   return { ...sheet, data };
@@ -78,12 +79,24 @@ function firstSheets(file: OfficeFile): Sheet[] | null {
   return [withSelection(csvSheet(new TextDecoder().decode(file.bytes)))];
 }
 
+/** The icons have dark colours written into them, and CSS can't reach inside an SVG `<use>`. */
+function themeIcons(box: HTMLElement): boolean {
+  if (!box.querySelector("symbol")) return false;
+  for (const name of ["fill", "stroke"]) {
+    for (const part of box.querySelectorAll(`symbol [${name}]:not([${name}="none"])`)) {
+      part.setAttribute(name, "currentColor");
+    }
+  }
+  return true;
+}
+
 export default function SheetEditor({ file, handleRef, onChange }: OfficeEditorProps) {
   const workbook = useRef<WorkbookInstance>(null);
   const [sheets, setSheets] = useState(() => firstSheets(file));
   const [version, setVersion] = useState(0);
   // Opening a file resizes rows and columns, which looks the same as an edit.
   const settled = useRef(false);
+  const box = useRef<HTMLDivElement>(null);
   const changed = useRef(onChange);
   useEffect(() => {
     changed.current = onChange;
@@ -103,6 +116,17 @@ export default function SheetEditor({ file, handleRef, onChange }: OfficeEditorP
       showError("This spreadsheet couldn't be read."),
     );
   }, [file, sheets]);
+
+  useEffect(() => {
+    const element = box.current;
+    if (!element || themeIcons(element)) return;
+    // The library adds the icons a moment after it first renders.
+    const watcher = new MutationObserver(() => {
+      if (themeIcons(element)) watcher.disconnect();
+    });
+    watcher.observe(element, { childList: true, subtree: true });
+    return () => watcher.disconnect();
+  }, [sheets, version]);
 
   useEffect(() => {
     if (!sheets) return;
@@ -136,7 +160,7 @@ export default function SheetEditor({ file, handleRef, onChange }: OfficeEditorP
     );
   }
   return (
-    <div className={styles.sheet}>
+    <div ref={box} className={styles.sheet}>
       <Workbook key={version} ref={workbook} data={sheets} lang="en" onChange={report} />
     </div>
   );

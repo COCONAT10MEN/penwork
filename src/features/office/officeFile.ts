@@ -24,6 +24,8 @@ export interface OfficeEditor {
 export interface OfficeEditorProps {
   file: OfficeFile;
   handleRef: { current: OfficeEditor | null };
+  /** The free part of the top bar, for an editor whose tools are ours to place. */
+  toolsSlot: HTMLElement | null;
   onChange: () => void;
   onSave: () => void;
 }

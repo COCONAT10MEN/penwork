@@ -3,13 +3,13 @@ import "@docx-editor.dev/react/styles.css";
 import { useEffect, useRef } from "react";
 import { useApp } from "../../appStore";
 import { pickFile } from "../deck/useFileOpening";
-import { useResolvedTheme } from "./useResolvedTheme";
+import { useSettings } from "../settings/settingsStore";
 import type { OfficeEditorProps } from "./officeFile";
 import styles from "./OfficeView.module.css";
 
 export default function WordEditor({ file, handleRef, onChange, onSave }: OfficeEditorProps) {
   const editor = useRef<DocxEditorRef>(null);
-  const theme = useResolvedTheme();
+  const darkPages = useSettings((s) => s.settings.darkPages);
   const openPath = useApp((s) => s.openPath);
 
   useEffect(() => {
@@ -32,7 +32,8 @@ export default function WordEditor({ file, handleRef, onChange, onSave }: Office
         document={file.bytes ?? "blank"}
         mode="edit"
         title={file.name}
-        colorMode={theme}
+        rulers={false}
+        colorMode={darkPages ? "dark" : "light"}
         menu={{ reportIssue: false }}
         onSave={onSave}
         onOpen={() => void pickFile().then((path) => (path ? openPath(path) : undefined))}

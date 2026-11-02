@@ -29,6 +29,7 @@ fn main() {
         "read_toolbar_file",
         "read_office_file",
         "save_office_file",
+        "rename_office_file",
         "save_deck",
         "write_recovery",
         "list_recovery",

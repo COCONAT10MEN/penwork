@@ -83,6 +83,7 @@ The app must work **fully offline**. Never load scripts, fonts or icons from the
 - **No raw `.html` files.** Penwork never opens, imports or registers for `.html`; that is why `.pwpptx` exists.
 - **Never overwrite the owner's files silently.** A `.pwpptx` is written only on
   Save or Save as; autosave goes to a separate recovery file.
+- **Office screens:** design comes first (decision 18 in `docs/PIVOT.md`). One top bar, pages on the ambient background, white pages unless "Dark pages" is on.
 - **Office files:** written only on Save or Save as. The version Save replaced is kept in the app's `before-save` folder,
   because the libraries don't keep everything a file can hold. After `npm install` of anything these use, run `npm run licenses`.
 - **Paused with PDFs:** the next three rules apply if our own PDF annotation work resumes.

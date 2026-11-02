@@ -125,7 +125,7 @@ Decision 17 in `docs/PIVOT.md`. The code is in `src/features/office/`.
 - [x] New document and New spreadsheet; a Documents page on Home
 - [x] Credits in `README.md`, `THIRD_PARTY.md` and `LICENSES/`
 - [ ] Tested with the owner's real files
-- [ ] Spreadsheet in full dark theme (cells stay white for now)
+- [x] One top bar, renaming from the bar, Dark pages setting (decision 18)
 - [ ] Offer Penwork as the Windows default for these file types (owner's choice)
 
 ## Paused (PDFs & notebooks, not v1)

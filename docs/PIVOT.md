@@ -139,3 +139,7 @@ colour from a seed) and the **tinted liquid-glass** look of the owner's toolbar.
     tokens. PDF is no longer paused, and uses PDF.js's own markup and saving instead of `pdf-lib`. The presentation system
     stays ours. These libraries do less than Microsoft Office, and what's missing gets added later. Penwork does not take
     over Windows file associations for these types. The owner chooses that, not the installer.
+18. **For office files, design comes first (2026-11-02).** Dark mode is for the app: pages stay white unless "Dark pages" is
+    on. Every document has one floating top bar with the name, which renames the real file when edited, and the tools. Pages
+    sit straight on the ambient background. Every feature stays, but less-used ones may be a click or two deeper. Tools,
+    menus and pop-ups from the libraries are restyled and animated to match, and nothing stacks under the top bar.

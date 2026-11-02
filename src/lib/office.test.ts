@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { fileFolder, fileName, officeKind, parseCsv, saveBody, writeCsv } from "./office";
+import {
+  fileFolder,
+  fileName,
+  fileStem,
+  nameProblem,
+  officeKind,
+  parseCsv,
+  saveBody,
+  siblingPath,
+  writeCsv,
+} from "./office";
 
 describe("officeKind", () => {
   it("knows each file type, in any case", () => {
@@ -20,6 +30,24 @@ describe("paths", () => {
   it("splits a Windows path", () => {
     expect(fileName("C:\\a\\b\\Report.docx")).toBe("Report.docx");
     expect(fileFolder("C:\\a\\b\\Report.docx")).toBe("C:\\a\\b");
+  });
+});
+
+describe("renaming", () => {
+  it("edits the name without its type", () => {
+    expect(fileStem("C:\\a\\Term 1.notes.docx")).toBe("Term 1.notes");
+  });
+
+  it("stays in the same folder", () => {
+    expect(siblingPath("C:\\a\\b\\old.pdf", "new.pdf")).toBe("C:\\a\\b\\new.pdf");
+  });
+
+  it("refuses names Windows refuses", () => {
+    expect(nameProblem("Term 1 notes")).toBeNull();
+    expect(nameProblem("a/b")).not.toBeNull();
+    expect(nameProblem("what?")).not.toBeNull();
+    expect(nameProblem("ends with dot.")).not.toBeNull();
+    expect(nameProblem("CON")).not.toBeNull();
   });
 });
 

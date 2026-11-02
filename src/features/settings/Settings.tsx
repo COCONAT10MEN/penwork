@@ -167,6 +167,12 @@ export function Settings() {
             value={settings.theme}
             onChange={(theme) => update({ theme: theme as ThemeMode })}
           />
+          <Switch
+            label="Dark pages"
+            description="The pages of Word, Excel and PDF files go dark too. When this is off they stay white, like paper."
+            checked={settings.darkPages}
+            onCheckedChange={(darkPages) => update({ darkPages })}
+          />
         </Section>
         <Section
           title="App colour"

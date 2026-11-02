@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-rename-office-file"
+description = "Enables the rename_office_file command without any pre-configured scope."
+commands.allow = ["rename_office_file"]
+
+[[permission]]
+identifier = "deny-rename-office-file"
+description = "Denies the rename_office_file command without any pre-configured scope."
+commands.deny = ["rename_office_file"]

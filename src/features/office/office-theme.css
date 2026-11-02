@@ -1,0 +1,168 @@
+/* The Word and Excel libraries, restyled with Penwork's tokens. Plain CSS, because their menus and
+   dialogs open outside the editor, at the end of the page. */
+
+:root .docx-editor {
+  --doc-primary: var(--md-sys-color-primary);
+  --doc-primary-hover: var(--md-sys-color-primary);
+  --doc-primary-light: var(--md-sys-color-primary-container);
+  --doc-on-primary: var(--md-sys-color-on-primary);
+  --doc-accent: var(--md-sys-color-tertiary);
+  --doc-bg: transparent;
+  --doc-bg-subtle: var(--md-sys-color-surface-container-low);
+  --doc-bg-hover: color-mix(in srgb, var(--md-sys-color-on-surface) 8%, transparent);
+  --doc-bg-input: var(--md-sys-color-surface-container-highest);
+  --doc-surface: var(--md-sys-color-surface-container-high);
+  --doc-surface-hover: var(--md-sys-color-surface-container-highest);
+  --doc-border: var(--md-sys-color-outline-variant);
+  --doc-border-light: var(--md-sys-color-outline-variant);
+  --doc-border-dark: var(--md-sys-color-outline);
+  --doc-border-input: transparent;
+  --doc-text: var(--md-sys-color-on-surface);
+  --doc-text-muted: var(--md-sys-color-on-surface-variant);
+  --doc-text-subtle: var(--md-sys-color-on-surface-variant);
+  --doc-focus-ring: var(--md-sys-color-primary);
+}
+
+/* Their menus and pop-ups, in the same material as Penwork's own. */
+.docx-menubar__menu,
+.docx-menubar__submenu-panel,
+.docx-toolbar__font-family-content,
+.docx-toolbar__font-size-menu,
+.docx-toolbar__alignment-popup,
+.docx-editor [role="menu"],
+.docx-editor [role="listbox"],
+.fortune-context-menu,
+.fortune-toolbar-select,
+.fortune-toolbar-color-picker {
+  border: var(--pw-glass-rim) !important;
+  border-radius: var(--md-sys-shape-corner-large) !important;
+  background: var(--pw-glass-thick-fill) !important;
+  box-shadow: var(--pw-glass-rim-top), var(--pw-glass-shadow) !important;
+  backdrop-filter: blur(var(--pw-glass-thick-blur)) saturate(var(--pw-glass-saturate));
+  animation: pw-office-pop var(--md-sys-motion-spatial-fast-duration)
+    var(--md-sys-motion-spatial-fast-easing);
+  transform-origin: top center;
+}
+.docx-menubar__trigger,
+.docx-toolbar__button,
+.fortune-toolbar-button,
+.fortune-toolbar-combo,
+.fortune-toolbar-select-option,
+.luckysheet-sheets-item {
+  transition:
+    background-color var(--md-sys-motion-effects-fast-duration)
+      var(--md-sys-motion-effects-fast-easing),
+    border-radius var(--md-sys-motion-spatial-fast-duration)
+      var(--md-sys-motion-spatial-fast-easing),
+    scale var(--md-sys-motion-spatial-fast-duration) var(--md-sys-motion-spatial-fast-easing);
+}
+/* Selected tools are circles and unselected ones are rounded squares, as everywhere in Penwork. */
+.docx-toolbar__button {
+  border-radius: var(--md-sys-shape-corner-small);
+}
+.docx-toolbar__button[aria-pressed="true"],
+.docx-toolbar__button[data-active] {
+  border-radius: var(--md-sys-shape-corner-full);
+}
+.docx-menubar__trigger:active,
+.docx-toolbar__button:active,
+.fortune-toolbar-button:active,
+.fortune-toolbar-combo:active {
+  scale: 0.9;
+}
+
+@keyframes pw-office-pop {
+  from {
+    opacity: 0;
+    translate: 0 -8px;
+    scale: 0.94;
+  }
+}
+@keyframes pw-office-tool {
+  from {
+    opacity: 0;
+    translate: 0 -10px;
+  }
+}
+@keyframes pw-office-rise {
+  from {
+    opacity: 0;
+    translate: 0 32px;
+  }
+}
+
+/* A file opens in order: the bar, then its tools one after another, then the page rises.
+   The tools never scale in: both libraries measure them to decide what fits in the bar. */
+.docx-toolbar > *,
+.fortune-toolbar > * {
+  animation: pw-office-tool var(--md-sys-motion-spatial-default-duration)
+    var(--md-sys-motion-spatial-default-easing) backwards;
+  animation-delay: calc(90ms + var(--pw-tool-step, 8) * 22ms);
+}
+.docx-toolbar > :nth-child(1),
+.fortune-toolbar > :nth-child(1) {
+  --pw-tool-step: 0;
+}
+.docx-toolbar > :nth-child(2),
+.fortune-toolbar > :nth-child(2) {
+  --pw-tool-step: 1;
+}
+.docx-toolbar > :nth-child(3),
+.fortune-toolbar > :nth-child(3) {
+  --pw-tool-step: 2;
+}
+.docx-toolbar > :nth-child(4),
+.fortune-toolbar > :nth-child(4) {
+  --pw-tool-step: 3;
+}
+.docx-toolbar > :nth-child(5),
+.fortune-toolbar > :nth-child(5) {
+  --pw-tool-step: 4;
+}
+.docx-toolbar > :nth-child(6),
+.fortune-toolbar > :nth-child(6) {
+  --pw-tool-step: 5;
+}
+.docx-toolbar > :nth-child(7),
+.fortune-toolbar > :nth-child(7) {
+  --pw-tool-step: 6;
+}
+.docx-toolbar > :nth-child(8),
+.fortune-toolbar > :nth-child(8) {
+  --pw-tool-step: 7;
+}
+.docx-content-mount,
+.pdfViewer,
+.fortune-sheet-container {
+  animation: pw-office-rise var(--md-sys-motion-spatial-slow-duration)
+    var(--md-sys-motion-spatial-slow-easing) 120ms backwards;
+}
+.luckysheet-sheet-area,
+.fortune-fx-editor {
+  animation: pw-office-rise var(--md-sys-motion-spatial-default-duration)
+    var(--md-sys-motion-spatial-default-easing) 200ms backwards;
+}
+
+:root[data-reduce-motion]
+  :is(
+    .docx-toolbar > *,
+    .fortune-toolbar > *,
+    .docx-content-mount,
+    .pdfViewer,
+    .fortune-sheet-container,
+    .luckysheet-sheet-area,
+    .fortune-fx-editor
+  ) {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .docx-toolbar > *,
+  .fortune-toolbar > *,
+  .docx-content-mount,
+  .pdfViewer,
+  .fortune-sheet-container,
+  .luckysheet-sheet-area,
+  .fortune-fx-editor {
+    animation: none;
+  }
+}

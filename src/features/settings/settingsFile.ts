@@ -21,6 +21,8 @@ export interface Settings {
   transparency: Transparency;
   /** On: always reduced. Off: follows the Windows setting. */
   reduceMotion: boolean;
+  /** Dark mode is for the app. Pages stay white like paper unless this is on. */
+  darkPages: boolean;
   /** What "next" does on the last slide of a show. Back to the first is the template's way. */
   endOfShow: "loop" | "stop";
 }
@@ -34,6 +36,7 @@ export const DEFAULT_SETTINGS: Settings = {
   logoBackground: "#00363F",
   transparency: "auto",
   reduceMotion: false,
+  darkPages: false,
   endOfShow: "loop",
 };
 
@@ -85,6 +88,7 @@ export function parseSettings(text: string | null): Settings {
       DEFAULT_SETTINGS.transparency,
     ),
     reduceMotion: d.reduceMotion === true,
+    darkPages: d.darkPages === true,
     endOfShow: d.endOfShow === "stop" ? "stop" : "loop",
   };
 }

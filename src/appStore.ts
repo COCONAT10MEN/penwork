@@ -55,6 +55,8 @@ interface AppState {
   newOffice: (kind: "word" | "sheet") => Promise<void>;
   closeOffice: () => void;
   officeSaved: (file: OfficeFile, path: string) => void;
+  /** A new file that hasn't been saved: only its name changes. */
+  officeNamed: (file: OfficeFile, name: string) => void;
   removeDocument: (id: string) => void;
   /** New deck: makes the deck, then opens it. */
   createDeck: (deck: DeckParts, generator: string) => Promise<void>;
@@ -206,6 +208,11 @@ export const useApp = create<AppState>((set, get) => {
       commit(recordDocument(get().library, path, now, () => crypto.randomUUID(), file.path));
       const { office } = get();
       if (office?.id === file.id) set({ office: { ...office, path, name: fileName(path) } });
+    },
+
+    officeNamed: (file, name) => {
+      const { office } = get();
+      if (office?.id === file.id) set({ office: { ...office, name } });
     },
 
     removeDocument: (id) => commit(removeDocument(get().library, id)),

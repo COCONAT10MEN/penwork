@@ -1,4 +1,7 @@
+import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
+import { createPortal } from "react-dom";
+import { useSpring } from "../../theme/motion";
 import { ColorSwatches, IconButton, Surface } from "../../ui";
 import styles from "./OfficeView.module.css";
 
@@ -20,6 +23,7 @@ const COLOURS: Record<PdfTool, string[]> = {
 };
 
 export function PdfToolbar({
+  slot,
   page,
   pages,
   tool,
@@ -31,6 +35,7 @@ export function PdfToolbar({
   onColour,
   onSearch,
 }: {
+  slot: HTMLElement;
   page: number;
   pages: number;
   tool: PdfTool;
@@ -48,83 +53,92 @@ export function PdfToolbar({
     draw: COLOURS.draw[0] ?? "",
     text: COLOURS.text[0] ?? "",
   });
+  const glide = useSpring("spatialDefault");
+  const fade = useSpring("effectsFast");
   return (
-    <div className={styles.pdfBars}>
-      {tool !== "select" && (
-        <Surface material="glass" floating className={styles.pdfBar}>
-          <ColorSwatches
-            label="Colour"
-            colors={COLOURS[tool]}
-            value={picked[tool]}
-            onChange={(colour) => {
-              setPicked({ ...picked, [tool]: colour });
-              onColour(colour);
+    <>
+      <AnimatePresence>
+        {tool !== "select" && (
+          <motion.div
+            key={tool}
+            className={styles.pdfColours}
+            initial={{ opacity: 0, y: -14, scale: 0.92 }}
+            animate={{ opacity: 1, y: 0, scale: 1, transition: glide }}
+            exit={{ opacity: 0, y: -8, transition: fade }}
+          >
+            <Surface material="glass" floating className={styles.pdfBar}>
+              <ColorSwatches
+                label="Colour"
+                colors={COLOURS[tool]}
+                value={picked[tool]}
+                onChange={(colour) => {
+                  setPicked({ ...picked, [tool]: colour });
+                  onColour(colour);
+                }}
+              />
+            </Surface>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      {createPortal(
+        <div className={styles.pdfTools} role="toolbar" aria-label="PDF tools">
+          <IconButton
+            size="compact"
+            icon="keyboard_arrow_up"
+            label="Previous page"
+            disabled={page <= 1}
+            onClick={() => onPage(page - 1)}
+          />
+          <span className={styles.pdfPage} aria-live="polite">
+            {page} / {pages}
+          </span>
+          <IconButton
+            size="compact"
+            icon="keyboard_arrow_down"
+            label="Next page"
+            disabled={page >= pages}
+            onClick={() => onPage(page + 1)}
+          />
+          <span className={styles.pdfDivider} />
+          <IconButton size="compact" icon="remove" label="Zoom out" onClick={() => onZoom("out")} />
+          <IconButton
+            size="compact"
+            icon="fit_width"
+            label="Fit to width"
+            onClick={() => onZoom("fit")}
+          />
+          <IconButton size="compact" icon="add" label="Zoom in" onClick={() => onZoom("in")} />
+          <span className={styles.pdfDivider} />
+          {TOOLS.map(({ id, label, icon }) => (
+            <IconButton
+              key={id}
+              size="compact"
+              icon={icon}
+              label={label}
+              selected={tool === id}
+              onClick={() => onTool(id)}
+            />
+          ))}
+          <span className={styles.pdfDivider} />
+          <input
+            className={styles.pdfFind}
+            type="search"
+            value={query}
+            placeholder="Find"
+            aria-label="Find in this PDF"
+            onChange={(e) => onSearch(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") onSearch(query, e.shiftKey, true);
             }}
           />
-        </Surface>
+          {query && (
+            <span className={styles.pdfPage} aria-live="polite">
+              {matches && matches.total > 0 ? `${matches.current} of ${matches.total}` : "None"}
+            </span>
+          )}
+        </div>,
+        slot,
       )}
-      <Surface
-        material="glass"
-        floating
-        className={styles.pdfBar}
-        role="toolbar"
-        aria-label="PDF tools"
-      >
-        <IconButton
-          size="compact"
-          icon="keyboard_arrow_up"
-          label="Previous page"
-          disabled={page <= 1}
-          onClick={() => onPage(page - 1)}
-        />
-        <span className={styles.pdfPage} aria-live="polite">
-          {page} / {pages}
-        </span>
-        <IconButton
-          size="compact"
-          icon="keyboard_arrow_down"
-          label="Next page"
-          disabled={page >= pages}
-          onClick={() => onPage(page + 1)}
-        />
-        <span className={styles.pdfDivider} />
-        <IconButton size="compact" icon="remove" label="Zoom out" onClick={() => onZoom("out")} />
-        <IconButton
-          size="compact"
-          icon="fit_width"
-          label="Fit to width"
-          onClick={() => onZoom("fit")}
-        />
-        <IconButton size="compact" icon="add" label="Zoom in" onClick={() => onZoom("in")} />
-        <span className={styles.pdfDivider} />
-        {TOOLS.map(({ id, label, icon }) => (
-          <IconButton
-            key={id}
-            size="compact"
-            icon={icon}
-            label={label}
-            selected={tool === id}
-            onClick={() => onTool(id)}
-          />
-        ))}
-        <span className={styles.pdfDivider} />
-        <input
-          className={styles.pdfFind}
-          type="search"
-          value={query}
-          placeholder="Find"
-          aria-label="Find in this PDF"
-          onChange={(e) => onSearch(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") onSearch(query, e.shiftKey, true);
-          }}
-        />
-        {query && (
-          <span className={styles.pdfPage} aria-live="polite">
-            {matches && matches.total > 0 ? `${matches.current} of ${matches.total}` : "None"}
-          </span>
-        )}
-      </Surface>
-    </div>
+    </>
   );
 }

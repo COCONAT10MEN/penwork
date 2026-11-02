@@ -1,0 +1,87 @@
+/* Above the page, which scrolls underneath. The editors' own tools are lifted to sit over the slot. */
+.place {
+  position: absolute;
+  z-index: 3;
+  top: 10px;
+  right: 10px;
+  left: 10px;
+}
+.bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 64px;
+  padding: 8px 12px 8px 10px;
+  box-sizing: border-box;
+  border-radius: var(--md-sys-shape-corner-full);
+}
+.titles {
+  flex: none;
+  max-width: 240px;
+  min-width: 96px;
+}
+.name {
+  display: block;
+  field-sizing: content;
+  min-width: 48px;
+  max-width: 100%;
+  height: 28px;
+  margin: 0 0 0 -8px;
+  padding: 0 8px;
+  overflow: hidden;
+  box-sizing: border-box;
+  border: 0;
+  border-radius: var(--md-sys-shape-corner-small);
+  outline: 2px solid transparent;
+  outline-offset: -2px;
+  background: transparent;
+  color: var(--md-sys-color-on-surface);
+  font: inherit;
+  font-size: var(--pw-type-deck-title-size);
+  font-weight: var(--md-sys-typescale-title-medium-weight-emphasized);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: text;
+  user-select: text;
+  transition:
+    background-color var(--md-sys-motion-effects-fast-duration)
+      var(--md-sys-motion-effects-fast-easing),
+    outline-color var(--md-sys-motion-effects-fast-duration)
+      var(--md-sys-motion-effects-fast-easing),
+    border-radius var(--md-sys-motion-spatial-fast-duration)
+      var(--md-sys-motion-spatial-fast-easing);
+}
+.name:hover {
+  background: color-mix(in srgb, var(--md-sys-color-on-surface) 8%, transparent);
+}
+.name:focus-visible {
+  border-radius: var(--md-sys-shape-corner-medium);
+  outline-color: var(--md-sys-color-primary);
+  background: var(--md-sys-color-surface-container-highest);
+}
+.status {
+  margin: 0;
+  overflow: hidden;
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: var(--md-sys-typescale-body-small-size);
+  line-height: var(--md-sys-typescale-body-small-line-height);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.status span {
+  display: inline-block;
+}
+.status[data-dirty] {
+  color: var(--md-sys-color-primary);
+}
+/* Empty in the layout: PDF tools are put in it, and Word's and Excel's are placed over it. */
+.slot {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+  height: 48px;
+}

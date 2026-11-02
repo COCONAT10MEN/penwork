@@ -6,8 +6,57 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { fileExtension, parseCsv, writeCsv } from "../../lib/office";
 import { LoadingIndicator } from "../../ui";
 import { showError } from "../notices/notices";
+import { useSettings } from "../settings/settingsStore";
 import type { OfficeEditorProps, OfficeFile } from "./officeFile";
 import styles from "./OfficeView.module.css";
+
+/**
+ * Every tool the library has. The everyday ones come first, because the bar shows what fits and
+ * moves the rest behind its "..." button.
+ */
+const TOOLS = [
+  "undo",
+  "redo",
+  "|",
+  "font",
+  "font-size",
+  "|",
+  "bold",
+  "italic",
+  "underline",
+  "strike-through",
+  "|",
+  "font-color",
+  "background",
+  "border",
+  "merge-cell",
+  "|",
+  "horizontal-align",
+  "vertical-align",
+  "text-wrap",
+  "text-rotation",
+  "|",
+  "format",
+  "currency-format",
+  "percentage-format",
+  "number-decrease",
+  "number-increase",
+  "|",
+  "format-painter",
+  "clear-format",
+  "freeze",
+  "conditionFormat",
+  "filter",
+  "link",
+  "image",
+  "comment",
+  "quick-formula",
+  "dataVerification",
+  "splitColumn",
+  "locationCondition",
+  "screenshot",
+  "search",
+];
 
 const NUMBER = /^-?\d+(\.\d+)?(e[-+]?\d+)?$/i;
 const BLANK: Sheet[] = [{ name: "Sheet1", celldata: [], order: 0, status: 1 }];
@@ -91,6 +140,7 @@ function themeIcons(box: HTMLElement): boolean {
 }
 
 export default function SheetEditor({ file, handleRef, onChange }: OfficeEditorProps) {
+  const darkPages = useSettings((s) => s.settings.darkPages);
   const workbook = useRef<WorkbookInstance>(null);
   const [sheets, setSheets] = useState(() => firstSheets(file));
   const [version, setVersion] = useState(0);
@@ -160,8 +210,15 @@ export default function SheetEditor({ file, handleRef, onChange }: OfficeEditorP
     );
   }
   return (
-    <div ref={box} className={styles.sheet}>
-      <Workbook key={version} ref={workbook} data={sheets} lang="en" onChange={report} />
+    <div ref={box} className={styles.sheet} data-dark-pages={darkPages || undefined}>
+      <Workbook
+        key={version}
+        ref={workbook}
+        data={sheets}
+        lang="en"
+        toolbarItems={TOOLS}
+        onChange={report}
+      />
     </div>
   );
 }

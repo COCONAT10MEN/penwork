@@ -81,6 +81,26 @@ pub fn save_office_file(app: AppHandle, request: Request<'_>) -> Result<(), Stri
     })
 }
 
+/// Stays in the same folder with the same type, and never replaces another file.
+fn rename_problem(from: &Path, to: &Path) -> Option<&'static str> {
+    let same_type = from.extension().map(|e| e.to_ascii_lowercase())
+        == to.extension().map(|e| e.to_ascii_lowercase());
+    if from.parent() != to.parent() || !same_type {
+        return Some("not a rename");
+    }
+    let only_case = from.to_string_lossy().to_lowercase() == to.to_string_lossy().to_lowercase();
+    (to.exists() && !only_case).then_some("taken")
+}
+
+#[tauri::command]
+pub fn rename_office_file(from: String, to: String) -> Result<(), String> {
+    let (from, to) = (checked(&from)?, checked(&to)?);
+    if let Some(problem) = rename_problem(&from, &to) {
+        return Err(problem.into());
+    }
+    fs::rename(&from, &to).map_err(|e| e.to_string())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -102,6 +122,26 @@ mod tests {
         let (read, file) = split_body(&body).unwrap();
         assert_eq!(read, "C:/مستند.pdf");
         assert_eq!(file, &[1, 2, 3]);
+    }
+
+    #[test]
+    fn a_rename_stays_in_its_folder_and_type() {
+        let from = Path::new("C:/a/report.docx");
+        assert_eq!(rename_problem(from, Path::new("C:/a/new.docx")), None);
+        assert_eq!(rename_problem(from, Path::new("C:/b/new.docx")), Some("not a rename"));
+        assert_eq!(rename_problem(from, Path::new("C:/a/new.pdf")), Some("not a rename"));
+    }
+
+    #[test]
+    fn a_rename_never_replaces_another_file() {
+        let dir = std::env::temp_dir().join("penwork-rename-test");
+        fs::create_dir_all(&dir).unwrap();
+        let (a, b) = (dir.join("a.pdf"), dir.join("b.pdf"));
+        fs::write(&a, "a").unwrap();
+        fs::write(&b, "b").unwrap();
+        assert_eq!(rename_problem(&a, &b), Some("taken"));
+        assert_eq!(rename_problem(&a, &dir.join("A.pdf")), None);
+        fs::remove_dir_all(&dir).unwrap();
     }
 
     #[test]

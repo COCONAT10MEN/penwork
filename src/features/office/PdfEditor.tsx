@@ -2,6 +2,7 @@ import type { PDFDocumentProxy } from "pdfjs-dist";
 import type { EventBus, PDFFindController, PDFViewer } from "pdfjs-dist/web/pdf_viewer.mjs";
 import { useEffect, useRef, useState } from "react";
 import { LoadingIndicator } from "../../ui";
+import { useSettings } from "../settings/settingsStore";
 import { showError } from "../notices/notices";
 import type { OfficeEditorProps } from "./officeFile";
 import { PdfToolbar, type PdfTool } from "./PdfToolbar";
@@ -10,6 +11,8 @@ import styles from "./OfficeView.module.css";
 
 /** Numbers from pdf.js's AnnotationEditorType. */
 const MODES: Record<PdfTool, number> = { select: 0, text: 3, highlight: 9, draw: 15 };
+// What pdf.js paints a page with, so these are data for it and not app colours.
+const DARK_PAGE = { background: "#1b1b1f", foreground: "#e4e2e6" };
 const HIGHLIGHT_COLORS = "yellow=#FFFF98,green=#53FFBC,blue=#80EBFF,pink=#FFCBE6,red=#FF4F5F";
 
 interface Loaded {
@@ -19,7 +22,9 @@ interface Loaded {
   document: PDFDocumentProxy;
 }
 
-export default function PdfEditor({ file, handleRef, onChange }: OfficeEditorProps) {
+export default function PdfEditor({ file, handleRef, toolsSlot, onChange }: OfficeEditorProps) {
+  const { bytes } = file;
+  const darkPages = useSettings((s) => s.settings.darkPages);
   const container = useRef<HTMLDivElement>(null);
   const pdf = useRef<Loaded | null>(null);
   const [ready, setReady] = useState(false);
@@ -34,7 +39,6 @@ export default function PdfEditor({ file, handleRef, onChange }: OfficeEditorPro
   });
 
   useEffect(() => {
-    const bytes = file.bytes;
     const box = container.current;
     if (!bytes || !box) return;
     const quit = new AbortController();
@@ -54,6 +58,7 @@ export default function PdfEditor({ file, handleRef, onChange }: OfficeEditorPro
         annotationEditorMode: MODES.select,
         annotationEditorHighlightColors: HIGHLIGHT_COLORS,
         abortSignal: quit.signal,
+        ...(darkPages ? { pageColors: DARK_PAGE } : {}),
       };
       const viewer = new parts.PDFViewer(options);
       links.setViewer(viewer);
@@ -94,7 +99,7 @@ export default function PdfEditor({ file, handleRef, onChange }: OfficeEditorPro
       pdf.current = null;
       void opened?.destroy();
     };
-  }, [file]);
+  }, [bytes, darkPages]);
 
   useEffect(() => {
     handleRef.current = {
@@ -150,8 +155,9 @@ export default function PdfEditor({ file, handleRef, onChange }: OfficeEditorPro
           <LoadingIndicator label="Opening" size={48} />
         </div>
       )}
-      {ready && (
+      {ready && toolsSlot && (
         <PdfToolbar
+          slot={toolsSlot}
           page={page}
           pages={pages}
           tool={tool}

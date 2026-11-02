@@ -1,59 +1,12 @@
+/* One screen: the ambient background, the page on it, and the glass bar floating over both.
+   Nothing here makes a stacking context around the page, so an editor's tools can rise above the
+   bar while its page stays below it. */
 .view {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  box-sizing: border-box;
   height: 100%;
-  padding: 10px;
-  background: var(--md-sys-color-surface-container-low);
+  overflow: hidden;
+  background: var(--md-sys-color-surface);
   color: var(--md-sys-color-on-surface);
-}
-.header {
-  position: relative;
-  flex: none;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 64px;
-  padding: 8px 10px;
-  box-sizing: border-box;
-  border-radius: var(--md-sys-shape-corner-full);
-}
-.titles {
-  flex: 1;
-  min-width: 0;
-}
-.title {
-  margin: 0;
-  overflow: hidden;
-  font-size: var(--pw-type-deck-title-size);
-  font-weight: var(--md-sys-typescale-title-medium-weight-emphasized);
-  line-height: var(--md-sys-typescale-title-medium-line-height);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.status {
-  margin: 0;
-  color: var(--md-sys-color-on-surface-variant);
-  font-size: var(--md-sys-typescale-body-small-size);
-  line-height: var(--md-sys-typescale-body-small-line-height);
-}
-.status[data-dirty] {
-  color: var(--md-sys-color-primary);
-}
-.actions {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-}
-.body {
-  position: relative;
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
-  border-radius: var(--md-sys-shape-corner-extra-large);
-  background: var(--md-sys-color-surface-container);
 }
 .loading {
   position: absolute;
@@ -61,7 +14,6 @@
   display: grid;
   place-items: center;
 }
-
 .failed {
   display: flex;
   flex-direction: column;
@@ -73,22 +25,19 @@
 }
 
 .word,
-.sheet {
+.pdf {
   position: absolute;
   inset: 0;
   user-select: text;
 }
 
-.pdf {
-  position: absolute;
-  inset: 0;
-}
-/* pdf.js needs its scroller absolutely placed, and it draws its own text layer inside. */
+/* pdf.js needs its scroller absolutely placed, and it draws its own text layer inside. It scrolls
+   a page to the very top of this box, so the box starts where the bar ends or pages would hide. */
 .pdfScroll {
   position: absolute;
-  inset: 0;
+  inset: 74px 0 0;
   overflow: auto;
-  user-select: text;
+  box-sizing: border-box;
   outline: none;
 }
 /* pdf.js moves focus onto its page layers, and the app's focus ring would outline a whole page. */
@@ -96,27 +45,28 @@
 .pdfScroll :global(.page):focus-visible {
   outline: none;
 }
-.pdfBars {
+.pdfColours {
   position: absolute;
-  bottom: 12px;
+  z-index: 3;
+  top: 84px;
   left: 50%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  max-width: calc(100% - 24px);
-  transform: translateX(-50%);
+  translate: -50% 0;
 }
 .pdfBar {
   display: flex;
   align-items: center;
   gap: 2px;
-  padding: 6px 10px;
+  padding: 4px 10px;
   border-radius: var(--md-sys-shape-corner-full);
+}
+.pdfTools {
+  display: flex;
+  align-items: center;
+  gap: 2px;
 }
 .pdfPage {
   flex: none;
-  min-width: 56px;
+  min-width: 52px;
   font-size: var(--md-sys-typescale-label-large-size);
   font-variant-numeric: tabular-nums;
   text-align: center;
@@ -129,7 +79,7 @@
   background: var(--md-sys-color-outline-variant);
 }
 .pdfFind {
-  width: 120px;
+  width: 110px;
   height: 40px;
   padding: 0 14px;
   box-sizing: border-box;
@@ -140,52 +90,147 @@
   font: inherit;
   font-size: var(--md-sys-typescale-body-medium-size);
   user-select: text;
+  transition: width var(--md-sys-motion-spatial-default-duration)
+    var(--md-sys-motion-spatial-default-easing);
+}
+.pdfFind:focus {
+  width: 170px;
 }
 .pdfFind:focus-visible {
   outline: 2px solid var(--md-sys-color-primary);
   outline-offset: 1px;
 }
 
-/* The libraries bring their own stylesheets. Everything below points them at Penwork's tokens. */
-.word :global(.docx-editor) {
-  --doc-primary: var(--md-sys-color-primary);
-  --doc-primary-hover: var(--md-sys-color-primary);
-  --doc-primary-light: var(--md-sys-color-primary-container);
-  --doc-on-primary: var(--md-sys-color-on-primary);
-  --doc-accent: var(--md-sys-color-tertiary);
-  --doc-bg: var(--md-sys-color-surface-container);
-  --doc-bg-subtle: var(--md-sys-color-surface-container-low);
-  --doc-bg-hover: var(--md-sys-color-surface-container-highest);
-  --doc-bg-input: var(--md-sys-color-surface-container-high);
-  --doc-surface: var(--md-sys-color-surface-container-high);
-  --doc-surface-hover: var(--md-sys-color-surface-container-highest);
-  --doc-border: var(--md-sys-color-outline-variant);
-  --doc-border-light: var(--md-sys-color-outline-variant);
-  --doc-border-dark: var(--md-sys-color-outline);
-  --doc-border-input: var(--md-sys-color-outline-variant);
-  --doc-text: var(--md-sys-color-on-surface);
-  --doc-text-muted: var(--md-sys-color-on-surface-variant);
-  --doc-text-subtle: var(--md-sys-color-on-surface-variant);
-  --doc-focus-ring: var(--md-sys-color-primary);
-  --doc-font-ui: var(--md-sys-typescale-body-medium-font, inherit);
+/* Word. The library stacks a title, menus and tools above the page. Lifted out of the page's flow,
+   the tools go over the bar's slot and the menus become a pill that the bar's Menus button opens.
+   !important only where the library writes the value straight onto the element. */
+.word :global(.docx-editor) > div:first-child {
+  position: absolute !important;
+  inset: 0 0 auto;
+  z-index: 5 !important;
+  height: 0;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  pointer-events: none;
+}
+.word :global(.docx-editor) > div:first-child > div:has(:global(.docx-toolbar)) {
+  position: absolute;
+  top: 18px;
+  left: var(--pw-slot-left, 300px);
+  display: flex;
+  align-items: center;
+  width: var(--pw-slot-width, 700px);
+  height: 48px;
+  padding: 0 !important;
+  pointer-events: auto;
+}
+.word :global(.docx-toolbar) {
+  flex: 1;
+  min-width: 0;
+  height: 48px;
+  margin: 0;
+  padding: 0 4px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.word div:has(> :global(.docx-menubar)) {
+  position: absolute;
+  top: 84px;
+  right: 10px;
+  padding: 6px 10px !important;
+  border: var(--pw-glass-rim);
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--pw-glass-thick-fill);
+  box-shadow: var(--pw-glass-rim-top), var(--pw-glass-shadow);
+  opacity: 0;
+  visibility: hidden;
+  translate: 0 -12px;
+  scale: 0.96;
+  pointer-events: auto;
+  transform-origin: top right;
+  transition:
+    opacity var(--md-sys-motion-effects-fast-duration) var(--md-sys-motion-effects-fast-easing),
+    translate var(--md-sys-motion-spatial-fast-duration) var(--md-sys-motion-spatial-fast-easing),
+    scale var(--md-sys-motion-spatial-fast-duration) var(--md-sys-motion-spatial-fast-easing),
+    visibility 0s linear var(--md-sys-motion-effects-fast-duration);
+}
+.view[data-menus] .word div:has(> :global(.docx-menubar)) {
+  opacity: 1;
+  visibility: visible;
+  translate: 0 0;
+  scale: 1;
+  transition-delay: 0s;
+}
+/* Penwork's own bar already names the file, and that title has no class of its own. */
+.word div:has(> :global(.docx-menubar)) > :not(:global(.docx-menubar)) {
+  display: none;
+}
+.word :global(.docx-editor-one-surface__viewport) {
+  padding-top: 76px;
+  box-sizing: border-box;
+}
+.word :global(.docx-pages) > * {
+  border-radius: var(--md-sys-shape-corner-medium);
+  box-shadow: var(--pw-glass-shadow);
 }
 
+/* Excel. The box is the grid alone. The tools are lifted over the bar's slot, and the formula box
+   and sheet tabs drop into one slim strip below it. */
 .sheet {
-  /* Cells are drawn white on a canvas by the library, so they stay paper in both themes. */
   --pw-paper-ink: #1b1b1f;
-  --pw-sheet-bar: var(--md-sys-color-surface-container-high);
-  --pw-sheet-hover: var(--md-sys-color-surface-container-highest);
+  position: absolute;
+  top: 84px;
+  right: 10px;
+  bottom: 66px;
+  left: 10px;
   color: var(--pw-paper-ink);
+  user-select: text;
+}
+.sheet::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  right: 0;
+  bottom: -56px;
+  left: 0;
+  height: 48px;
+  border: var(--pw-glass-rim);
+  border-radius: var(--md-sys-shape-corner-full);
+  box-sizing: border-box;
+  background: var(--pw-glass-regular-fill);
+  box-shadow: var(--pw-glass-rim-top), var(--pw-glass-shadow);
+  pointer-events: none;
 }
 .sheet :global(.fortune-container) {
-  background: var(--md-sys-color-surface-container);
+  background: transparent;
+}
+.sheet :global(.fortune-workarea) {
+  height: 0;
+}
+.sheet :global(.fortune-container) {
+  position: relative;
+}
+.sheet :global(.fortune-sheet-container) {
+  overflow: hidden;
+  border-radius: var(--md-sys-shape-corner-large);
+  box-shadow: var(--pw-glass-shadow);
+}
+.sheet[data-dark-pages] :global(.fortune-sheet-canvas) {
+  filter: invert(1) hue-rotate(180deg);
 }
 .sheet :global(.fortune-toolbar) {
-  margin: 8px;
-  padding-inline: 8px;
+  position: absolute;
+  z-index: 5;
+  top: -66px;
+  left: calc(var(--pw-slot-left, 300px) - 10px);
+  width: var(--pw-slot-width, 700px);
+  height: 48px;
+  padding: 0;
   border: 0;
-  border-radius: var(--md-sys-shape-corner-full);
-  background: var(--pw-sheet-bar);
+  background: transparent;
   color: var(--md-sys-color-on-surface);
 }
 .sheet :global(.fortune-toolbar) svg,
@@ -196,11 +241,21 @@
 .sheet :global(.fortune-toolbar-divider) {
   background: var(--md-sys-color-outline-variant);
 }
+.sheet :global(.fortune-toolbar-button),
+.sheet :global(.fortune-toolbar-combo) {
+  border-radius: var(--md-sys-shape-corner-small);
+}
 .sheet :global(.fortune-toolbar-button:hover),
 .sheet :global(.fortune-toolbar-combo:hover),
 .sheet :global(.fortune-toolbar-combo-button:hover),
 .sheet :global(.fortune-toolbar-select-option:hover) {
-  background: var(--pw-sheet-hover);
+  background: color-mix(in srgb, var(--md-sys-color-on-surface) 8%, transparent);
+}
+/* The library writes the "on" colour straight onto the button, so only !important can replace it. */
+.sheet :global(.fortune-toolbar-button)[style*="background-color"] {
+  border-radius: var(--md-sys-shape-corner-full);
+  background-color: var(--md-sys-color-secondary-container) !important;
+  color: var(--md-sys-color-on-secondary-container);
 }
 .sheet :global(.fortune-toolbar-select),
 .sheet :global(.fortune-toolbar-color-picker),
@@ -213,20 +268,34 @@
   color: var(--md-sys-color-on-surface);
 }
 .sheet :global(.fortune-fx-editor) {
+  position: absolute;
+  z-index: 2;
+  bottom: -56px;
+  left: 16px;
+  width: 44%;
+  height: 48px;
   border: 0;
   background: transparent;
   color: var(--md-sys-color-on-surface);
 }
-.sheet :global(.fortune-fx-icon) svg {
-  fill: currentColor;
+.sheet :global(.fortune-name-box-container),
+.sheet :global(.fortune-fx-icon),
+.sheet :global(.fortune-fx-input-container) {
+  border: 0;
+  background: transparent;
 }
 .sheet :global(.fortune-name-box),
 .sheet :global(.fortune-fx-input) {
-  background: var(--md-sys-color-surface-container-high);
+  background: transparent;
   color: var(--md-sys-color-on-surface);
 }
 .sheet :global(.luckysheet-sheet-area) {
-  background: var(--md-sys-color-surface-container);
+  position: absolute;
+  z-index: 2;
+  right: 16px;
+  bottom: -52px;
+  width: calc(56% - 48px);
+  background: transparent;
   color: var(--md-sys-color-on-surface);
 }
 .sheet :global(.fortune-zoom-ratio),
@@ -247,13 +316,18 @@
 .sheet :global(.luckysheet-sheets-item-name) {
   color: inherit;
 }
-/* The library writes the "on" colour straight onto the button, so only !important can replace it. */
-.sheet :global(.fortune-toolbar-button)[style*="background-color"] {
-  border-radius: var(--md-sys-shape-corner-small);
-  background-color: var(--md-sys-color-secondary-container) !important;
-  color: var(--md-sys-color-on-secondary-container);
+.sheet :global(.fortune-fx-icon),
+.sheet :global(.fortune-fx-icon) svg {
+  color: var(--md-sys-color-on-surface);
+  fill: currentColor;
 }
-/* Penwork's own header already names the file, and the title has no class of its own. */
-.word div:has(> :global(.docx-menubar)) > :not(:global(.docx-menubar)) {
-  display: none;
+.sheet::after {
+  animation: pw-strip-in var(--md-sys-motion-spatial-default-duration)
+    var(--md-sys-motion-spatial-default-easing) 160ms backwards;
+}
+@keyframes pw-strip-in {
+  from {
+    opacity: 0;
+    translate: 0 24px;
+  }
 }

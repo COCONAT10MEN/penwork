@@ -23,6 +23,24 @@ export function fileName(path: string): string {
   return path.split(/[\\/]/).pop() ?? path;
 }
 
+/** The name without its type: what a user sees and edits. */
+export function fileStem(path: string): string {
+  return fileName(path).replace(/\.[^.]+$/, "");
+}
+
+/** The same folder as `path`, with another file name. */
+export function siblingPath(path: string, name: string): string {
+  return path.slice(0, path.length - fileName(path).length) + name;
+}
+
+/** Why Windows wouldn't accept this as a file name, in words for the user. Null when it's fine. */
+export function nameProblem(name: string): string | null {
+  if (/[<>:"/\\|?*]/.test(name)) return "A file name can't contain < > : \" / \\ | ? or *.";
+  if (/[. ]$/.test(name)) return "A file name can't end with a dot or a space.";
+  if (/^(con|prn|aux|nul|com\d|lpt\d)$/i.test(name)) return "Windows keeps that name for itself.";
+  return null;
+}
+
 /** The folder a file is in, for telling two files of the same name apart. */
 export function fileFolder(path: string): string {
   return path.slice(0, path.length - fileName(path).length - 1);

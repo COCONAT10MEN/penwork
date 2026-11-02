@@ -140,3 +140,12 @@ Not built in v1, but keep components responsive so these work later.
 - Gradients and glass only as `docs/DESIGN-GLASS.md` describes.
 - No borders to separate panels — use surface steps.
 - Don't animate layout with CSS transitions where a spring is specified.
+
+## Page transitions (Material's own, from material-components-android)
+
+- **Fade through** between places with no relation: rail pages, Home to an open file. The old page is gone by 35% of 450ms,
+  and the new one fades in from there while growing from 92%.
+- **Shared axis X** between tabs: the same fade, with both pages sliding 30px the way the tabs are going.
+- One page moves as one thing. Cards never arrive one by one, and pictures are held in memory so that none land late.
+- Inside a page, files travel to their new place when sorted, and shrink away when removed.
+- An editor's page never scales in: Word's and Excel's toolbars measure themselves as they mount.

@@ -1,9 +1,17 @@
+.slot {
+  min-width: 0;
+}
+.slot > * {
+  height: 100%;
+}
 .grid {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 14px;
 }
 .list {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -65,6 +73,8 @@
   height: 100%;
   object-fit: cover;
   object-position: top;
+}
+.picture[data-late] {
   animation: picture-in var(--md-sys-motion-effects-default-duration)
     var(--md-sys-motion-effects-default-easing);
 }
@@ -137,14 +147,6 @@
   padding-inline-end: 8px;
   border-radius: var(--md-sys-shape-corner-large);
   background: var(--pw-glass-thin-fill);
-  animation: row-in var(--md-sys-motion-spatial-default-duration)
-    var(--md-sys-motion-spatial-default-easing) backwards;
-}
-@keyframes row-in {
-  from {
-    opacity: 0;
-    translate: 0 8px;
-  }
 }
 .rowButton {
   position: relative;

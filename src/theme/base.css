@@ -215,3 +215,9 @@ textarea {
     "opsz" var(--pw-icon-opsz, 24);
   user-select: none;
 }
+
+/* One whole screen. While it changes, the old one sits over the new one. */
+.pw-screen {
+  position: absolute;
+  inset: 0;
+}

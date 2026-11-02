@@ -36,6 +36,9 @@
   outline-offset: -6px;
 }
 
+.pages {
+  position: relative;
+}
 .page {
   display: flex;
   flex-direction: column;
@@ -289,41 +292,6 @@
   min-width: min(400px, 70vw);
 }
 
-/* The first look at Home, and coming back to it. */
-.rail,
-.top {
-  animation: rise var(--md-sys-motion-spatial-slow-duration)
-    var(--md-sys-motion-spatial-slow-easing);
-}
-.rail {
-  animation-name: rise-side;
-}
-/* Cards arrive one after another. */
-.page section:last-of-type > :last-child > * {
-  animation: rise var(--md-sys-motion-spatial-slow-duration)
-    var(--md-sys-motion-spatial-slow-easing) backwards;
-}
-.page section:last-of-type > :last-child > :nth-child(2) {
-  animation-delay: 50ms;
-}
-.page section:last-of-type > :last-child > :nth-child(3) {
-  animation-delay: 100ms;
-}
-.page section:last-of-type > :last-child > :nth-child(4) {
-  animation-delay: 150ms;
-}
-@keyframes rise {
-  from {
-    opacity: 0;
-    translate: 0 14px;
-  }
-}
-@keyframes rise-side {
-  from {
-    opacity: 0;
-    translate: -14px 0;
-  }
-}
 .continueActions .present {
   transition: box-shadow var(--md-sys-motion-effects-duration) var(--md-sys-motion-effects-easing);
 }
@@ -364,4 +332,7 @@
   font-size: var(--md-sys-typescale-title-small-size);
   font-weight: var(--md-sys-typescale-title-small-weight-emphasized);
   text-align: start;
+}
+.files {
+  position: relative;
 }

@@ -64,22 +64,55 @@ export async function captureThumb(frame: DOMRect, id: string): Promise<boolean>
   }
 }
 
-/** The cached picture as a URL, or null while there is none. `version` reloads it when it changes. */
+/**
+ * Pictures already read and decoded, by file. Reading from disk on every mount meant each card's
+ * picture landed at its own moment, so a page of them popped in piece by piece.
+ */
+const loaded = new Map<string, { version: string; url: string }>();
+const reading = new Map<string, Promise<void>>();
+
+function readThumb(id: string, version: string): Promise<void> {
+  const key = `${id}:${version}`;
+  const already = reading.get(key);
+  if (already) return already;
+  const read = invoke<ArrayBuffer>("read_thumb", { id })
+    .then(async (bytes) => {
+      if (bytes.byteLength === 0) return;
+      const url = URL.createObjectURL(new Blob([bytes], { type: "image/webp" }));
+      const image = new Image();
+      image.src = url;
+      await image.decode().catch(() => {});
+      const old = loaded.get(id);
+      loaded.set(id, { version, url });
+      if (old) URL.revokeObjectURL(old.url);
+    })
+    .catch(() => {})
+    .finally(() => reading.delete(key));
+  reading.set(key, read);
+  return read;
+}
+
+/** Reads every picture up front, so the pages that show them can appear whole. */
+export async function preloadThumbs(files: { id: string; thumb: string | null }[]): Promise<void> {
+  if (!isTauri()) return;
+  for (const { id, thumb } of files) {
+    if (thumb && loaded.get(id)?.version !== thumb) await readThumb(id, thumb);
+  }
+}
+
+/** The picture as a URL, or null while there is none. `version` reloads it when it changes. */
 export function useThumb(id: string, version: string | null): string | null {
-  const [url, setUrl] = useState<string | null>(null);
+  const [, redraw] = useState(0);
   useEffect(() => {
-    if (!isTauri() || version === null) return;
+    if (!isTauri() || version === null || loaded.get(id)?.version === version) return;
     let cancelled = false;
-    let made: string | null = null;
-    void invoke<ArrayBuffer>("read_thumb", { id }).then((bytes) => {
-      if (cancelled || bytes.byteLength === 0) return;
-      made = URL.createObjectURL(new Blob([bytes], { type: "image/webp" }));
-      setUrl(made);
+    void readThumb(id, version).then(() => {
+      if (!cancelled) redraw((n) => n + 1);
     });
     return () => {
       cancelled = true;
-      if (made) URL.revokeObjectURL(made);
     };
   }, [id, version]);
-  return url;
+  // An older picture stays up until the new one is ready, so a card never blinks empty.
+  return version === null ? null : (loaded.get(id)?.url ?? null);
 }

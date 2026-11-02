@@ -8,6 +8,7 @@ import {
   ListIcon,
   ListItem,
   NavigationRail,
+  SharedAxis,
   Tabs,
   TopAppBar,
   type RailItem,
@@ -172,15 +173,20 @@ export function ShowcaseList() {
 export function ShowcaseTabs() {
   const [tab, setTab] = useState("all");
   return (
-    <Tabs
-      label="Example tabs"
-      tabs={[
-        { id: "all", label: "All", icon: "apps" },
-        { id: "docs", label: "Documents", icon: "description" },
-        { id: "pdf", label: "PDFs" },
-      ]}
-      value={tab}
-      onChange={setTab}
-    />
+    <>
+      <Tabs
+        label="Example tabs"
+        tabs={[
+          { id: "all", label: "All", icon: "apps" },
+          { id: "docs", label: "Documents", icon: "description" },
+          { id: "pdf", label: "PDFs" },
+        ]}
+        value={tab}
+        onChange={setTab}
+      />
+      <SharedAxis id={tab} order={["all", "docs", "pdf"]}>
+        <Card material="glass">The {tab} page</Card>
+      </SharedAxis>
+    </>
   );
 }

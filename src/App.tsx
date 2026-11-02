@@ -7,6 +7,7 @@ import { DeckView } from "./features/deck/DeckView";
 import { RecoveryPrompt } from "./features/deck/RecoveryPrompt";
 import { useFileOpening } from "./features/deck/useFileOpening";
 import { NoticeLayer } from "./features/notices/NoticeLayer";
+import { FadeThrough } from "./ui";
 import { Home } from "./features/library/Home";
 import { ShowLaunch } from "./features/library/ShowLaunch";
 import { OfficeView } from "./features/office/OfficeView";
@@ -79,12 +80,12 @@ function Screens() {
   }
   return (
     <>
-      {office ? (
-        <OfficeView key={office.id} file={office} />
-      ) : deck ? (
+      {deck && !office ? (
         <DeckView key={deck.token} deck={deck} start={startSlide} presentOnOpen={presentOnOpen} />
       ) : (
-        <Home dragging={dragging} />
+        <FadeThrough id={office?.id ?? "home"} grow={!office} className="pw-screen">
+          {office ? <OfficeView file={office} /> : <Home dragging={dragging} />}
+        </FadeThrough>
       )}
       <RecoveryPrompt />
       <ShowLaunch />

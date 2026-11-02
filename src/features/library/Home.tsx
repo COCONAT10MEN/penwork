@@ -1,11 +1,10 @@
-import { AnimatePresence, motion } from "motion/react";
 import { useRef, useState } from "react";
 import { useApp } from "../../appStore";
-import { useReduceMotion, useSpring } from "../../theme/motion";
 import {
   AmbientBackground,
   Button,
   FabMenu,
+  FadeThrough,
   LoadingIndicator,
   LogoTile,
   NavigationRail,
@@ -38,9 +37,6 @@ export function Home({ dragging }: { dragging: boolean }) {
   const [query, setQuery] = useState("");
   const [newDeckOpen, setNewDeckOpen] = useState(false);
   const main = useRef<HTMLElement>(null);
-  const glide = useSpring("spatialDefault");
-  const fade = useSpring("effectsFast");
-  const reduce = useReduceMotion();
 
   const onOpen = async () => {
     const path = await pickFile();
@@ -142,17 +138,11 @@ export function Home({ dragging }: { dragging: boolean }) {
             Open
           </Button>
         </div>
-        <AnimatePresence mode="popLayout">
-          <motion.div
-            key={query ? "search" : page}
-            className={styles.page}
-            initial={reduce ? { opacity: 0 } : { opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0, transition: glide }}
-            exit={{ opacity: 0, transition: fade }}
-          >
+        <div className={styles.pages}>
+          <FadeThrough id={query ? "search" : page} initial={false} className={styles.page}>
             {content()}
-          </motion.div>
-        </AnimatePresence>
+          </FadeThrough>
+        </div>
       </main>
       <NewDeckDialog open={newDeckOpen} onClose={() => setNewDeckOpen(false)} />
     </div>

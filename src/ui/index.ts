@@ -51,4 +51,5 @@ export { SplitButton, type SplitButtonProps } from "./SplitButton/SplitButton";
 export { Tabs, type TabItem, type TabsProps } from "./Tabs/Tabs";
 export { TextField, type TextFieldProps } from "./TextField/TextField";
 export { Tooltip, type TooltipProps } from "./Tooltip/Tooltip";
+export { FadeThrough, SharedAxis } from "./Transitions/Transitions";
 export { TopAppBar, type TopAppBarProps } from "./TopAppBar/TopAppBar";

@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useApp } from "../../appStore";
-import { ButtonGroup, Tabs, type TabItem } from "../../ui";
+import { ButtonGroup, FadeThrough, SharedAxis, Tabs, type TabItem } from "../../ui";
 import { useSettings } from "../settings/settingsStore";
 import { FileCollection } from "./FileCard";
 import {
@@ -20,6 +20,8 @@ const FILTERS: (TabItem & { id: FileFilter })[] = [
   { id: "sheet", label: "Spreadsheets", icon: KIND_ICONS.sheet },
   { id: "pdf", label: "PDFs", icon: KIND_ICONS.pdf },
 ];
+
+const ORDER = FILTERS.map((f) => f.id as string);
 
 const SORTS = [
   { value: "recent", label: "Recent" },
@@ -84,11 +86,15 @@ export function FilesPage({
           onChange={(value) => update({ filesView: value as "grid" | "list" })}
         />
       </div>
-      {found.length > 0 ? (
-        <FileCollection key={filter} files={found} query={query} view={filesView} />
-      ) : (
-        <p className={styles.sub}>{empty()}</p>
-      )}
+      <SharedAxis id={filter} order={ORDER} label={FILTERS.find((f) => f.id === filter)?.label}>
+        {found.length > 0 ? (
+          <FadeThrough id={filesView} initial={false} className={styles.files}>
+            <FileCollection files={found} query={query} view={filesView} />
+          </FadeThrough>
+        ) : (
+          <p className={styles.sub}>{empty()}</p>
+        )}
+      </SharedAxis>
     </>
   );
 }

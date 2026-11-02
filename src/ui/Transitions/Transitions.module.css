@@ -1,0 +1,7 @@
+/* The old page is lifted out of the flow while it leaves, so it needs a box to sit in. Sideways only
+   is clipped: a card's shadow must still show above and below. */
+.axis {
+  position: relative;
+  overflow-x: clip;
+  overflow-clip-margin: 24px;
+}

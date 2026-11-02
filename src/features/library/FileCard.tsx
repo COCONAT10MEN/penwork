@@ -1,6 +1,8 @@
 import { invoke } from "@tauri-apps/api/core";
+import { AnimatePresence, motion } from "motion/react";
 import { useRef, useState, type ReactNode } from "react";
 import { useApp } from "../../appStore";
+import { useSpring } from "../../theme/motion";
 import { Card, Icon, IconButton, Menu, Shape, type ShapeName } from "../../ui";
 import { cx } from "../../ui/cx";
 import { useThumb } from "../deck/thumbnail";
@@ -30,6 +32,8 @@ export function KindMark({ kind, size = 40 }: { kind: FileKind; size?: number })
 /** The real first page once it has been seen, and the type's mark until then. */
 export function FileThumb({ file, className }: { file: LibraryFile; className?: string }) {
   const url = useThumb(file.id, file.thumb);
+  // Fades only if it really arrived late. One already in memory is simply there.
+  const [late] = useState(url === null);
   return (
     <div
       className={cx(styles.thumb, className)}
@@ -38,7 +42,7 @@ export function FileThumb({ file, className }: { file: LibraryFile; className?: 
       data-thumb
     >
       {url ? (
-        <img src={url} alt="" className={styles.picture} />
+        <img src={url} alt="" className={styles.picture} data-late={late || undefined} />
       ) : file.thumb ? null : (
         // Only when there's no picture yet: one still loading must not flash this first.
         <KindMark kind={file.kind} size={64} />
@@ -195,11 +199,24 @@ export function FileCollection({
     });
   };
   const Item = view === "grid" ? FileCard : FileRow;
+  const glide = useSpring("spatialDefault");
+  const fade = useSpring("effectsFast");
   return (
     <div ref={box} className={view === "grid" ? styles.grid : styles.list}>
-      {files.map((file, index) => (
-        <Item key={file.id} file={file} query={query} onRemoved={() => refocus(index)} />
-      ))}
+      <AnimatePresence mode="popLayout" initial={false}>
+        {files.map((file, index) => (
+          // Sorted or filtered, each file travels to its new place. Removed, it shrinks away.
+          <motion.div
+            key={file.id}
+            layout="position"
+            className={styles.slot}
+            transition={{ layout: glide }}
+            exit={{ opacity: 0, scale: 0.92, transition: fade }}
+          >
+            <Item file={file} query={query} onRemoved={() => refocus(index)} />
+          </motion.div>
+        ))}
+      </AnimatePresence>
       {children}
     </div>
   );

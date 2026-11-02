@@ -23,6 +23,7 @@ import {
   setThumb,
   type Library,
 } from "./features/library/libraryFile";
+import { preloadThumbs } from "./features/deck/thumbnail";
 import { allFiles, overLimit } from "./features/library/libraryFiles";
 import { showError, showWarning } from "./features/notices/notices";
 import { newOfficeFile, openOfficeFile, type OfficeFile } from "./features/office/officeFile";
@@ -188,6 +189,7 @@ export const useApp = create<AppState>((set, get) => {
       const paths = [...library.decks, ...library.documents].map((d) => d.path);
       const exists = await invoke<boolean[]>("existing_paths", { paths });
       set({ library: markExisting(get().library, exists), libraryReady: true });
+      void preloadThumbs(allFiles(get().library));
     },
 
     startLaunch: (launch) => set({ launch }),

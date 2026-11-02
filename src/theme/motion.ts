@@ -33,6 +33,11 @@ export function setTimeScale(scale: number): void {
   timeScale = scale;
 }
 
+/** A fade's length in seconds, following the animation speed setting. */
+export function fadeTiming(seconds: number): number {
+  return seconds * timeScale;
+}
+
 /** A spring stretched in time keeps its shape: stiffness over k², damping over k. */
 function scaled(spec: Transition): Transition {
   if (timeScale === 1 || !("stiffness" in spec) || !spec.stiffness || !spec.damping) return spec;

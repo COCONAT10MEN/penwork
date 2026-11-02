@@ -1,7 +1,5 @@
-import { motion } from "motion/react";
 import { useState } from "react";
-import { useReduceMotion, useSpring } from "../../theme/motion";
-import { Tabs, type TabItem } from "../../ui";
+import { SharedAxis, Tabs, type TabItem } from "../../ui";
 import { AppearanceTab } from "./AppearanceTab";
 import { AboutTab, AiTab, AnimationsTab, PresentationsTab, ShortcutsTab } from "./AppTabs";
 import { FilesSavingTab, GeneralTab, PdfTab, SheetTab, WordTab } from "./FileSettingsTabs";
@@ -21,6 +19,8 @@ const TABS: TabItem[] = [
   { id: "about", label: "About" },
 ];
 
+const ORDER = TABS.map((t) => t.id);
+
 const PAGES: Record<string, () => React.JSX.Element> = {
   general: GeneralTab,
   appearance: AppearanceTab,
@@ -37,22 +37,14 @@ const PAGES: Record<string, () => React.JSX.Element> = {
 
 export function Settings() {
   const [tab, setTab] = useState("general");
-  const reduce = useReduceMotion();
-  const rise = useSpring("spatialDefault");
   const Page = PAGES[tab] ?? GeneralTab;
   return (
     <div className={styles.settings}>
       <h1 className={styles.heading}>Settings</h1>
       <Tabs label="Settings" tabs={TABS} value={tab} onChange={setTab} />
-      <motion.div
-        key={tab}
-        role="tabpanel"
-        aria-label={TABS.find((t) => t.id === tab)?.label}
-        initial={reduce ? { opacity: 0 } : { opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0, transition: rise }}
-      >
+      <SharedAxis id={tab} order={ORDER} label={TABS.find((t) => t.id === tab)?.label}>
         <Page />
-      </motion.div>
+      </SharedAxis>
     </div>
   );
 }

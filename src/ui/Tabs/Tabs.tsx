@@ -1,5 +1,5 @@
 import { motion } from "motion/react";
-import { useEffect, useId, useRef, type KeyboardEvent } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from "react";
 import { useSpring } from "../../theme/motion";
 import { cx } from "../cx";
 import { Icon } from "../Icon";
@@ -20,13 +20,28 @@ export interface TabsProps {
 }
 
 /**
- * A glass capsule of tabs. The solid jewel behind the selected one travels to the next on a spring.
- * One Tab stop: the arrow keys, Home and End move between them. Too many for the width scrolls.
+ * A glass capsule of tabs. One solid jewel lies under all of them and slides to the selected one,
+ * so it passes behind the labels on its way. One Tab stop: the arrow keys, Home and End move
+ * between them. Too many for the width scrolls.
  */
 export function Tabs({ label, tabs, value, onChange }: TabsProps) {
-  const jewel = useId();
   const row = useRef<HTMLDivElement>(null);
-  const glide = useSpring("spatialFast");
+  const [place, setPlace] = useState<{ x: number; width: number } | null>(null);
+  const glide = useSpring("spatialDefault");
+
+  useLayoutEffect(() => {
+    const box = row.current;
+    if (!box) return;
+    const measure = () => {
+      const tab = box.querySelector<HTMLElement>('[aria-selected="true"]');
+      if (tab) setPlace({ x: tab.offsetLeft, width: tab.offsetWidth });
+    };
+    measure();
+    // The first paint can be in a fallback font of another width.
+    const watcher = new ResizeObserver(measure);
+    watcher.observe(box);
+    return () => watcher.disconnect();
+  }, [value]);
 
   useEffect(() => {
     row.current
@@ -52,6 +67,9 @@ export function Tabs({ label, tabs, value, onChange }: TabsProps) {
 
   return (
     <div ref={row} role="tablist" aria-label={label} className={styles.tabs} onKeyDown={onKeyDown}>
+      {place && (
+        <motion.span className={styles.jewel} initial={false} animate={place} transition={glide} />
+      )}
       {tabs.map(({ id, label: name, icon }) => {
         const selected = id === value;
         return (
@@ -65,11 +83,8 @@ export function Tabs({ label, tabs, value, onChange }: TabsProps) {
             className={cx("pw-state", styles.tab)}
             onClick={() => onChange(id)}
           >
-            {selected && (
-              <motion.span layoutId={jewel} className={styles.jewel} transition={glide} />
-            )}
-            {icon && <Icon name={icon} size={20} filled={selected} className={styles.label} />}
-            <span className={styles.label}>{name}</span>
+            {icon && <Icon name={icon} size={20} filled={selected} />}
+            {name}
           </button>
         );
       })}

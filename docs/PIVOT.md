@@ -134,3 +134,8 @@ colour from a seed) and the **tinted liquid-glass** look of the owner's toolbar.
 22. **The slide page is never resized (2026-11-02).** Its frame is always the size of the screen and is only scaled and
     moved (`src/features/deck/stagePlace.ts`), because resizing a page redoes its layout. Going full screen is smooth
     in the window, then pauses at rest while Windows switches, which can't be avoided.
+17. **Word, Excel and PDF files open in Penwork, on free libraries (2026-11-02).** LibreOffice was dropped as too hard to
+    embed. PDF.js, docx-editor and FortuneSheet with FortuneExcel do the work, in `src/features/office/`, restyled with our
+    tokens. PDF is no longer paused, and uses PDF.js's own markup and saving instead of `pdf-lib`. The presentation system
+    stays ours. These libraries do less than Microsoft Office, and what's missing gets added later. Penwork does not take
+    over Windows file associations for these types. The owner chooses that, not the installer.

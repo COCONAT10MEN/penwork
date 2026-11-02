@@ -9,6 +9,7 @@ import { useFileOpening } from "./features/deck/useFileOpening";
 import { NoticeLayer } from "./features/notices/NoticeLayer";
 import { Home } from "./features/library/Home";
 import { ShowLaunch } from "./features/library/ShowLaunch";
+import { OfficeView } from "./features/office/OfficeView";
 import { useSettings } from "./features/settings/settingsStore";
 
 // Dev builds only: the import is behind import.meta.env.DEV, so release builds drop the Gallery.
@@ -34,6 +35,7 @@ function Screens() {
   const dragging = useFileOpening();
   const [galleryOpen, setGalleryOpen] = useGalleryToggle();
   const deck = useApp((s) => s.deck);
+  const office = useApp((s) => s.office);
   const startSlide = useApp((s) => s.startSlide);
   const presentOnOpen = useApp((s) => s.presentOnOpen);
   const loadLibrary = useApp((s) => s.loadLibrary);
@@ -66,7 +68,9 @@ function Screens() {
   }
   return (
     <>
-      {deck ? (
+      {office ? (
+        <OfficeView key={office.id} file={office} />
+      ) : deck ? (
         <DeckView key={deck.token} deck={deck} start={startSlide} presentOnOpen={presentOnOpen} />
       ) : (
         <Home dragging={dragging} />

@@ -1,6 +1,6 @@
 # Penwork
 
-A presentation app for Windows (Linux and Android later): open `.pwpptx` decks, present them, and make small edits without asking an AI. PDFs and notebooks are paused.
+A presentation app for Windows (Linux and Android later): open `.pwpptx` decks, present them, and make small edits without asking an AI. It also opens and edits Word, Excel, CSV and PDF files. PDFs and notebooks are paused.
 Designed as Glass Expressive: Material 3 Expressive with tinted liquid glass.
 
 **Status:** M0 done, M1 in progress. Why it changed: [`docs/PIVOT.md`](docs/PIVOT.md).
@@ -12,3 +12,15 @@ Designed as Glass Expressive: Material 3 Expressive with tinted liquid glass.
 - How it works inside: [`docs/ARCHITECTURE-DECKS.md`](docs/ARCHITECTURE-DECKS.md), [`docs/DECK-FORMAT.md`](docs/DECK-FORMAT.md), [`docs/EDITING.md`](docs/EDITING.md)
 - Instructions for Claude Code: [`CLAUDE.md`](CLAUDE.md)
 - Credits: [`THIRD_PARTY.md`](THIRD_PARTY.md)
+
+## Credits
+
+Penwork's Word, Excel and PDF screens are built on these free, open-source projects:
+
+- [PDF.js](https://github.com/mozilla/pdf.js) by Mozilla, Apache-2.0
+- [docx-editor](https://github.com/eigenpal/docx-editor) by Jedr Blaszyk / eigenpal, Apache-2.0
+- [FortuneSheet](https://github.com/ruilisi/fortune-sheet) by Suzhou Ruilisi Technology Co., Ltd, MIT
+- [FortuneExcel](https://github.com/Corbe30/FortuneExcel) by Corbe30, MIT
+- [ExcelJS](https://github.com/exceljs/exceljs) by Guyon Roche, MIT
+
+Everything else Penwork uses is listed in [`THIRD_PARTY.md`](THIRD_PARTY.md). The full licence texts are in [`LICENSES/`](LICENSES/).

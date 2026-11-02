@@ -13,11 +13,12 @@ import {
   SearchBar,
   type RailItem,
 } from "../../ui";
-import { pickDeck } from "../deck/useFileOpening";
+import { pickFile } from "../deck/useFileOpening";
 import { Settings } from "../settings/Settings";
 import { useSettings } from "../settings/settingsStore";
 import { OPEN_BUTTON_ID } from "./DeckCard";
 import { DecksPage } from "./DecksPage";
+import { DocumentsPage } from "./DocumentsPage";
 import { HomePage } from "./HomePage";
 import { NewDeckDialog } from "./NewDeckDialog";
 import styles from "./Home.module.css";
@@ -25,6 +26,7 @@ import styles from "./Home.module.css";
 const NAV: RailItem[] = [
   { id: "home", label: "Home", icon: "home" },
   { id: "decks", label: "Presentations", icon: "desktop_windows" },
+  { id: "documents", label: "Documents", icon: "description" },
   { id: "layouts", label: "Layouts", icon: "grid_view" },
   { id: "favorites", label: "Favorites", icon: "star" },
 ];
@@ -33,6 +35,7 @@ const NAV_END: RailItem[] = [{ id: "settings", label: "Settings", icon: "setting
 export function Home({ dragging }: { dragging: boolean }) {
   const opening = useApp((s) => s.opening);
   const openPath = useApp((s) => s.openPath);
+  const newOffice = useApp((s) => s.newOffice);
   const logo = useSettings((s) => s.settings.logo);
   const [page, setPage] = useState("home");
   const [query, setQuery] = useState("");
@@ -43,7 +46,7 @@ export function Home({ dragging }: { dragging: boolean }) {
   const reduce = useReduceMotion();
 
   const onOpen = async () => {
-    const path = await pickDeck();
+    const path = await pickFile();
     if (path) await openPath(path);
   };
 
@@ -54,6 +57,7 @@ export function Home({ dragging }: { dragging: boolean }) {
   };
 
   const content = () => {
+    if (query && page === "documents") return <DocumentsPage key="search" query={query} />;
     if (query) return <DecksPage key="search" query={query} title="Search results" />;
     switch (page) {
       case "home":
@@ -66,6 +70,8 @@ export function Home({ dragging }: { dragging: boolean }) {
         );
       case "decks":
         return <DecksPage key="decks" query="" title="Presentations" />;
+      case "documents":
+        return <DocumentsPage key="documents" />;
       case "favorites":
         return <DecksPage key="favorites" query="" title="Favorites" start="favorites" />;
       case "settings":
@@ -110,7 +116,17 @@ export function Home({ dragging }: { dragging: boolean }) {
                       icon: "add",
                       onSelect: () => setNewDeckOpen(true),
                     },
-                    { label: "Open presentation", icon: "folder", onSelect: () => void onOpen() },
+                    {
+                      label: "New document",
+                      icon: "description",
+                      onSelect: () => void newOffice("word"),
+                    },
+                    {
+                      label: "New spreadsheet",
+                      icon: "table_chart",
+                      onSelect: () => void newOffice("sheet"),
+                    },
+                    { label: "Open a file", icon: "folder", onSelect: () => void onOpen() },
                     { label: "From a layout", icon: "grid_view", onSelect: () => go("layouts") },
                   ]}
                 />
@@ -129,15 +145,15 @@ export function Home({ dragging }: { dragging: boolean }) {
           <div className={styles.search}>
             <SearchBar
               material="glass"
-              label="Search presentations and slides"
+              label={page === "documents" ? "Search documents" : "Search presentations and slides"}
               value={query}
               onChange={setQuery}
             />
           </div>
           <span className={styles.spacer} />
-          {opening && <LoadingIndicator label="Opening presentation" size={40} />}
+          {opening && <LoadingIndicator label="Opening" size={40} />}
           <Button id={OPEN_BUTTON_ID} size="compact" icon="folder" onClick={() => void onOpen()}>
-            Open presentation
+            Open
           </Button>
         </div>
         <AnimatePresence mode="popLayout">

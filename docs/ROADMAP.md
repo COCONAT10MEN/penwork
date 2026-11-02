@@ -113,6 +113,21 @@ Tick boxes only when finished and verified in the running app.
 - [ ] README with screenshots
 - [ ] (Optional) Mica on Windows 11, only if it proves worthwhile
 
+## Office files (Word, Excel, PDF)
+
+Decision 17 in `docs/PIVOT.md`. The code is in `src/features/office/`.
+
+- [x] Open `.docx`, `.xlsx`, `.csv` and `.pdf` from the picker, drag and drop, or the command line
+- [x] Word: edit and save
+- [x] Excel and CSV: edit and save
+- [x] PDF: page through, zoom, find, highlight, draw, add text, save
+- [x] Unsaved-changes prompt, and the old version kept on Save
+- [x] New document and New spreadsheet; a Documents page on Home
+- [x] Credits in `README.md`, `THIRD_PARTY.md` and `LICENSES/`
+- [ ] Tested with the owner's real files
+- [ ] Spreadsheet in full dark theme (cells stay white for now)
+- [ ] Offer Penwork as the Windows default for these file types (owner's choice)
+
 ## Paused (PDFs & notebooks, not v1)
 Kept unchanged for later, unticked. Also paused: Linux, Android, the whiteboard as its own document type,
 handwriting search, OCR, sync. Stylus extras beyond the template (tilt, pen-only mode) come later too.

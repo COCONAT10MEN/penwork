@@ -25,8 +25,8 @@ function DropZone({ dragging }: { dragging: boolean }) {
       >
         <Icon name="download" size={32} />
       </Shape>
-      <span className={styles.dropTitle}>Drop a presentation here</span>
-      <span className={styles.dropHint}>.pwpptx files open straight away</span>
+      <span className={styles.dropTitle}>Drop a file here</span>
+      <span className={styles.dropHint}>Presentations, Word, Excel and PDF files</span>
     </Surface>
   );
 }

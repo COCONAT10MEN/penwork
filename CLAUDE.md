@@ -8,7 +8,8 @@ Read `docs/PIVOT.md` first: where it disagrees with an older doc, it wins.
 
 - **Platform: Windows 10/11 only.** Linux and Android come later. Keep the frontend platform-neutral.
 - **Product: a presentation app.** Open `.pwpptx` decks, present them, and make small edits in the app. See `docs/PIVOT.md`.
-- **Paused:** PDF viewer/annotation, notebooks, Linux, Android.
+- **Office files:** Word (`.docx`), Excel (`.xlsx`, `.csv`) and PDF open in `src/features/office/`, on free libraries. See decision 17 in `docs/PIVOT.md`.
+- **Paused:** notebooks, Linux, Android.
 - **Input:** mouse, keyboard, touchpad, touch and stylus, exactly as the template does it. Use Pointer Events.
 - **Template parity:** every feature of the owner's template stays. Nothing may be missing (`docs/TEMPLATE-PARITY.md`).
 - **Design:** "Glass Expressive". Material 3 Expressive structure with tinted liquid-glass surfaces
@@ -28,8 +29,9 @@ Read `docs/PIVOT.md` first: where it disagrees with an older doc, it wins.
 | Slides | The owner's template engine ported to `src/runtime/`, in a sandboxed iframe |
 | Deck files | `.pwpptx` = zip of HTML slides + assets (`docs/DECK-FORMAT.md`) |
 | Sanitising | DOMPurify + our rules |
-| PDF render (paused) | `pdfjs-dist` (pdf.js) — canvas + text layer + annotation layer |
-| PDF save (paused) | `pdf-lib` — writes real PDF annotations into a copy |
+| PDF | `pdfjs-dist` (pdf.js): its viewer shows, finds and marks up PDFs, and writes the marks on Save |
+| Word | `@docx-editor.dev/react` + `core` (the free packages only, never `pro`) |
+| Excel, CSV | `@fortune-sheet/react` + `@corbe30/fortune-excel` + `exceljs` |
 | Ink smoothing | `perfect-freehand` |
 | Color | `@material/material-color-utilities` — generates the theme from a seed color |
 | Icons | Material Symbols Rounded (bundled locally, not from a CDN) |
@@ -81,7 +83,9 @@ The app must work **fully offline**. Never load scripts, fonts or icons from the
 - **No raw `.html` files.** Penwork never opens, imports or registers for `.html`; that is why `.pwpptx` exists.
 - **Never overwrite the owner's files silently.** A `.pwpptx` is written only on
   Save or Save as; autosave goes to a separate recovery file.
-- **Paused with PDFs:** the next three rules apply when that work resumes.
+- **Office files:** written only on Save or Save as. The version Save replaced is kept in the app's `before-save` folder,
+  because the libraries don't keep everything a file can hold. After `npm install` of anything these use, run `npm run licenses`.
+- **Paused with PDFs:** the next three rules apply if our own PDF annotation work resumes.
 - **PDF coordinates:** store every annotation in PDF user-space points (origin bottom-left, from the page's
   viewBox), never in screen pixels. Convert only when drawing. Helpers live in `src/lib/coords.ts` with tests.
 - **Never modify the user's original PDF silently.** Annotations autosave to a sidecar in the app data folder

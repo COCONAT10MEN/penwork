@@ -14,8 +14,10 @@ import {
   markExisting,
   markMissing,
   parseLibrary,
+  recordDocument,
   recordOpen,
   removeDeck,
+  removeDocument,
   renameDeck,
   setFavorite,
   setLastSlide,
@@ -23,13 +25,17 @@ import {
   type Library,
 } from "./features/library/libraryFile";
 import { showError, showWarning } from "./features/notices/notices";
+import { newOfficeFile, openOfficeFile, type OfficeFile } from "./features/office/officeFile";
 import type { DeckParts } from "./lib/deck/deckParts";
 import type { DeckFacts } from "./lib/deck/facts";
+import { fileName, officeKind } from "./lib/office";
 
 interface AppState {
   library: Library;
   /** The deck on screen, or null on Home. */
   deck: OpenDeck | null;
+  /** The Word, Excel or PDF file on screen. */
+  office: OfficeFile | null;
   startSlide: number;
   /** Open straight into the show, not the edit view. Only Present on Home asks for this. */
   presentOnOpen: boolean;
@@ -46,6 +52,10 @@ interface AppState {
   leaveGuard: (() => Promise<boolean>) | null;
   loadLibrary: () => Promise<void>;
   openPath: (path: string, options?: { present?: boolean }) => Promise<void>;
+  newOffice: (kind: "word" | "sheet") => Promise<void>;
+  closeOffice: () => void;
+  officeSaved: (file: OfficeFile, path: string) => void;
+  removeDocument: (id: string) => void;
   /** New deck: makes the deck, then opens it. */
   createDeck: (deck: DeckParts, generator: string) => Promise<void>;
   /** Opens a recovery copy of a presentation's unsaved work. */
@@ -86,6 +96,31 @@ export const useApp = create<AppState>((set, get) => {
 
   const leaving = async () => (await get().leaveGuard?.()) ?? true;
 
+  const showOffice = (office: OfficeFile) => {
+    const { deck } = get();
+    if (deck) closeDeckFile(deck.token);
+    set({ office, deck: null });
+  };
+
+  const openOffice = async (path: string) => {
+    if (!(await leaving())) return;
+    set({ opening: true });
+    try {
+      showOffice(await openOfficeFile(path));
+      const now = new Date().toISOString();
+      commit(recordDocument(get().library, path, now, () => crypto.randomUUID()));
+    } catch (error) {
+      const name = fileName(path);
+      if (error === "missing") {
+        commit(markMissing(get().library, path));
+        showError(`"${name}" isn't there any more. It may have been moved or renamed.`);
+      } else if (error === "too large") showError(`"${name}" is too large to open.`);
+      else showError(`"${name}" couldn't be opened.`);
+    } finally {
+      set({ opening: false });
+    }
+  };
+
   /** Puts a deck on screen and into the library, whichever way it arrived. */
   const show = (deck: OpenDeck, present = false) => {
     const previous = get().deck;
@@ -105,7 +140,12 @@ export const useApp = create<AppState>((set, get) => {
       () => crypto.randomUUID(),
     );
     commit(library);
-    set({ deck, startSlide: library.decks[0]?.lastSlide ?? 0, presentOnOpen: present });
+    set({
+      deck,
+      office: null,
+      startSlide: library.decks[0]?.lastSlide ?? 0,
+      presentOnOpen: present,
+    });
     if (deck.removed.length > 0) {
       showWarning(`Penwork removed this while opening the file: ${deck.removed.join(", ")}`);
     }
@@ -114,6 +154,7 @@ export const useApp = create<AppState>((set, get) => {
   return {
     library: EMPTY_LIBRARY,
     deck: null,
+    office: null,
     startSlide: 0,
     presentOnOpen: false,
     launch: null,
@@ -127,7 +168,7 @@ export const useApp = create<AppState>((set, get) => {
         await invoke<string | null>("read_app_file", { name: "library.json" }),
       );
       set({ library });
-      const paths = library.decks.map((d) => d.path);
+      const paths = [...library.decks, ...library.documents].map((d) => d.path);
       const exists = await invoke<boolean[]>("existing_paths", { paths });
       set({ library: markExisting(get().library, exists), libraryReady: true });
     },
@@ -136,8 +177,9 @@ export const useApp = create<AppState>((set, get) => {
     endLaunch: () => set({ launch: null }),
 
     openPath: async (path, options) => {
+      if (officeKind(path)) return openOffice(path);
       if (!isDeckPath(path)) {
-        showError("Penwork opens .pwpptx presentations only.");
+        showError("Penwork opens presentations (.pwpptx), Word, Excel, CSV and PDF files.");
         return;
       }
       if (!(await leaving())) return;
@@ -152,6 +194,21 @@ export const useApp = create<AppState>((set, get) => {
         set({ opening: false });
       }
     },
+
+    newOffice: async (kind) => {
+      if (await leaving()) showOffice(newOfficeFile(kind));
+    },
+
+    closeOffice: () => set({ office: null }),
+
+    officeSaved: (file, path) => {
+      const now = new Date().toISOString();
+      commit(recordDocument(get().library, path, now, () => crypto.randomUUID(), file.path));
+      const { office } = get();
+      if (office?.id === file.id) set({ office: { ...office, path, name: fileName(path) } });
+    },
+
+    removeDocument: (id) => commit(removeDocument(get().library, id)),
 
     recoverDeck: async (id, path) => {
       if (!(await leaving())) return;

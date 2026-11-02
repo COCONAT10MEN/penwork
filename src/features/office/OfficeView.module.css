@@ -1,0 +1,252 @@
+.view {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-sizing: border-box;
+  height: 100%;
+  padding: 10px;
+  background: var(--md-sys-color-surface-container-low);
+  color: var(--md-sys-color-on-surface);
+}
+.header {
+  position: relative;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 64px;
+  padding: 8px 10px;
+  box-sizing: border-box;
+  border-radius: var(--md-sys-shape-corner-full);
+}
+.titles {
+  flex: 1;
+  min-width: 0;
+}
+.title {
+  margin: 0;
+  overflow: hidden;
+  font-size: var(--pw-type-deck-title-size);
+  font-weight: var(--md-sys-typescale-title-medium-weight-emphasized);
+  line-height: var(--md-sys-typescale-title-medium-line-height);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.status {
+  margin: 0;
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: var(--md-sys-typescale-body-small-size);
+  line-height: var(--md-sys-typescale-body-small-line-height);
+}
+.status[data-dirty] {
+  color: var(--md-sys-color-primary);
+}
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: var(--md-sys-shape-corner-extra-large);
+  background: var(--md-sys-color-surface-container);
+}
+.loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+.failed {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  max-width: 360px;
+  margin: 0;
+  text-align: center;
+}
+
+.word,
+.sheet {
+  position: absolute;
+  inset: 0;
+  user-select: text;
+}
+
+.pdf {
+  position: absolute;
+  inset: 0;
+}
+/* pdf.js needs its scroller absolutely placed, and it draws its own text layer inside. */
+.pdfScroll {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+  user-select: text;
+  outline: none;
+}
+/* pdf.js moves focus onto its page layers, and the app's focus ring would outline a whole page. */
+.pdfScroll :global(.annotationEditorLayer):focus-visible,
+.pdfScroll :global(.page):focus-visible {
+  outline: none;
+}
+.pdfBars {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  max-width: calc(100% - 24px);
+  transform: translateX(-50%);
+}
+.pdfBar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 10px;
+  border-radius: var(--md-sys-shape-corner-full);
+}
+.pdfPage {
+  flex: none;
+  min-width: 56px;
+  font-size: var(--md-sys-typescale-label-large-size);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+.pdfDivider {
+  flex: none;
+  width: 1px;
+  height: 24px;
+  margin-inline: 6px;
+  background: var(--md-sys-color-outline-variant);
+}
+.pdfFind {
+  width: 120px;
+  height: 40px;
+  padding: 0 14px;
+  box-sizing: border-box;
+  border: 0;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-surface-container-highest);
+  color: var(--md-sys-color-on-surface);
+  font: inherit;
+  font-size: var(--md-sys-typescale-body-medium-size);
+  user-select: text;
+}
+.pdfFind:focus-visible {
+  outline: 2px solid var(--md-sys-color-primary);
+  outline-offset: 1px;
+}
+
+/* The libraries bring their own stylesheets. Everything below points them at Penwork's tokens. */
+.word :global(.docx-editor) {
+  --doc-primary: var(--md-sys-color-primary);
+  --doc-primary-hover: var(--md-sys-color-primary);
+  --doc-primary-light: var(--md-sys-color-primary-container);
+  --doc-on-primary: var(--md-sys-color-on-primary);
+  --doc-accent: var(--md-sys-color-tertiary);
+  --doc-bg: var(--md-sys-color-surface-container);
+  --doc-bg-subtle: var(--md-sys-color-surface-container-low);
+  --doc-bg-hover: var(--md-sys-color-surface-container-highest);
+  --doc-bg-input: var(--md-sys-color-surface-container-high);
+  --doc-surface: var(--md-sys-color-surface-container-high);
+  --doc-surface-hover: var(--md-sys-color-surface-container-highest);
+  --doc-border: var(--md-sys-color-outline-variant);
+  --doc-border-light: var(--md-sys-color-outline-variant);
+  --doc-border-dark: var(--md-sys-color-outline);
+  --doc-border-input: var(--md-sys-color-outline-variant);
+  --doc-text: var(--md-sys-color-on-surface);
+  --doc-text-muted: var(--md-sys-color-on-surface-variant);
+  --doc-text-subtle: var(--md-sys-color-on-surface-variant);
+  --doc-focus-ring: var(--md-sys-color-primary);
+  --doc-font-ui: var(--md-sys-typescale-body-medium-font, inherit);
+}
+
+.sheet {
+  /* Cells are drawn white on a canvas by the library, so they stay paper in both themes. */
+  --pw-paper-ink: #1b1b1f;
+  --pw-sheet-bar: var(--md-sys-color-surface-container-high);
+  --pw-sheet-hover: var(--md-sys-color-surface-container-highest);
+  color: var(--pw-paper-ink);
+}
+.sheet :global(.fortune-container) {
+  background: var(--md-sys-color-surface-container);
+}
+.sheet :global(.fortune-toolbar) {
+  margin: 8px;
+  padding-inline: 8px;
+  border: 0;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--pw-sheet-bar);
+  color: var(--md-sys-color-on-surface);
+}
+.sheet :global(.fortune-toolbar) svg,
+.sheet :global(.luckysheet-sheet-area) svg {
+  fill: currentColor;
+}
+.sheet :global(.fortune-toolbar-divider) {
+  background: var(--md-sys-color-outline-variant);
+}
+.sheet :global(.fortune-toolbar-button:hover),
+.sheet :global(.fortune-toolbar-combo:hover),
+.sheet :global(.fortune-toolbar-combo-button:hover),
+.sheet :global(.fortune-toolbar-select-option:hover) {
+  background: var(--pw-sheet-hover);
+}
+.sheet :global(.fortune-toolbar-select),
+.sheet :global(.fortune-toolbar-color-picker),
+.sheet :global(.fortune-context-menu),
+.sheet :global(.fortune-sheet-list),
+.sheet :global(.fortune-dialog) {
+  border: 0;
+  border-radius: var(--md-sys-shape-corner-large);
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface);
+}
+.sheet :global(.fortune-fx-editor) {
+  border: 0;
+  background: transparent;
+  color: var(--md-sys-color-on-surface);
+}
+.sheet :global(.fortune-fx-icon) svg {
+  fill: currentColor;
+}
+.sheet :global(.fortune-name-box),
+.sheet :global(.fortune-fx-input) {
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface);
+}
+.sheet :global(.luckysheet-sheet-area) {
+  background: var(--md-sys-color-surface-container);
+  color: var(--md-sys-color-on-surface);
+}
+.sheet :global(.fortune-zoom-ratio),
+.sheet :global(.fortune-zoom-ratio-current) {
+  color: var(--md-sys-color-on-surface);
+}
+.sheet :global(.luckysheet-sheet-area) :global(div.luckysheet-sheets-item) {
+  border: 0;
+  border-radius: var(--md-sys-shape-corner-small);
+  background: transparent;
+  color: var(--md-sys-color-on-surface);
+}
+.sheet :global(.luckysheet-sheet-area) :global(div.luckysheet-sheets-item:hover),
+.sheet :global(.luckysheet-sheet-area) :global(div.luckysheet-sheets-item-active) {
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+.sheet :global(.luckysheet-sheets-item-name) {
+  color: inherit;
+}
+/* The icons are a sprite with their colours written in, so they are changed at the source. */
+.sheet symbol :not([fill="none"]) {
+  fill: currentColor;
+}

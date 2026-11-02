@@ -4,13 +4,20 @@ import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { open } from "@tauri-apps/plugin-dialog";
 import { useEffect, useState } from "react";
 import { useApp } from "../../appStore";
+import { OFFICE_EXTENSIONS } from "../../lib/office";
 
 /** The file picker. Uses the system dialog, so the user chooses exactly what Penwork can read. */
-export async function pickDeck(): Promise<string | null> {
+export async function pickFile(): Promise<string | null> {
   const path = await open({
     multiple: false,
     directory: false,
-    filters: [{ name: "Penwork presentations", extensions: ["pwpptx"] }],
+    filters: [
+      { name: "Files Penwork opens", extensions: ["pwpptx", ...OFFICE_EXTENSIONS] },
+      { name: "Penwork presentations", extensions: ["pwpptx"] },
+      { name: "Word documents", extensions: ["docx"] },
+      { name: "Spreadsheets", extensions: ["xlsx", "csv"] },
+      { name: "PDF", extensions: ["pdf"] },
+    ],
   });
   return typeof path === "string" ? path : null;
 }

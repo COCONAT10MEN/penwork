@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-save-office-file"
+description = "Enables the save_office_file command without any pre-configured scope."
+commands.allow = ["save_office_file"]
+
+[[permission]]
+identifier = "deny-save-office-file"
+description = "Denies the save_office_file command without any pre-configured scope."
+commands.deny = ["save_office_file"]

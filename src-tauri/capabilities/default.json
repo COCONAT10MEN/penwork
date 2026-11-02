@@ -36,6 +36,8 @@
     "allow-capture-view",
     "allow-export-toolbar",
     "allow-read-toolbar-file",
+    "allow-read-office-file",
+    "allow-save-office-file",
     "allow-save-deck",
     "allow-write-recovery",
     "allow-list-recovery",

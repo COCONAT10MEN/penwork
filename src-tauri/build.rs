@@ -27,6 +27,8 @@ fn main() {
         "capture_view",
         "export_toolbar",
         "read_toolbar_file",
+        "read_office_file",
+        "save_office_file",
         "save_deck",
         "write_recovery",
         "list_recovery",

@@ -1,3 +1,5 @@
+import { fileName, officeKind, type OfficeKind } from "../../lib/office";
+
 /** library.json (docs/ARCHITECTURE-DECKS.md §7). Removing an entry never touches the deck file. */
 
 export interface LibraryDeck {
@@ -19,12 +21,23 @@ export interface LibraryDeck {
   text: string;
 }
 
+/** A Word, Excel or PDF file. These have no slides or covers, so they keep a list of their own. */
+export interface LibraryDocument {
+  id: string;
+  path: string;
+  name: string;
+  kind: OfficeKind;
+  lastOpened: string;
+  missing: boolean;
+}
+
 export interface Library {
   version: 1;
   decks: LibraryDeck[];
+  documents: LibraryDocument[];
 }
 
-export const EMPTY_LIBRARY: Library = { version: 1, decks: [] };
+export const EMPTY_LIBRARY: Library = { version: 1, decks: [], documents: [] };
 
 function readDeck(value: unknown): LibraryDeck | null {
   if (typeof value !== "object" || value === null) return null;
@@ -49,14 +62,32 @@ function readDeck(value: unknown): LibraryDeck | null {
   };
 }
 
+function readDocument(value: unknown): LibraryDocument | null {
+  if (typeof value !== "object" || value === null) return null;
+  const d = value as Record<string, unknown>;
+  if (typeof d.id !== "string" || typeof d.path !== "string") return null;
+  const kind = officeKind(d.path);
+  if (!kind) return null;
+  return {
+    id: d.id,
+    path: d.path,
+    name: fileName(d.path),
+    kind,
+    lastOpened: typeof d.lastOpened === "string" ? d.lastOpened : new Date(0).toISOString(),
+    missing: d.missing === true,
+  };
+}
+
 /** A damaged library file must never stop the app starting: bad rows are dropped. */
 export function parseLibrary(text: string | null): Library {
   if (!text) return EMPTY_LIBRARY;
   try {
-    const data = JSON.parse(text) as { decks?: unknown };
+    const data = JSON.parse(text) as { decks?: unknown; documents?: unknown };
     if (!Array.isArray(data.decks)) return EMPTY_LIBRARY;
     const decks = data.decks.map(readDeck).filter((d): d is LibraryDeck => d !== null);
-    return { version: 1, decks };
+    const rows: unknown[] = Array.isArray(data.documents) ? data.documents : [];
+    const documents = rows.map(readDocument).filter((d) => d !== null);
+    return { version: 1, decks, documents };
   } catch {
     return EMPTY_LIBRARY;
   }
@@ -90,16 +121,43 @@ export function recordOpen(
   };
 }
 
+/** A file opened, or saved somewhere new, goes to the top. `replaces` is the path it had before. */
+export function recordDocument(
+  library: Library,
+  path: string,
+  now: string,
+  newId: () => string,
+  replaces: string | null = null,
+): Library {
+  const kind = officeKind(path);
+  if (!kind) return library;
+  const keys = [path.toLowerCase(), replaces?.toLowerCase()];
+  const existing = library.documents.find((d) => keys.includes(d.path.toLowerCase()));
+  const updated: LibraryDocument = {
+    id: existing?.id ?? newId(),
+    path,
+    name: fileName(path),
+    kind,
+    lastOpened: now,
+    missing: false,
+  };
+  const others = library.documents.filter((d) => !keys.includes(d.path.toLowerCase()));
+  return { ...library, documents: [updated, ...others] };
+}
+
+export function removeDocument(library: Library, id: string): Library {
+  return { ...library, documents: library.documents.filter((d) => d.id !== id) };
+}
+
 export function removeDeck(library: Library, id: string): Library {
   return { ...library, decks: library.decks.filter((d) => d.id !== id) };
 }
 
 export function markMissing(library: Library, path: string): Library {
   const key = path.toLowerCase();
-  return {
-    ...library,
-    decks: library.decks.map((d) => (d.path.toLowerCase() === key ? { ...d, missing: true } : d)),
-  };
+  const mark = <T extends { path: string }>(d: T) =>
+    d.path.toLowerCase() === key ? { ...d, missing: true } : d;
+  return { ...library, decks: library.decks.map(mark), documents: library.documents.map(mark) };
 }
 
 export function setLastSlide(library: Library, path: string, slide: number): Library {
@@ -136,10 +194,12 @@ export function setThumb(library: Library, id: string, stamp: string): Library {
   };
 }
 
-/** Files moved or deleted since last time. `exists` lines up with `library.decks`. */
+/** Files moved or deleted since last time. `exists` lines up with the decks, then the documents. */
 export function markExisting(library: Library, exists: boolean[]): Library {
+  const count = library.decks.length;
   return {
     ...library,
     decks: library.decks.map((d, i) => ({ ...d, missing: exists[i] === false })),
+    documents: library.documents.map((d, i) => ({ ...d, missing: exists[count + i] === false })),
   };
 }

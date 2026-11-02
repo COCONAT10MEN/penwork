@@ -26,6 +26,18 @@ Licenses below were checked against the installed packages (`package.json` / `LI
 | perfect-freehand | Steve Ruiz | MIT | Drawing ink strokes |
 | material-shapes-ts | Ruan Spies | Apache-2.0 | Material 3 Expressive's 35 shapes and morphing between them |
 | webview2-com (Windows only) | Bill Avery and contributors | MIT | Capturing deck thumbnails from WebView2 |
+| PDF.js (`pdfjs-dist`) | Mozilla and contributors | Apache-2.0 | Showing, searching, marking up and saving PDFs |
+| docx-editor (`@docx-editor.dev/react`, `@docx-editor.dev/core`) | Jedr Blaszyk / eigenpal | Apache-2.0 | Opening, editing and saving Word files |
+| FortuneSheet (`@fortune-sheet/react`, `@fortune-sheet/core`) | Suzhou Ruilisi Technology Co., Ltd | MIT | The spreadsheet editor |
+| FortuneExcel (`@corbe30/fortune-excel`) | Corbe30 (Shashank Chauhan) and contributors | MIT | Reading and writing Excel files for FortuneSheet |
+| ExcelJS (`exceljs`) | Guyon Roche and contributors | MIT | Writing `.xlsx` files |
+
+The packages those five bring in (ProseMirror, HarfBuzz, lodash, dayjs and others), and the
+full licence text of every one, are in [`LICENSES/office-libraries.txt`](LICENSES/office-libraries.txt).
+`npm run licenses` rebuilds that file and stops if a licence isn't one we allow. It also ships
+inside the installed app, because MIT and Apache-2.0 ask for their text to go with every copy.
+The paid docx-editor packages (`@docx-editor.dev/pro` and others) are **not** used, and nothing here
+is GPL or AGPL.
 
 Tauri pulls in about 240 smaller Rust crates. Almost all are MIT, Apache-2.0, BSD, Zlib, Unicode-3.0
 or public domain. Five (`cssparser`, `cssparser-macros`, `selectors`, `dtoa-short`, `option-ext`) are

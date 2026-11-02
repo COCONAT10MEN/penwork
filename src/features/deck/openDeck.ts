@@ -28,6 +28,7 @@ export interface OpenDeck {
   hasInk: boolean;
   /** ink.json from the file, unchecked. */
   ink: unknown;
+  themeCss: string;
 }
 
 interface OpenedFromRust {
@@ -67,8 +68,24 @@ async function publishSlides(token: string, rawHtml: string) {
   return { html, removed: clean.removed, slideCount: clean.slideCount };
 }
 
+/** Ink kept off the file lives in the app's own folder, named after where the file is. */
+export function inkCopyName(path: string): string {
+  let hash = 2166136261;
+  for (const c of path.toLowerCase()) hash = Math.imul(hash ^ (c.codePointAt(0) ?? 0), 16777619);
+  return `${(hash >>> 0).toString(16)}-${path.length}`;
+}
+
+async function inkFor(opened: OpenedFromRust): Promise<unknown> {
+  const { manifest, ink } = opened.content;
+  const settings = (manifest as { settings?: { keepInk?: unknown } } | null)?.settings;
+  if (settings?.keepInk !== false || ink !== null) return ink;
+  const text = await invoke<string | null>("read_ink_copy", { name: inkCopyName(opened.path) });
+  return text ? (JSON.parse(text) as unknown) : null;
+}
+
 async function fromRust(opened: OpenedFromRust, path: string): Promise<OpenDeck> {
   const slides = await publishSlides(opened.token, opened.content.slidesHtml);
+  const ink = await inkFor(opened).catch(() => null);
   return {
     token: opened.token,
     path: opened.path,
@@ -80,8 +97,9 @@ async function fromRust(opened: OpenedFromRust, path: string): Promise<OpenDeck>
     facts: deckFacts(slides.html),
     accent: deckAccent(opened.content.themeCss ?? ""),
     stamp: opened.stamp,
-    hasInk: opened.content.ink !== null,
-    ink: opened.content.ink,
+    hasInk: ink !== null,
+    ink,
+    themeCss: opened.content.themeCss ?? "",
   };
 }
 
@@ -108,6 +126,7 @@ async function openParts(deck: DeckParts, generator: string) {
     slideCount: slides.slideCount,
     slides: splitSlides(slides.html),
     draft: true,
+    themeCss: deck.themeCss ?? "",
     removed: slides.removed,
     facts: deckFacts(slides.html),
     accent: deckAccent(deck.themeCss),

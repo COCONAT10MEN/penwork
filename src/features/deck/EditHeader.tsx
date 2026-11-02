@@ -21,6 +21,7 @@ export function EditHeader({
   onPresentFromStart,
   mode,
   onMode,
+  onSettings,
 }: {
   title: string;
   dirty: boolean;
@@ -37,6 +38,7 @@ export function EditHeader({
   onPresentFromStart: () => void;
   mode: EditMode;
   onMode: (mode: EditMode) => void;
+  onSettings: () => void;
 }) {
   const fade = useSpring("effectsDefault");
   const status = saving ? "Saving…" : dirty ? "Unsaved changes" : "All changes saved";
@@ -74,6 +76,7 @@ export function EditHeader({
         <IconButton size="compact" icon="save" label="Save" onClick={onSave} />
         <IconButton size="compact" icon="save_as" label="Save as" onClick={onSaveAs} />
       </div>
+      <IconButton size="compact" icon="tune" label="Presentation settings" onClick={onSettings} />
       <SplitButton
         size="compact"
         label="Present"

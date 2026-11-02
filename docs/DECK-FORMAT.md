@@ -93,7 +93,8 @@ Use DOMPurify (dependency, credited) with an allow-list. Then the app's own chec
                               { "k": "h", "c": "#ffe14a", "w": 38, "op": 0.42, "pts": [[x, y, p], …] } ] } }
 ```
 Coordinates are in **stage units (1920×1080)**, so ink survives any window size. `k`: `p` pen, `h` highlighter.
-By default ink **is** saved into the deck, so it travels with the file. The "Keep ink in the deck" setting can turn this off.
+By default ink **is** saved into the deck, so it travels with the file. The "Keep ink in the presentation" setting
+(`settings.keepInk` in the manifest) can turn this off, and the ink then stays in the app's own folder on that computer.
 The whiteboard uses the key `"wb"` in place of a slide id.
 
 ## 7. Other ways in (importers)

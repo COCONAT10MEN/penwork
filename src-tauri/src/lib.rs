@@ -71,6 +71,7 @@ pub fn run() {
             files::read_thumb,
             files::delete_thumb,
             files::export_toolbar,
+            files::write_ai_kit,
             files::read_toolbar_file,
             session::open_deck,
             session::create_deck_session,
@@ -87,6 +88,9 @@ pub fn run() {
             saving::paste_slide_assets,
             session::set_deck_slides,
             session::set_deck_notes,
+            session::set_deck_meta,
+            session::write_ink_copy,
+            session::read_ink_copy,
             session::add_image_file,
             session::close_deck,
         ])

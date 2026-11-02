@@ -16,6 +16,7 @@ import {
 } from "../../ui";
 import type { ThemeMode, Transparency } from "../../theme/theme";
 import { showError } from "../notices/notices";
+import { saveAiKit } from "./aiKit";
 import { logoColor } from "./appearance";
 import type { ColorSource, Settings as SavedSettings } from "./settingsFile";
 import { useSettings } from "./settingsStore";
@@ -222,6 +223,14 @@ export function Settings() {
             value={settings.endOfShow}
             onChange={(endOfShow) => update({ endOfShow: endOfShow as SavedSettings["endOfShow"] })}
           />
+        </Section>
+        <Section
+          title="AI kit"
+          hint="What an AI needs to write a Penwork presentation: the guide, a packing tool, an example and a prompt."
+        >
+          <Button variant="tonal" size="small" icon="download" onClick={() => void saveAiKit()}>
+            Get the AI kit
+          </Button>
         </Section>
         <Section title="Motion">
           <Switch

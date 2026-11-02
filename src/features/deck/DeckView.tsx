@@ -1,13 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useStore } from "zustand";
 import { useApp } from "../../appStore";
-import type { RuntimeMessage } from "../../lib/deck/bridge";
+import type { SlideProblem } from "../../lib/deck/bridge";
 import { firstShown, wouldHide } from "../../lib/deck/slideOps";
 import { AmbientBackground } from "../../ui";
 import { cx } from "../../ui/cx";
 import { createDeckStore, noteInk } from "./deckStore";
 import { EditHeader } from "./EditHeader";
 import { EditToolbar } from "./EditToolbar";
+import { AskAi } from "./inspector/AskAi";
+import { PresentationSettings } from "./PresentationSettings";
+import { UnderSlide } from "./ReplyBar";
+import { useAskAi } from "./useAskAi";
 import { Inspector, type EditMode } from "./inspector/Inspector";
 import { TextToolbar } from "./TextToolbar";
 import { LayoutGallery } from "./LayoutGallery";
@@ -18,12 +22,12 @@ import { useDeckSave } from "./useDeckSave";
 import { useFrameChrome } from "./useFrameChrome";
 import { useCoverThumb } from "./useCoverThumb";
 import { useShow } from "./useShow";
+import { useStageEvents } from "./useStageEvents";
 import { useSlideListEvents } from "./useSlideListEvents";
 import { useSlideText } from "./useSlideText";
 import { useLeaveGuard } from "./useLeaveGuard";
-import { useEditKeys, type KeyPress } from "./useEditKeys";
+import { useEditKeys } from "./useEditKeys";
 import { useSlideEditing } from "./useSlideEditing";
-import { exportToolbar, importToolbar, loadToolbar, saveToolbar } from "./toolbarFile";
 import { useDeckInk } from "./useDeckInk";
 import { RuntimeFrame, type RuntimeFrameHandle } from "./RuntimeFrame";
 import styles from "./DeckView.module.css";
@@ -44,7 +48,6 @@ export function DeckView({
   presentOnOpen: boolean;
 }) {
   const closeDeck = useApp((s) => s.closeDeck);
-  const rememberSlide = useApp((s) => s.rememberSlide);
   const stage = useRef<RuntimeFrameHandle>(null);
   const sorter = useRef<RuntimeFrameHandle>(null);
   const [slide, setSlide] = useState(start);
@@ -53,7 +56,17 @@ export function DeckView({
   const [mode, setMode] = useState<EditMode>("edit");
   const [total, setTotal] = useState(deck.slideCount);
   const latestSlide = useRef(start);
-  const [store] = useState(() => createDeckStore(deck.slides, deck.recovered));
+  const [store] = useState(() =>
+    createDeckStore(
+      deck.slides,
+      { manifest: deck.manifest.raw, theme: deck.themeCss },
+      deck.recovered,
+    ),
+  );
+  const meta = useStore(store, (doc) => doc.meta);
+  const title = typeof meta.manifest.title === "string" ? meta.manifest.title : deck.manifest.title;
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [problems, setProblems] = useState<SlideProblem[]>([]);
   const canUndo = useStore(store, (doc) => doc.past.length > 0);
   const canRedo = useStore(store, (doc) => doc.future.length > 0);
   const slides = useStore(store, (doc) => doc.slides);
@@ -92,12 +105,8 @@ export function DeckView({
 
   const { postChrome, postLogo } = useFrameChrome(stage, sorter);
   const slot = useRef<HTMLDivElement>(null);
-  const { presenting, lifted, present, endShow, modeMessage, showing, presentButton } = useShow(
-    stage,
-    slot,
-    latestSlide,
-    presentOnOpen,
-  );
+  const show = useShow(stage, slot, latestSlide, presentOnOpen);
+  const { presenting, lifted, present, endShow, presentButton } = show;
 
   const cover = useCoverThumb(deck, stage);
 
@@ -125,70 +134,29 @@ export function DeckView({
     sorter.current?.post("select", { slide, selected });
   }, [slide, selected, syncs]);
 
-  /** Everything the page needs before anything is shown: saved settings, the logo, the ink. */
-  const startStage = async (from: number) => {
-    const toolbar = await loadToolbar();
-    if (toolbar) stage.current?.post("toolbar", toolbar);
-    postLogo();
-    postChrome();
-    ink.send(stage);
-    if (showing.current) {
-      setStageReady(true);
-      useApp.getState().endLaunch();
-      present(from);
-      return;
-    }
-    // Reopened part-way through, the first slide would never be seen to take its picture.
-    const needsCover = from > 0 && cover.stale();
-    firstSlide.current = needsCover ? 0 : from;
-    if (needsCover) {
-      stage.current?.post("mode", modeMessage("edit", 0));
-      await cover.takeNow();
-    }
-    stage.current?.post("mode", modeMessage("edit", from));
-  };
+  const { onStageMessage, onFrameKey } = useStageEvents({
+    stage,
+    start,
+    show,
+    ink,
+    cover,
+    text,
+    editing,
+    firstSlide,
+    latestSlide,
+    onKey,
+    postLogo,
+    postChrome,
+    onReady: () => setStageReady(true),
+    onTotal: setTotal,
+    onState: (state) => {
+      setSlide(state.slide);
+      setSteps(state.steps);
+      setStep(state.step);
+    },
+  });
 
-  /**
-   * A slide page can post anything, but only real typing makes the browser count the user as
-   * active, so a page's script can't write to the user's file on its own.
-   */
-  const onFrameKey = (press: KeyPress) => {
-    const save = press.ctrl && press.key.toLowerCase() === "s";
-    if (!save || navigator.userActivation.isActive) onKey(press);
-  };
-
-  const onStageMessage = (message: RuntimeMessage) => {
-    if (message.type === "ready") {
-      setTotal(message.total);
-      void startStage(Math.min(start, Math.max(0, message.total - 1)));
-    } else if (message.type === "state") {
-      latestSlide.current = message.slide;
-      setSlide(message.slide);
-      setSteps(message.steps);
-      setStep(message.step);
-      setTotal(message.total);
-      rememberSlide(message.slide);
-      setSelected((now) => (now.includes(message.slide) ? now : [message.slide]));
-      if (message.slide === firstSlide.current) setStageReady(true);
-      cover.slideShown(message.slide, presenting);
-    } else if (message.type === "key") {
-      onFrameKey(message);
-    } else if (message.type === "end") {
-      endShow();
-    } else if (message.type === "removePicked") {
-      editing.change(message.slide, message.n, message.tag, (el) => el.remove(), false);
-    } else if (text.onMessage(message)) {
-      return;
-    } else if (message.type === "toolbar") {
-      saveToolbar(message.settings);
-    } else if (message.type === "exportToolbar") {
-      void exportToolbar(message.text);
-    } else if (message.type === "importToolbar") {
-      void importToolbar((text) => stage.current?.post("toolbarFile", { text }));
-    } else if (message.type === "ink") {
-      ink.changed(message.id, message.strokes);
-    }
-  };
+  const ai = useAskAi({ stage, slides, slide, meta, title });
 
   const onSorterMessage = useSlideListEvents({
     box: sorterBox,
@@ -198,6 +166,7 @@ export function DeckView({
     setMenu,
     onKey: onFrameKey,
     onScrolled: setShrunk,
+    onChecked: setProblems,
     onReady: () => {
       postChrome();
       sorter.current?.post("select", { slide, selected });
@@ -225,7 +194,8 @@ export function DeckView({
     >
       <AmbientBackground layout="edit" />
       <EditHeader
-        title={deck.manifest.title}
+        title={title}
+        onSettings={() => setSettingsOpen(true)}
         dirty={dirty}
         saving={saving}
         canUndo={canUndo}
@@ -256,20 +226,22 @@ export function DeckView({
         />
         <main className={styles.main}>
           <div ref={slot} className={styles.stage} />
-          <EditToolbar
-            slide={slide}
-            total={slides.length}
-            steps={steps}
-            shrunk={shrunk}
-            hint={text.picked ? "Double-click text to edit" : undefined}
-            canHide={editing.canHide()}
-            canRemove={editing.canRemove()}
-            onGo={(to) => editing.pick(to, { ctrl: false, shift: false })}
-            onDuplicate={() => editing.duplicate(slide)}
-            onHide={() => editing.hide(slide)}
-            onRemove={() => editing.remove(slide)}
-            onOpen={() => setShrunk(false)}
-          />
+          <UnderSlide ai={ai} slide={slide} editing={editing}>
+            <EditToolbar
+              slide={slide}
+              total={slides.length}
+              steps={steps}
+              shrunk={shrunk}
+              hint={text.picked ? "Double-click text to edit" : undefined}
+              canHide={editing.canHide()}
+              canRemove={editing.canRemove()}
+              onGo={(to) => editing.pick(to, { ctrl: false, shift: false })}
+              onDuplicate={() => editing.duplicate(slide)}
+              onHide={() => editing.hide(slide)}
+              onRemove={() => editing.remove(slide)}
+              onOpen={() => setShrunk(false)}
+            />
+          </UnderSlide>
         </main>
         <Inspector
           mode={mode}
@@ -286,6 +258,13 @@ export function DeckView({
           onHide={() => editing.hide(slide)}
           onStep={(to) => stage.current?.post("stepView", { on: true, step: to })}
           onNotes={(notes) => editing.setNotes(slide, notes)}
+          problems={problems.filter((p) => p.slide === slide).map((p) => p.text)}
+          ask={
+            <AskAi
+              onCopy={(scope, request) => void ai.copy(scope, request)}
+              onPaste={() => void ai.paste()}
+            />
+          }
         />
       </div>
       <RuntimeFrame
@@ -305,6 +284,13 @@ export function DeckView({
         frame={stage}
         onFormula={text.onFormula}
         onFormulaDone={text.onFormulaDone}
+      />
+      <PresentationSettings
+        open={settingsOpen}
+        meta={meta}
+        slides={slides}
+        onClose={() => setSettingsOpen(false)}
+        onApply={editing.setMeta}
       />
       <LayoutGallery open={gallery} onClose={() => setGallery(false)} onPick={editing.add} />
       <SlideMenu

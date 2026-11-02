@@ -9,7 +9,7 @@ describe("deck history", () => {
   });
 
   it("starts unsaved when it was recovered", () => {
-    expect(isDirty(createDeckStore(list("a"), true).getState())).toBe(true);
+    expect(isDirty(createDeckStore(list("a"), undefined, true).getState())).toBe(true);
   });
 
   it("undoes and redoes", () => {
@@ -43,7 +43,7 @@ describe("deck history", () => {
   it("stays unsaved when undoing past a save", () => {
     const store = createDeckStore(list("a"));
     commit(store, list("b"));
-    markSaved(store, store.getState().slides, 0);
+    markSaved(store, store.getState().slides, 0, store.getState().meta);
     expect(isDirty(store.getState())).toBe(false);
     undo(store);
     expect(isDirty(store.getState())).toBe(true);
@@ -53,7 +53,7 @@ describe("deck history", () => {
     const store = createDeckStore(list("a"));
     noteInk(store);
     expect(isDirty(store.getState())).toBe(true);
-    markSaved(store, store.getState().slides, 1);
+    markSaved(store, store.getState().slides, 1, store.getState().meta);
     expect(isDirty(store.getState())).toBe(false);
   });
 
@@ -63,7 +63,7 @@ describe("deck history", () => {
     const inFile = store.getState().slides;
     commit(store, list("c"));
     noteInk(store);
-    markSaved(store, inFile, 0);
+    markSaved(store, inFile, 0, store.getState().meta);
     expect(isDirty(store.getState())).toBe(true);
     undo(store);
     expect(isDirty(store.getState())).toBe(true); // the ink still isn't in the file

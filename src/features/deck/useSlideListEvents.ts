@@ -1,5 +1,5 @@
 import type { RefObject } from "react";
-import type { RuntimeMessage } from "../../lib/deck/bridge";
+import type { RuntimeMessage, SlideProblem } from "../../lib/deck/bridge";
 import type { SlideMenuTarget } from "./SlideMenu";
 import type { KeyPress } from "./useEditKeys";
 import type { useSlideEditing } from "./useSlideEditing";
@@ -13,6 +13,7 @@ export function useSlideListEvents({
   setMenu,
   onKey,
   onScrolled,
+  onChecked,
   onReady,
 }: {
   box: RefObject<HTMLDivElement | null>;
@@ -22,6 +23,7 @@ export function useSlideListEvents({
   setMenu: (menu: SlideMenuTarget | null) => void;
   onKey: (press: KeyPress) => void;
   onScrolled: (down: boolean) => void;
+  onChecked: (problems: SlideProblem[]) => void;
   onReady: () => void;
 }) {
   const onSlide = (message: RuntimeMessage) => {
@@ -45,6 +47,7 @@ export function useSlideListEvents({
     if (message.type === "ready") onReady();
     else if (message.type === "key") onKey(message);
     else if (message.type === "scrolled") onScrolled(message.down);
+    else if (message.type === "checked") onChecked(message.problems);
     else if (message.type === "pick" || message.type === "menu" || message.type === "move") {
       if (message.slide >= 0 && message.slide < slideCount) onSlide(message);
     }

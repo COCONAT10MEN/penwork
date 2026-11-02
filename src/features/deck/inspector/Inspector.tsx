@@ -1,7 +1,7 @@
-import { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
 import { elementAt } from "../../../lib/deck/slideEdit";
 import { isHidden, type DeckSlide } from "../../../lib/deck/slideOps";
-import { Button, IconButton, Surface } from "../../../ui";
+import { Button, Icon, IconButton, Surface } from "../../../ui";
 import { ElementFields, EachItemSteps } from "./ElementFields";
 import { CommitArea, Group, Hint, type Editing } from "./fields";
 import styles from "./Inspector.module.css";
@@ -101,6 +101,8 @@ export function Inspector({
   onHide,
   onStep,
   onNotes,
+  problems,
+  ask,
 }: {
   mode: EditMode;
   slide: number;
@@ -116,6 +118,8 @@ export function Inspector({
   onHide: () => void;
   onStep: (step: number) => void;
   onNotes: (text: string) => void;
+  problems: string[];
+  ask: ReactNode;
 }) {
   const html = slideData?.html ?? "";
   const root = useMemo(() => elementAt(html, 0), [html]);
@@ -148,6 +152,12 @@ export function Inspector({
       ) : (
         <>
           <Crumbs slide={slide} picked={picked} onPick={onPick} />
+          {problems.map((problem) => (
+            <p key={problem} className={styles.problem} role="status">
+              <Icon name="warning" size={18} filled />
+              {problem}
+            </p>
+          ))}
           {mode === "steps" && <StepsPanel step={step} steps={steps} onStep={onStep} />}
           {pickedEdit ? (
             <div key={`${slide}-${picked?.n}`} className={styles.fields}>
@@ -170,6 +180,7 @@ export function Inspector({
               </div>
             )
           )}
+          {ask}
         </>
       )}
     </Surface>

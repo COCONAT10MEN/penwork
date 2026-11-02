@@ -83,7 +83,9 @@ Add slide (from a **layout gallery** built from the template's example slides: c
 diagram + card, worked example, quiz, recap) · duplicate · delete (undoable) · hide/show · drag to reorder ·
 copy/paste slides between decks · multi-select with Shift/Ctrl.
 
-## Deck settings (top-bar menu → Deck)
+## Deck settings (the tune button in the top bar: "Presentation settings")
+
+Apply makes all of it one undo step, the file's title and colours included.
 
 Title, badge word/number, deck name, kicker (applied to every slide's `.spill` and the cover) · accent colours
 (`--teal`, `--or`, `--ink`, `--paper` in `theme.css`, with the blob and badge overrides from AI-GUIDE §10 generated
@@ -100,6 +102,7 @@ slide thumbnail ("Too tall") and a line in the inspector. Unknown formula comman
 - **Copy slide for AI** / **Copy deck for AI**: puts on the clipboard a short instruction header (the format rules
   from `authoring/AI-GUIDE.md`, condensed) + the slide's (or deck's) HTML + `theme.css` + the request box text the
   user typed ("make this a two-column slide with a diagram"). Ready to paste into Claude chat.
+- The reply shows on the real slide first, with Before and After to compare. Nothing changes until it's used.
 - **Paste reply**: reads `<section>` blocks (and an optional ```` ```css ```` block) from the clipboard, sanitises them,
   shows a before/after preview, then **Replace this slide / Insert after / Cancel**. One undo step.
 - Never sends anything anywhere by itself. The user moves the text between apps.

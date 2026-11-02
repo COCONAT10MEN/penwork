@@ -80,11 +80,11 @@ Tick boxes only when finished and verified in the running app.
       diagram, image, worked example, quiz, recap, cover)
 - [x] Steps: appears on click, animation, together with previous, highlight part. Steps sub-mode
 - [x] Sorter: add from layout gallery, duplicate, delete, hide, reorder, multi-select, copy/paste between decks
-- [ ] Deck settings: brand values propagate to every slide, accent colours, language/direction
+- [x] Deck settings: brand values propagate to every slide, accent colours, language/direction
 - [x] Undo/redo (command stack), Ctrl+S atomic save, recovery autosave + recover on launch, unsaved dot
-- [ ] Deck doctor (overflow + bad formula) chips and inspector warnings
-- [ ] Ask AI: Copy slide/deck for AI, Paste reply with preview (replace / insert)
-- [ ] **Authoring kit** in `authoring/` (`AI-GUIDE.md`, `pwpptx.py`, example, `PROMPT.md`) + Settings → "Get the AI kit".
+- [x] Deck doctor (overflow + bad formula) chips and inspector warnings
+- [x] Ask AI: Copy slide/deck for AI, Paste reply with preview (replace / insert)
+- [x] **Authoring kit** in `authoring/` (`AI-GUIDE.md`, `pwpptx.py`, example, `PROMPT.md`) + Settings → "Get the AI kit".
       It explains exactly how `.pwpptx` relates to plain HTML
 
 ## M5: Dock, ink & whiteboard (everything in the template)
@@ -94,7 +94,7 @@ Tick boxes only when finished and verified in the running app.
 - [ ] The selection slides between tools as one shape (DESIGN-GLASS §6), and the toolbar gets arrow keys
 - [x] Whiteboard with all backgrounds
 - [x] Toolbar settings, including Export/Import compatible with files from the template, validated on load
-- [ ] Ink kept in the deck by default (done, on Save), setting to keep it on this device only (Part 4 of M4); ink drawn on overview thumbnails (done)
+- [x] Ink kept in the deck by default, setting to keep it on this device only; ink drawn on overview thumbnails
 - [x] Every popover tested in the real WebView2 window (handoff §8 blanking bug)
 - [ ] Tested with a real stylus and touch, if the owner has the hardware; otherwise say so plainly
 

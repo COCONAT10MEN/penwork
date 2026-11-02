@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-read-ink-copy"
+description = "Enables the read_ink_copy command without any pre-configured scope."
+commands.allow = ["read_ink_copy"]
+
+[[permission]]
+identifier = "deny-read-ink-copy"
+description = "Denies the read_ink_copy command without any pre-configured scope."
+commands.deny = ["read_ink_copy"]

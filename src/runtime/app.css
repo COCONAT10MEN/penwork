@@ -129,6 +129,19 @@ body.typing #edit .sn {
   box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--pw-accent, #00687a) 40%, transparent);
 }
 
+/* What the slide checker found, on the thumbnail. */
+html.sorter #ov .th .chk {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+  z-index: 2;
+  padding: 2px 8px;
+  border-radius: 8px;
+  background: #c0562f;
+  color: #fff;
+  font: 800 10.5px/1.5 var(--pw-ui-font, var(--sans));
+}
+
 /* Hidden slides: left out of the grid during a show, dimmed in the edit view's slide list. */
 html:not(.sorter) #ov .cell.off {
   display: none;

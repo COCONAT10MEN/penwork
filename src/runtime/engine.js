@@ -1850,7 +1850,46 @@ function sorterCells(){
     var end=Math.min(N,i+12);
     for(;i<end;i++)buildThumb(i);
     if(i<N)(window.requestIdleCallback||function(f){setTimeout(f,60);})(build,{timeout:300});
+    else setTimeout(checkSlides,120);
   })();
+}
+/* the slide checker: the template's check_deck.py rules, on the thumbnails, where every step shows */
+function problemsIn(s,k,box){
+  var out=[];
+  function at(e){var r=e.getBoundingClientRect();return {l:(r.left-box.left)/k,r:(r.right-box.left)/k,b:(r.bottom-box.top)/k};}
+  /* titles don't wrap, so the words run on past their box: it's the words that have to be measured */
+  function wordsEnd(e){var g=document.createRange();g.selectNodeContents(e);return (g.getBoundingClientRect().right-box.left)/k;}
+  if(s.classList.contains('hero')){
+    var h=s.querySelector('h1');
+    if(h&&wordsEnd(h)>1800)out.push('Title too long');
+  }else{
+    var title=s.querySelector('.sec h2');
+    if(title&&wordsEnd(title)>1920-120-480)out.push('Title runs into the badge');
+    var low=false,wide=false;
+    Array.prototype.forEach.call(s.querySelectorAll('.sec *,.main *'),function(e){
+      if(e.closest('svg')||e.closest('.quiz'))return;
+      var p=at(e);
+      if(p.b>1080-50)low=true;
+      if(p.r>1920-100||(p.l<100&&p.l>0))wide=true;
+    });
+    if(low)out.push('Too tall');
+    if(wide)out.push('Too wide');
+  }
+  if(s.querySelector('.m [style*="d2463a"],[style*="d2463a"]'))out.push('Formula it can\'t read');
+  return out;
+}
+function checkSlides(){
+  var found=[];
+  cells.forEach(function(c,i){
+    var s=c.tin.querySelector('.slide');if(!s)return;
+    var box=c.tin.getBoundingClientRect(),k=box.width/1920||1,list=problemsIn(s,k,box),old=c.th.querySelector('.chk');
+    if(old)old.remove();
+    list.forEach(function(t){found.push({slide:i,text:t});});
+    if(list.length){
+      var chip=document.createElement('b');chip.className='chk';chip.textContent=list[0];c.th.appendChild(chip);
+    }
+  });
+  send('checked',{problems:found});
 }
 function bootSorter(){
   document.documentElement.classList.add('sorter');
@@ -2341,6 +2380,14 @@ addEventListener('message',function(e){
       }
       setVar('--pw-dock-accent',p.color);setVar('--pw-dock-on',p.background);setVar('--acc',p.color);break;
     }
+    case 'theme':
+      /* the theme is a file the page loads, so a new one is loaded the same way */
+      if(/^[a-zA-Z0-9-]{2,20}$/.test(p.lang))document.documentElement.lang=p.lang;
+      if(p.dir==='rtl'||p.dir==='ltr')document.documentElement.dir=p.dir;
+      var sheet=document.querySelector('link[href^="theme.css"]');
+      if(sheet)sheet.href='theme.css?'+Date.now();
+      setTimeout(function(){if(SORTER&&cells.length)checkSlides();},400);
+      break;
     case 'chrome':
       setVar('--pw-accent',p.accent);setVar('--pw-text',p.text);setVar('--pw-line',p.line);setVar('--pw-muted',p.muted);setVar('--pw-on-accent',p.onAccent);
       /* a see-through page must match the app, or the browser paints it white */

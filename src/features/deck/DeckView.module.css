@@ -301,3 +301,12 @@
     opacity: 0;
   }
 }
+.reply {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 56px;
+  padding: 0 8px;
+  border-radius: var(--md-sys-shape-corner-full);
+}

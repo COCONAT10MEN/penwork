@@ -23,6 +23,8 @@ export type RuntimeMessage =
   | { type: "textbar"; bar: TextBar | null }
   /** A formula is being typed. */
   | { type: "formula"; src: string }
+  /** What the slide checker found, from the slide list's page. */
+  | { type: "checked"; problems: SlideProblem[] }
   /** The slide list scrolled far enough to count. */
   | { type: "scrolled"; down: boolean }
   /** The End show button, or F. */
@@ -33,6 +35,11 @@ export type RuntimeMessage =
   | { type: "importToolbar" }
   /** A slide's ink changed. The strokes are still unchecked here: see lib/deck/ink. */
   | { type: "ink"; id: string; strokes: unknown };
+
+export interface SlideProblem {
+  slide: number;
+  text: string;
+}
 
 export interface Crumb {
   n: number;
@@ -126,6 +133,18 @@ export function parseRuntimeMessage(data: unknown): RuntimeMessage | null {
         : null;
     case "formula":
       return typeof p.src === "string" && p.src.length <= 2000 ? { type, src: p.src } : null;
+    case "checked":
+      return Array.isArray(p.problems)
+        ? {
+            type,
+            problems: p.problems.slice(0, 200).flatMap((item: unknown) => {
+              const { slide, text } = (item ?? {}) as { slide?: unknown; text?: unknown };
+              return isCount(slide) && typeof text === "string"
+                ? [{ slide, text: text.slice(0, 80) }]
+                : [];
+            }),
+          }
+        : null;
     case "scrolled":
       return typeof p.down === "boolean" ? { type, down: p.down } : null;
     case "end":

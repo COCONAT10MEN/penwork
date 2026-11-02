@@ -1,0 +1,17 @@
+
+/* =========================================================================
+   THEME OVERRIDES — the only CSS you normally need to touch.
+   Everything above this <style> is the presentation engine: leave it alone.
+   ========================================================================= */
+:root{
+  --ink:#0b2a36;      /* headings, dark pills                               */
+  --navy:#12303d;     /* body text                                          */
+  --teal:#0aa0c8;     /* main accent (bullets, borders, sliders)            */
+  --teal2:#0e6f8e;    /* eyebrows, captions, session name                   */
+  --or:#c0562f;       /* second accent (highlights, answers, key cards)     */
+  --cy:#6fd8ee;       /* accent on dark cover                               */
+  --paper:#f4f9fb;    /* slide background                                   */
+}
+/* cover without a photo: a soft glow instead */
+.hero:not(:has(.bg)){background:radial-gradient(1300px 760px at 78% 30%,#0f4a63 0,#07161e 62%,#04090c 100%)}
+/* your own extra CSS for specific slides goes here */

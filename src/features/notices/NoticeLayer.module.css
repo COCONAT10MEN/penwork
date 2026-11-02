@@ -1,7 +1,7 @@
-/* Above the edit view's status pill, so neither covers the other. */
+/* Under the top bar: the bottom of the window has the toolbar under the slide. */
 .region {
   position: fixed;
-  inset: auto 0 68px;
+  inset: 84px 0 auto;
   z-index: 950;
   display: flex;
   justify-content: center;

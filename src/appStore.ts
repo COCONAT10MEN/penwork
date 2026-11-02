@@ -58,6 +58,7 @@ interface AppState {
     slides: number;
     facts: DeckFacts;
     ink: boolean;
+    title?: string;
   }) => void;
   closeDeck: () => void;
   startLaunch: (launch: NonNullable<AppState["launch"]>) => void;
@@ -164,10 +165,10 @@ export const useApp = create<AppState>((set, get) => {
       }
     },
 
-    deckSaved: ({ oldPath, rename, path, stamp, slides, facts, ink }) => {
+    deckSaved: ({ oldPath, rename, path, stamp, slides, facts, ink, title: newTitle }) => {
       const { library, deck } = get();
       const start = rename ? renameDeck(library, oldPath, path) : library;
-      const title = deck?.manifest.title ?? path;
+      const title = newTitle ?? deck?.manifest.title ?? path;
       commit(
         recordOpen(start, { path, title, slides, ink, ...facts }, new Date().toISOString(), () =>
           crypto.randomUUID(),

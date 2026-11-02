@@ -5,10 +5,11 @@ import { useStore } from "zustand";
 import { useApp } from "../../appStore";
 import { deckFacts } from "../../lib/deck/facts";
 import type { InkBySlide } from "../../lib/deck/ink";
+import { keepsInk } from "../../lib/deck/manifest";
 import { joinSlides, type DeckSlide } from "../../lib/deck/slideOps";
 import { askGoAhead, notify, showError, showWarning } from "../notices/notices";
 import { isDirty, markSaved, type DeckStore } from "./deckStore";
-import type { OpenDeck } from "./openDeck";
+import { inkCopyName, type OpenDeck } from "./openDeck";
 
 /** Often enough to lose very little (docs/DECK-FORMAT.md §8). */
 const RECOVERY_EVERY = 5000;
@@ -66,16 +67,24 @@ export function useDeckSave(options: {
       const newPath = chosen ? asDeckPath(chosen) : null;
 
       try {
-        const manifest = { ...deck.manifest.raw, modified: new Date().toISOString() };
         // Read together, right before the save, so "saved" means exactly what went into the file.
-        const { slides, inkEdits } = store.getState();
+        const { slides, inkEdits, meta } = store.getState();
+        const manifest: Record<string, unknown> = {
+          ...meta.manifest,
+          modified: new Date().toISOString(),
+        };
         const ink = inkFile(slides);
+        const inFile = keepsInk(meta.manifest) ? ink : null;
         setWritingFile(true);
         const saved = await invoke<{ path: string; stamp: string; imagesLost: boolean }>(
           "save_deck",
-          { token: deck.token, path: newPath, manifest, ink },
+          { token: deck.token, path: newPath, manifest, ink: inFile },
         );
-        markSaved(store, slides, inkEdits);
+        if (inFile === null && ink !== null) {
+          const text = JSON.stringify(ink);
+          await invoke("write_ink_copy", { name: inkCopyName(saved.path), text });
+        }
+        markSaved(store, slides, inkEdits, meta);
         useApp.getState().deckSaved({
           oldPath: deck.path,
           // A draft becomes the real file. Save as on a real file leaves that one as it was.
@@ -85,6 +94,7 @@ export function useDeckSave(options: {
           slides: slides.length,
           facts: deckFacts(joinSlides(slides)),
           ink: ink !== null,
+          title: typeof manifest.title === "string" ? manifest.title : undefined,
         });
         if (deck.draft) void invoke("delete_draft", { path: deck.path });
         if (saved.imagesLost) {

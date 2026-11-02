@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-write-ai-kit"
+description = "Enables the write_ai_kit command without any pre-configured scope."
+commands.allow = ["write_ai_kit"]
+
+[[permission]]
+identifier = "deny-write-ai-kit"
+description = "Denies the write_ai_kit command without any pre-configured scope."
+commands.deny = ["write_ai_kit"]

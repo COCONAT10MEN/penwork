@@ -1,5 +1,5 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
-import { useCallback, useState, type RefObject } from "react";
+import { useCallback, useRef, useState, type RefObject } from "react";
 import { brandOf, layoutSlide, type SlideLayout } from "../../lib/deck/layouts";
 import { sanitizeSlides } from "../../lib/deck/sanitize";
 import {
@@ -21,7 +21,13 @@ import {
 } from "../../lib/deck/slideOps";
 import { changeElement, setElementHtml } from "../../lib/deck/slideEdit";
 import { notify, showError, showWarning } from "../notices/notices";
-import { commit, redo as redoStore, undo as undoStore, type DeckStore } from "./deckStore";
+import {
+  commit,
+  redo as redoStore,
+  undo as undoStore,
+  type DeckStore,
+  type DeckMeta,
+} from "./deckStore";
 import type { OpenDeck } from "./openDeck";
 import type { RuntimeFrameHandle } from "./RuntimeFrame";
 
@@ -52,15 +58,33 @@ export function useSlideEditing(options: {
 }) {
   const { deck, store, stage, sorter, start, slideRef, afterSync } = options;
   const [selected, setSelected] = useState<number[]>([start]);
+  const shownMeta = useRef(store.getState().meta);
 
   /** Puts a list of slides on screen, in Rust too, so Save and a reload see the same thing. */
   const show = useCallback(
     (slides: DeckSlide[], focus: number, picked: number[], pick?: number) => {
       const html = joinSlides(slides);
       const slide = Math.max(0, Math.min(slides.length - 1, focus));
-      if (isTauri()) {
-        void invoke("set_deck_slides", { token: deck.token, html });
-        void invoke("set_deck_notes", { token: deck.token, notes: notesOf(slides) });
+      const { meta } = store.getState();
+      const newMeta = meta !== shownMeta.current;
+      shownMeta.current = meta;
+      const ready = !isTauri()
+        ? Promise.resolve()
+        : Promise.all([
+            invoke("set_deck_slides", { token: deck.token, html }),
+            invoke("set_deck_notes", { token: deck.token, notes: notesOf(slides) }),
+            invoke("set_deck_meta", {
+              token: deck.token,
+              manifest: meta.manifest,
+              theme: meta.theme,
+            }),
+          ]);
+      // The pages read the theme from Rust, so it has to be there first.
+      if (newMeta) {
+        void ready.then(() => {
+          const { lang, dir } = meta.manifest;
+          for (const frame of [stage, sorter]) frame.current?.post("theme", { lang, dir });
+        });
       }
       stage.current?.post("slides", { html, slide, pick });
       sorter.current?.post("slides", { html, slide });
@@ -68,7 +92,7 @@ export function useSlideEditing(options: {
       slideRef.current = slide;
       afterSync();
     },
-    [deck.token, stage, sorter, slideRef, afterSync],
+    [deck.token, store, stage, sorter, slideRef, afterSync],
   );
 
   const edit = useCallback(
@@ -118,7 +142,8 @@ export function useSlideEditing(options: {
       if (!fits(1)) return;
       const { slides } = store.getState();
       const at = slideRef.current + 1;
-      const html = layoutSlide(layout, brandOf(deck.manifest.raw, deck.manifest.title), at);
+      const { manifest } = store.getState().meta;
+      const html = layoutSlide(layout, brandOf(manifest, deck.manifest.title), at);
       const added = splitSlides(sanitizeSlides(html).html).map(withNewId);
       edit(insertAt(slides, at, added), at);
     },
@@ -283,6 +308,34 @@ export function useSlideEditing(options: {
     [store, edit],
   );
 
+  /** Presentation settings: one undo step, however many slides they touch. */
+  const setMeta = useCallback(
+    (meta: DeckMeta, slides: DeckSlide[]) => {
+      commit(store, slides, meta);
+      show(slides, slideRef.current, [slideRef.current]);
+    },
+    [store, show, slideRef],
+  );
+
+  /** An AI's reply, either in place of a slide or after it. Its styles join the theme. */
+  const applyReply = useCallback(
+    (at: number, html: string[], replace: boolean, css: string | null) => {
+      const { slides, meta } = store.getState();
+      const incoming = html.map((h) => withNewId({ id: "", html: h }));
+      if (!fits(incoming.length - (replace ? 1 : 0))) return;
+      const first = incoming[0];
+      if (replace && first) incoming[0] = { ...first, notes: slides[at]?.notes };
+      const next = [
+        ...slides.slice(0, replace ? at : at + 1),
+        ...incoming,
+        ...slides.slice(at + 1),
+      ];
+      commit(store, next, css ? { ...meta, theme: `${meta.theme}\n${css}\n` } : meta);
+      show(next, replace ? at : at + 1, [replace ? at : at + 1]);
+    },
+    [store, show, fits],
+  );
+
   const setNotes = useCallback(
     (at: number, text: string) => {
       const { slides } = store.getState();
@@ -334,6 +387,8 @@ export function useSlideEditing(options: {
     setText,
     change,
     setNotes,
+    setMeta,
+    applyReply,
     hasCopied: () => copied.length > 0,
   };
 }

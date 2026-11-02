@@ -1,0 +1,55 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: min(460px, 100%);
+  max-height: min(60vh, 520px);
+  padding-right: 8px;
+  overflow: hidden auto;
+}
+/* The browser lets the keyboard land on anything that scrolls, and draws a box round it. */
+.form:focus-visible {
+  outline: none;
+}
+.pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.colors {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.legend {
+  padding: 0 0 6px;
+  font-size: var(--md-sys-typescale-label-large-size);
+  font-weight: var(--md-sys-typescale-label-large-weight-emphasized);
+}
+.color {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-height: 72px;
+  padding: 6px 2px;
+  border: 0;
+  background: transparent;
+  color: var(--md-sys-color-on-surface);
+  cursor: default;
+  font: inherit;
+  font-size: var(--md-sys-typescale-label-medium-size);
+  --pw-corner: var(--md-sys-shape-corner-large);
+}
+.color::after {
+  content: none;
+}
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 16px;
+}

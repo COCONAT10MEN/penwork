@@ -120,3 +120,28 @@ pub fn delete_thumb(app: AppHandle, id: String) -> Result<(), String> {
     let _ = fs::remove_file(thumb_path(&app, &id)?);
     Ok(())
 }
+
+/// The AI kit, as a new folder: it never writes over anything already there.
+#[tauri::command]
+pub fn write_ai_kit(folder: String, files: Vec<(String, String)>) -> Result<String, String> {
+    let parent = std::path::Path::new(&folder);
+    let target = (1..100)
+        .map(|n| match n {
+            1 => parent.join("Penwork AI kit"),
+            n => parent.join(format!("Penwork AI kit {n}")),
+        })
+        .find(|path| !path.exists())
+        .ok_or("too many kits there already")?;
+    for (name, text) in files {
+        let safe = !name.is_empty() && name.split('/').all(|p| !p.is_empty() && p != ".." && !p.contains('\\'));
+        if !safe {
+            return Err("bad file name".into());
+        }
+        let file = target.join(&name);
+        if let Some(dir) = file.parent() {
+            std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
+        }
+        std::fs::write(file, text).map_err(|e| e.to_string())?;
+    }
+    Ok(target.to_string_lossy().into_owned())
+}

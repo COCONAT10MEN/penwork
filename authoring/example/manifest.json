@@ -1,0 +1,20 @@
+{
+  "brand": {
+    "badgeNumber": "1",
+    "badgeWord": "SESSION",
+    "deckName": "Newton's Second Law"
+  },
+  "created": "2026-10-30T18:00:00Z",
+  "dir": "ltr",
+  "engine": "lop-1",
+  "format": "penwork-deck",
+  "generator": "make_test_decks",
+  "lang": "en",
+  "modified": "2026-10-30T18:00:00Z",
+  "stage": {
+    "h": 1080,
+    "w": 1920
+  },
+  "title": "Newton's Second Law",
+  "version": 1
+}

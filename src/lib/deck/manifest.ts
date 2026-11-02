@@ -34,3 +34,12 @@ export function fileTitle(path: string): string {
   const name = path.split(/[\\/]/).pop() ?? path;
   return name.replace(/\.[^.]+$/, "") || name;
 }
+
+export function manifestSettings(manifest: Record<string, unknown>): Record<string, unknown> {
+  return isRecord(manifest.settings) ? manifest.settings : {};
+}
+
+/** Whether ink goes into the file. It does unless this presentation says otherwise. */
+export function keepsInk(manifest: Record<string, unknown>): boolean {
+  return manifestSettings(manifest).keepInk !== false;
+}

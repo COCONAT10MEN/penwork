@@ -194,6 +194,39 @@ pub fn set_deck_notes(token: String, notes: Option<Value>, sessions: State<'_, S
     }
 }
 
+/// Presentation settings, so Save, the recovery copy and the theme the pages load all agree.
+#[tauri::command]
+pub fn set_deck_meta(token: String, manifest: Value, theme: String, sessions: State<'_, Sessions>) {
+    if let Some(session) = sessions.0.lock().unwrap().get_mut(&token) {
+        session.lang = manifest_text(&manifest, "lang", "en");
+        session.dir = manifest_text(&manifest, "dir", "ltr");
+        session.manifest = manifest;
+        session.theme_css = theme;
+    }
+}
+
+fn ink_copy(app: &AppHandle, name: &str) -> Result<PathBuf, DeckError> {
+    // The name comes from the app, but it makes a path, so it's held to what the app makes.
+    let plain = !name.is_empty() && name.len() < 40 && name.chars().all(|c| c.is_ascii_hexdigit() || c == '-');
+    if !plain {
+        return Err(DeckError::Damaged("bad ink name".into()));
+    }
+    Ok(app_folder(app, "ink")?.join(format!("{name}.json")))
+}
+
+/// Ink for a presentation set to keep it off the file.
+#[tauri::command]
+pub fn write_ink_copy(name: String, text: String, app: AppHandle) -> Result<(), DeckError> {
+    fs::write(ink_copy(&app, &name)?, text)?;
+    Ok(())
+}
+
+#[tauri::command]
+pub fn read_ink_copy(name: String, app: AppHandle) -> Result<Option<String>, DeckError> {
+    let file = ink_copy(&app, &name)?;
+    Ok(file.exists().then(|| fs::read_to_string(file)).transpose()?)
+}
+
 /// Adds an image the user picked, under a new name so it can't replace another slide's.
 #[tauri::command]
 pub fn add_image_file(token: String, path: String, sessions: State<'_, Sessions>) -> Result<String, DeckError> {

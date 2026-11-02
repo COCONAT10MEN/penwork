@@ -27,7 +27,7 @@ function NoticeHost() {
         {notice && (
           <motion.div
             key={notice.id}
-            initial={reduce ? { opacity: 0 } : { opacity: 0, y: 24, scale: 0.8, "--pw-mat": 0 }}
+            initial={reduce ? { opacity: 0 } : { opacity: 0, y: -24, scale: 0.8, "--pw-mat": 0 }}
             animate={{
               opacity: 1,
               y: 0,
@@ -38,7 +38,7 @@ function NoticeHost() {
             exit={
               reduce
                 ? { opacity: 0 }
-                : { opacity: 0, y: 12, scale: 0.9, "--pw-mat": 0, transition: fade }
+                : { opacity: 0, y: -12, scale: 0.9, "--pw-mat": 0, transition: fade }
             }
           >
             <Surface material="glass" strength="thick" floating className={styles.notice}>

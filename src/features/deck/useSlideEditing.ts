@@ -17,8 +17,9 @@ import {
   toggleHidden,
   withNewId,
   type DeckSlide,
+  notesOf,
 } from "../../lib/deck/slideOps";
-import { setElementHtml } from "../../lib/deck/slideEdit";
+import { changeElement, setElementHtml } from "../../lib/deck/slideEdit";
 import { notify, showError, showWarning } from "../notices/notices";
 import { commit, redo as redoStore, undo as undoStore, type DeckStore } from "./deckStore";
 import type { OpenDeck } from "./openDeck";
@@ -54,11 +55,14 @@ export function useSlideEditing(options: {
 
   /** Puts a list of slides on screen, in Rust too, so Save and a reload see the same thing. */
   const show = useCallback(
-    (slides: DeckSlide[], focus: number, picked: number[]) => {
+    (slides: DeckSlide[], focus: number, picked: number[], pick?: number) => {
       const html = joinSlides(slides);
       const slide = Math.max(0, Math.min(slides.length - 1, focus));
-      if (isTauri()) void invoke("set_deck_slides", { token: deck.token, html });
-      stage.current?.post("slides", { html, slide });
+      if (isTauri()) {
+        void invoke("set_deck_slides", { token: deck.token, html });
+        void invoke("set_deck_notes", { token: deck.token, notes: notesOf(slides) });
+      }
+      stage.current?.post("slides", { html, slide, pick });
       sorter.current?.post("slides", { html, slide });
       setSelected(picked);
       slideRef.current = slide;
@@ -68,9 +72,9 @@ export function useSlideEditing(options: {
   );
 
   const edit = useCallback(
-    (slides: DeckSlide[], focus: number, picked = [focus]) => {
+    (slides: DeckSlide[], focus: number, picked = [focus], pick?: number) => {
       commit(store, slides);
-      show(slides, focus, picked);
+      show(slides, focus, picked, pick);
     },
     [store, show],
   );
@@ -259,6 +263,41 @@ export function useSlideEditing(options: {
     [store, show, edit],
   );
 
+  /** A change from the inspector to something on a slide. It stays picked afterwards. */
+  const change = useCallback(
+    (at: number, n: number, tag: string, how: (element: Element) => void, keep = true) => {
+      const { slides } = store.getState();
+      const slide = slides[at];
+      const changed = slide ? changeElement(slide.html, n, tag, how) : null;
+      if (!slide || changed === null) {
+        notify("That change couldn't be applied.", "info");
+        return;
+      }
+      edit(
+        slides.map((s, i) => (i === at ? { ...s, html: changed } : s)),
+        at,
+        [at],
+        keep ? n : undefined,
+      );
+    },
+    [store, edit],
+  );
+
+  const setNotes = useCallback(
+    (at: number, text: string) => {
+      const { slides } = store.getState();
+      const slide = slides[at];
+      if (!slide) return;
+      // Notes are filed by slide id, and a slide from an older file may not have one yet.
+      const named = slide.id ? slide : withNewId(slide);
+      edit(
+        slides.map((s, i) => (i === at ? { ...named, notes: text } : s)),
+        at,
+      );
+    },
+    [store, edit],
+  );
+
   const pick = useCallback(
     (slide: number, keys: { ctrl: boolean; shift: boolean }) => {
       setSelected((now) => nextSelection(now, slideRef.current, slide, keys));
@@ -293,6 +332,8 @@ export function useSlideEditing(options: {
     paste,
     pick,
     setText,
+    change,
+    setNotes,
     hasCopied: () => copied.length > 0,
   };
 }

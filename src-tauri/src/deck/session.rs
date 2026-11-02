@@ -186,6 +186,32 @@ pub fn set_deck_slides(token: String, html: String, sessions: State<'_, Sessions
     }
 }
 
+/// Speaker notes, so Save and the recovery copy have the same ones as the editor.
+#[tauri::command]
+pub fn set_deck_notes(token: String, notes: Option<Value>, sessions: State<'_, Sessions>) {
+    if let Some(session) = sessions.0.lock().unwrap().get_mut(&token) {
+        session.notes = notes;
+    }
+}
+
+/// Adds an image the user picked, under a new name so it can't replace another slide's.
+#[tauri::command]
+pub fn add_image_file(token: String, path: String, sessions: State<'_, Sessions>) -> Result<String, DeckError> {
+    const MOST: u64 = 20 * 1024 * 1024;
+    let file = Path::new(&path);
+    let extension = file.extension().and_then(|e| e.to_str()).unwrap_or("").to_lowercase();
+    let known = ["png", "jpg", "jpeg", "webp", "gif"].contains(&extension.as_str());
+    if !known || fs::metadata(file)?.len() > MOST {
+        return Err(DeckError::Damaged("not an image Penwork can use".into()));
+    }
+    let bytes = fs::read(file)?;
+    let name = format!("assets/{}.{extension}", uuid::Uuid::new_v4().simple());
+    let mut guard = sessions.0.lock().unwrap();
+    let session = guard.get_mut(&token).ok_or_else(|| DeckError::Damaged("not open".into()))?;
+    session.assets.insert(name.clone(), bytes);
+    Ok(name)
+}
+
 #[tauri::command]
 pub fn close_deck(token: String, sessions: State<'_, Sessions>) {
     sessions.0.lock().unwrap().remove(&token);

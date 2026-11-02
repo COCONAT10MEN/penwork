@@ -72,13 +72,13 @@ Tick boxes only when finished and verified in the running app.
 
 ## M4: Mini edits (`docs/EDITING.md`)
 **Comes after M5** (owner, 2026-11-01): every template feature first.
-- [ ] Edit mode layout like `design/mockups/v2/edit.html`: top bar, sorter, stage, inspector
+- [x] Edit mode layout like `design/mockups/v2/edit.html`: top bar, sorter, stage, inspector
 - [x] Selection model (hover, click, deeper/up, Tab), type tag, step numbers
-- [ ] Selection breadcrumb (comes with the inspector)
+- [x] Selection breadcrumb
 - [x] Inline text editing + context toolbar (bold, italic, orange, teal, muted, clear, insert formula)
-- [ ] Inspector for every component in `EDITING.md` (slide, title, card, list, formula with live preview, table, columns,
+- [x] Inspector for every component in `EDITING.md` (slide, title, card, list, formula with live preview, table, columns,
       diagram, image, worked example, quiz, recap, cover)
-- [ ] Steps: appears on click, animation, together with previous, highlight part. Steps sub-mode
+- [x] Steps: appears on click, animation, together with previous, highlight part. Steps sub-mode
 - [x] Sorter: add from layout gallery, duplicate, delete, hide, reorder, multi-select, copy/paste between decks
 - [ ] Deck settings: brand values propagate to every slide, accent colours, language/direction
 - [x] Undo/redo (command stack), Ctrl+S atomic save, recovery autosave + recover on launch, unsaved dot

@@ -14,7 +14,9 @@ export type RuntimeMessage =
   /** A slide was dragged, to land before the slide now at `to`. */
   | { type: "move"; slide: number; to: number }
   /** Something was picked on the slide. n is -1 when nothing is. */
-  | { type: "picked"; slide: number; n: number; kind: string }
+  | { type: "picked"; slide: number; n: number; tag: string; crumbs: Crumb[] }
+  /** Delete was pressed on a bullet or something else that can simply go. */
+  | { type: "removePicked"; slide: number; n: number; tag: string }
   /** Typing on the slide finished. The html is unchecked here: see lib/deck/slideEdit. */
   | { type: "text"; slide: number; n: number; tag: string; html: string }
   /** Where the formatting toolbar goes, in page coordinates, and what's on under the caret. */
@@ -32,6 +34,11 @@ export type RuntimeMessage =
   /** A slide's ink changed. The strokes are still unchecked here: see lib/deck/ink. */
   | { type: "ink"; id: string; strokes: unknown };
 
+export interface Crumb {
+  n: number;
+  label: string;
+}
+
 export interface TextBar {
   x: number;
   y: number;
@@ -48,6 +55,14 @@ const MAX_SETTINGS = 256 * 1024;
 const MAX_TEXT = 64 * 1024;
 const isCount = (v: unknown): v is number => Number.isInteger(v) && (v as number) >= 0;
 const isSpot = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
+
+function crumbsOf(value: unknown): Crumb[] {
+  if (!Array.isArray(value)) return [];
+  return value.slice(0, 12).flatMap((c: unknown) => {
+    const { n, label } = (c ?? {}) as { n?: unknown; label?: unknown };
+    return isCount(n) && typeof label === "string" ? [{ n, label: label.slice(0, 40) }] : [];
+  });
+}
 
 export function parseRuntimeMessage(data: unknown): RuntimeMessage | null {
   if (typeof data !== "object" || data === null) return null;
@@ -76,8 +91,12 @@ export function parseRuntimeMessage(data: unknown): RuntimeMessage | null {
     case "move":
       return isCount(p.slide) && isCount(p.to) ? { type, slide: p.slide, to: p.to } : null;
     case "picked":
-      return isCount(p.slide) && typeof p.n === "number" && typeof p.kind === "string"
-        ? { type, slide: p.slide, n: p.n, kind: p.kind.slice(0, 40) }
+      return isCount(p.slide) && typeof p.n === "number" && typeof p.tag === "string"
+        ? { type, slide: p.slide, n: p.n, tag: p.tag, crumbs: crumbsOf(p.crumbs) }
+        : null;
+    case "removePicked":
+      return isCount(p.slide) && isCount(p.n) && typeof p.tag === "string"
+        ? { type, slide: p.slide, n: p.n, tag: p.tag }
         : null;
     case "text":
       return isCount(p.slide) &&

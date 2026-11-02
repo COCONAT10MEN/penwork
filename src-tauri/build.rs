@@ -9,6 +9,8 @@ fn main() {
         "write_app_file",
         "open_deck",
         "set_deck_slides",
+        "set_deck_notes",
+        "add_image_file",
         "close_deck",
         "create_deck_session",
         "add_deck_asset",

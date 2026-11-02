@@ -86,6 +86,8 @@ pub fn run() {
             saving::copy_slide_assets,
             saving::paste_slide_assets,
             session::set_deck_slides,
+            session::set_deck_notes,
+            session::add_image_file,
             session::close_deck,
         ])
         .run(tauri::generate_context!())

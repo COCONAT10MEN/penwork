@@ -2,12 +2,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useStore } from "zustand";
 import { useApp } from "../../appStore";
 import type { RuntimeMessage } from "../../lib/deck/bridge";
-import { isHidden, wouldHide } from "../../lib/deck/slideOps";
+import { firstShown, wouldHide } from "../../lib/deck/slideOps";
 import { AmbientBackground } from "../../ui";
 import { cx } from "../../ui/cx";
 import { createDeckStore, noteInk } from "./deckStore";
 import { EditHeader } from "./EditHeader";
 import { EditToolbar } from "./EditToolbar";
+import { Inspector, type EditMode } from "./inspector/Inspector";
 import { TextToolbar } from "./TextToolbar";
 import { LayoutGallery } from "./LayoutGallery";
 import type { OpenDeck } from "./openDeck";
@@ -17,6 +18,7 @@ import { useDeckSave } from "./useDeckSave";
 import { useFrameChrome } from "./useFrameChrome";
 import { useCoverThumb } from "./useCoverThumb";
 import { useShow } from "./useShow";
+import { useSlideListEvents } from "./useSlideListEvents";
 import { useSlideText } from "./useSlideText";
 import { useLeaveGuard } from "./useLeaveGuard";
 import { useEditKeys, type KeyPress } from "./useEditKeys";
@@ -47,6 +49,8 @@ export function DeckView({
   const sorter = useRef<RuntimeFrameHandle>(null);
   const [slide, setSlide] = useState(start);
   const [steps, setSteps] = useState(0);
+  const [step, setStep] = useState(0);
+  const [mode, setMode] = useState<EditMode>("edit");
   const [total, setTotal] = useState(deck.slideCount);
   const latestSlide = useRef(start);
   const [store] = useState(() => createDeckStore(deck.slides, deck.recovered));
@@ -161,6 +165,7 @@ export function DeckView({
       latestSlide.current = message.slide;
       setSlide(message.slide);
       setSteps(message.steps);
+      setStep(message.step);
       setTotal(message.total);
       rememberSlide(message.slide);
       setSelected((now) => (now.includes(message.slide) ? now : [message.slide]));
@@ -170,6 +175,8 @@ export function DeckView({
       onFrameKey(message);
     } else if (message.type === "end") {
       endShow();
+    } else if (message.type === "removePicked") {
+      editing.change(message.slide, message.n, message.tag, (el) => el.remove(), false);
     } else if (text.onMessage(message)) {
       return;
     } else if (message.type === "toolbar") {
@@ -183,37 +190,21 @@ export function DeckView({
     }
   };
 
-  const onSorterMessage = (message: RuntimeMessage) => {
-    if (message.type === "ready") {
+  const onSorterMessage = useSlideListEvents({
+    box: sorterBox,
+    slideCount: slides.length,
+    editing,
+    setSelected,
+    setMenu,
+    onKey: onFrameKey,
+    onScrolled: setShrunk,
+    onReady: () => {
       postChrome();
       sorter.current?.post("select", { slide, selected });
       ink.send(sorter);
       setListReady(true);
-    } else if (message.type === "key") {
-      onFrameKey(message);
-    } else if (message.type === "scrolled") {
-      setShrunk(message.down);
-    } else if (message.type === "pick" || message.type === "menu" || message.type === "move") {
-      if (message.slide >= 0 && message.slide < slides.length) onSlidePicked(message);
-    }
-  };
-
-  const onSlidePicked = (message: RuntimeMessage) => {
-    if (message.type === "pick") {
-      setMenu(null);
-      editing.pick(message.slide, message);
-    } else if (message.type === "move") {
-      if (message.to >= 0 && message.to <= slides.length) editing.move(message.slide, message.to);
-    } else if (message.type === "menu") {
-      const box = sorterBox.current?.getBoundingClientRect();
-      setSelected((now) => (now.includes(message.slide) ? now : [message.slide]));
-      setMenu({
-        slide: message.slide,
-        x: (box?.left ?? 0) + message.x,
-        y: (box?.top ?? 0) + message.y,
-      });
-    }
-  };
+    },
+  });
 
   const closeMenu = useCallback(() => {
     setMenu(null);
@@ -245,15 +236,13 @@ export function DeckView({
         onRedo={editing.redo}
         onSave={() => void save()}
         onSaveAs={() => void save(true)}
+        mode={mode}
+        onMode={(next) => {
+          setMode(next);
+          stage.current?.post("stepView", { on: next === "steps", step: 0 });
+        }}
         onPresent={() => present(slide)}
-        onPresentFromStart={() =>
-          present(
-            Math.max(
-              0,
-              slides.findIndex((s) => !isHidden(s)),
-            ),
-          )
-        }
+        onPresentFromStart={() => present(firstShown(slides))}
       />
       <div className={styles.body}>
         <SlideListPanel
@@ -272,7 +261,7 @@ export function DeckView({
             total={slides.length}
             steps={steps}
             shrunk={shrunk}
-            hint={text.picked ? "Double-click text to edit · Esc to finish" : undefined}
+            hint={text.picked ? "Double-click text to edit" : undefined}
             canHide={editing.canHide()}
             canRemove={editing.canRemove()}
             onGo={(to) => editing.pick(to, { ctrl: false, shift: false })}
@@ -282,6 +271,22 @@ export function DeckView({
             onOpen={() => setShrunk(false)}
           />
         </main>
+        <Inspector
+          mode={mode}
+          slide={slide}
+          slideData={slides[slide]}
+          picked={text.picked}
+          step={step}
+          steps={steps}
+          canHide={editing.canHide()}
+          token={deck.token}
+          onChange={(n, tag, how) => editing.change(slide, n, tag, how)}
+          onPreview={(n, message) => stage.current?.post("preview", { n, ...message })}
+          onPick={(n) => stage.current?.post("pick", { n })}
+          onHide={() => editing.hide(slide)}
+          onStep={(to) => stage.current?.post("stepView", { on: true, step: to })}
+          onNotes={(notes) => editing.setNotes(slide, notes)}
+        />
       </div>
       <RuntimeFrame
         ref={stage}

@@ -4,6 +4,8 @@ import styles from "./Slider.module.css";
 export interface SliderProps {
   value: number;
   onChange: (value: number) => void;
+  /** When dragging ends, for a change worth one undo step. */
+  onCommit?: (value: number) => void;
   label: string;
   min?: number;
   max?: number;
@@ -21,6 +23,7 @@ export interface SliderProps {
 export function Slider({
   value,
   onChange,
+  onCommit,
   label,
   min = 0,
   max = 100,
@@ -64,6 +67,8 @@ export function Slider({
           disabled={disabled}
           aria-valuetext={format(value)}
           onChange={(e) => onChange(Number(e.target.value))}
+          onPointerUp={(e) => onCommit?.(Number(e.currentTarget.value))}
+          onKeyUp={(e) => onCommit?.(Number(e.currentTarget.value))}
         />
       </div>
     </div>

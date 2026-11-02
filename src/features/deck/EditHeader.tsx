@@ -1,7 +1,8 @@
 import { AnimatePresence, motion } from "motion/react";
 import type { Ref } from "react";
 import { useSpring } from "../../theme/motion";
-import { IconButton, SplitButton, Surface } from "../../ui";
+import { ButtonGroup, IconButton, SplitButton, Surface } from "../../ui";
+import type { EditMode } from "./inspector/Inspector";
 import styles from "./DeckView.module.css";
 
 export function EditHeader({
@@ -18,6 +19,8 @@ export function EditHeader({
   onSaveAs,
   onPresent,
   onPresentFromStart,
+  mode,
+  onMode,
 }: {
   title: string;
   dirty: boolean;
@@ -32,6 +35,8 @@ export function EditHeader({
   onSaveAs: () => void;
   onPresent: () => void;
   onPresentFromStart: () => void;
+  mode: EditMode;
+  onMode: (mode: EditMode) => void;
 }) {
   const fade = useSpring("effectsDefault");
   const status = saving ? "Saving…" : dirty ? "Unsaved changes" : "All changes saved";
@@ -53,6 +58,16 @@ export function EditHeader({
           </AnimatePresence>
         </p>
       </div>
+      <ButtonGroup
+        label="What to work on"
+        value={mode}
+        options={[
+          { value: "edit", label: "Edit" },
+          { value: "steps", label: "Steps" },
+          { value: "notes", label: "Notes" },
+        ]}
+        onChange={(next) => onMode(next as EditMode)}
+      />
       <div className={styles.history} role="group" aria-label="Undo and save" data-press-group>
         <IconButton size="compact" icon="undo" label="Undo" disabled={!canUndo} onClick={onUndo} />
         <IconButton size="compact" icon="redo" label="Redo" disabled={!canRedo} onClick={onRedo} />

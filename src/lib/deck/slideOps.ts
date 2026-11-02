@@ -7,6 +7,7 @@
 export interface DeckSlide {
   id: string;
   html: string;
+  notes?: string;
 }
 
 /** The most Penwork opens (docs/DECK-FORMAT.md), so the most it may save. */
@@ -43,7 +44,32 @@ export function withNewId(slide: DeckSlide): DeckSlide {
   if (!el) return slide;
   const id = newSlideId();
   el.setAttribute("data-id", id);
-  return { id, html: el.outerHTML };
+  return { ...slide, id, html: el.outerHTML };
+}
+
+/** Where a show from the start begins. */
+export function firstShown(slides: readonly DeckSlide[]): number {
+  return Math.max(
+    0,
+    slides.findIndex((slide) => !isHidden(slide)),
+  );
+}
+
+/** notes.json: speaker notes by slide id. */
+export function withNotes(slides: DeckSlide[], notes: unknown): DeckSlide[] {
+  if (typeof notes !== "object" || notes === null) return slides;
+  const byId = notes as Record<string, unknown>;
+  return slides.map((slide) => {
+    const text = slide.id ? byId[slide.id] : undefined;
+    return typeof text === "string" ? { ...slide, notes: text } : slide;
+  });
+}
+
+export function notesOf(slides: readonly DeckSlide[]): Record<string, string> | null {
+  const notes = Object.fromEntries(
+    slides.flatMap((s) => (s.notes && s.id ? [[s.id, s.notes] as const] : [])),
+  );
+  return Object.keys(notes).length > 0 ? notes : null;
 }
 
 export function isHidden(slide: DeckSlide): boolean {

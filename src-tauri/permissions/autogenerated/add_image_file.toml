@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-add-image-file"
+description = "Enables the add_image_file command without any pre-configured scope."
+commands.allow = ["add_image_file"]
+
+[[permission]]
+identifier = "deny-add-image-file"
+description = "Denies the add_image_file command without any pre-configured scope."
+commands.deny = ["add_image_file"]

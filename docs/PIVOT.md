@@ -129,3 +129,8 @@ colour from a seed) and the **tinted liquid-glass** look of the owner's toolbar.
 20. **As much of Material 3 Expressive as fits (2026-11-01).** Google's real shapes, morphing, loading indicator, FAB menu,
     split button and floating toolbar are in, made of liquid glass. These go beyond the mockups, on the owner's request.
     The toolbar's pen settings take the flower colours; the slide toolbar itself stays the template's (decision 18).
+21. **Any colour on text (2026-11-02).** The owner asked for a full colour picker, so typed text can take any colour. This
+    goes past the template's three text colours, and the toolbar keeps those as shortcuts.
+22. **The slide page is never resized (2026-11-02).** Its frame is always the size of the screen and is only scaled and
+    moved (`src/features/deck/stagePlace.ts`), because resizing a page redoes its layout. Going full screen is smooth
+    in the window, then pauses at rest while Windows switches, which can't be avoided.

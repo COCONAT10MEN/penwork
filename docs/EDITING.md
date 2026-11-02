@@ -38,6 +38,8 @@ Leaving Edit returns to Present on the same slide and step.
 - Allowed inline formatting (context toolbar, glass pill above the selection):
   **Bold** (`<b>`), *Italic* (`<i>`), Orange emphasis (`b.or`), Teal (`.tl`), Muted (`.mut`), Clear formatting,
   **Insert formula** (inserts a `<span class="tex">` chip that edits in the formula editor).
+- **All colours** opens swatches and the full colour picker, for any colour (`<span style="color">`). With nothing
+  selected it colours everything being typed.
 - Paste is plain text (formatting from other apps is dropped).
 - In lists, Enter adds a bullet and Backspace on an empty bullet removes it. Alt+↑/↓ moves a bullet.
 - Esc, Tab or clicking outside ends editing, and so does Enter outside a list (Shift+Enter makes a new line). One editing
@@ -46,6 +48,10 @@ Leaving Edit returns to Present on the same slide and step.
   applies them to its clean copy and sanitises the result (`src/lib/deck/slideEdit.ts`), so the page's word wrappers,
   step classes and drawn formulas never reach the file.
 
+Every piece of written text can be typed in, wherever it sits. Words in a drawing (SVG `text`) can't hold a caret, so
+double-clicking one opens a field in the toolbar that changes it live. Double-clicking a formula opens its source.
+Quiz text is edited in the inspector. Numbers a widget works out as it runs aren't text in the file, so they can't be.
+
 ## Components and their inspector fields
 
 | Component (template class) | Inspector |
@@ -53,7 +59,7 @@ Leaving Edit returns to Present on the same slide and step.
 | **Slide** (`section.slide`) | Overview name (`data-title`) · eyebrow text (`.eb`) · background preset (5 previews from AI-GUIDE §3) · hide slide · speaker notes · layout kind (cover / standard), read-only |
 | **Title** (`h2`, cover `h1`) | Text, with a warning if longer than ~36 characters (one line) |
 | **Card** (`.card` + `soft/key/note/tips/vio`) | Style segmented button · heading text · appears on click |
-| **List** (`ul.dots` / `ul.nums`) | Bullets or numbers · reorder items (drag) · each item can be its own step |
+| **List** (`ul.dots` / `ul.nums`) | Bullets or numbers · reorder items (up and down buttons) · each item can be its own step |
 | **Formula** (`.tex`, `.fbox`) | Source field (mini-LaTeX) with a **live rendered preview** and red marks for unknown commands · box style (normal / orange / big) |
 | **Table** (`table.tbl`) | Cell editing in place · add/remove row/column (warn past 6×5) · tight toggle |
 | **Columns** (`.cols`) | Left column width slider (`--c`, 560–1100 px stage units) with live preview |

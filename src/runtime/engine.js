@@ -1719,9 +1719,25 @@ function setInk(all){
 
 /* Edit shows a slide whole and still. The show starts from nothing, like the template's first load. */
 function preview(i){
-  if(i!==cur){endText();sel=null;hov=null;go(i,i>cur?1:-1,true,true);}
+  if(i!==cur){
+    endText();
+    var was=sel;sel=null;hov=null;
+    go(i,i>cur?1:-1,true,true);
+    if(was&&layer)send('picked',{slide:cur,n:-1,tag:''});
+  }
   else{cancelAll();cleanup();applyStep(cur,meta[cur].max);report();}
+  if(stepping>=0)stepView(0);
   drawEdit();
+}
+/* Steps in the edit view: the slide as it stands after that many clicks, animating for real */
+var stepping=-1;
+function stepView(k){
+  stepping=k;
+  var m=meta[cur];if(!m)return;
+  document.body.classList.toggle('still',k<0||REDUCED);
+  applyStep(cur,k<0?m.max:Math.min(k,m.max));
+  report();
+  setTimeout(drawEdit,0);
 }
 function closeOvNow(){
   if(!ovOpen)return;
@@ -1784,10 +1800,11 @@ function setSlides(p){
   else{
     preview(Math.max(0,Math.min(N-1,p.slide|0)));
     /* the selection stays on what was just typed */
-    if(reselect>=0&&slides[cur]){
-      var again=slides[cur].querySelector('[data-pw="'+reselect+'"]');reselect=-1;
-      if(again)pick(again);
-    }
+    if(typeof p.pick==='number')reselect=p.pick;
+    var again=reselect>=0&&slides[cur]?slides[cur].querySelector('[data-pw="'+reselect+'"]'):null;
+    reselect=-1;
+    /* also when there's nothing to pick again: what was picked may be gone, after an undo */
+    pick(again);
   }
 }
 
@@ -1933,9 +1950,9 @@ document.addEventListener('pointerdown',tipOff,true);
   its own clean copy the same way, so an edit can name an element without sending the running page's
   word wrappers, step classes and drawn formulas back into the file.
 */
-var KINDS=[['.cols','Columns'],['.card','Card'],['ul,ol','List'],['li','Bullet'],['.fbox','Formula'],['.m,.tex','Formula'],
-  ['table','Table'],['td,th','Cell'],['.svgbox','Diagram'],['img','Image'],['.ex','Worked example'],['.quiz','Quiz'],
-  ['h1,h2','Title'],['h3,h4','Heading'],['.cap','Caption'],['p','Text']];
+var KINDS=[['.cols','Columns'],['.quiz','Quiz'],['.card','Card'],['ul,ol','List'],['li','Bullet'],['.fbox','Formula'],['.m,.tex','Formula'],
+  ['table','Table'],['td,th','Cell'],['.svgbox','Diagram'],['img','Image'],['.ex','Worked example'],
+  ['h1,h2','Title'],['h3,h4','Heading'],['.cap','Caption'],['.toc','Contents'],['p','Text']];
 var STYLES=['soft','key','note','tips','vio'];
 var layer=null,hovBox=null,selBox=null,selTag=null,hov=null,sel=null,ed=null,holdFocus=false,reselect=-1,chip=null,barFrame=0;
 function stampAll(){
@@ -2009,7 +2026,7 @@ function drawEdit(){
 }
 function pick(e){
   sel=e;hov=null;drawEdit();
-  send('picked',e?{slide:cur,n:stampOf(e),kind:tagOf(e)}:{slide:cur,n:-1,kind:''});
+  send('picked',e?{slide:cur,n:stampOf(e),tag:e.tagName,crumbs:chainOf(e).map(function(x){return {n:stampOf(x),label:tagOf(x)};})}:{slide:cur,n:-1,tag:''});
 }
 function comps(){
   var s=slides[cur];if(!s)return [];
@@ -2257,7 +2274,11 @@ function editKey(e){
     return true;
   }
   /* Delete would take the whole slide; the selected thing is what the user is looking at */
-  if(k==='Delete'||k==='Backspace'){e.preventDefault();return true;}
+  if(k==='Delete'||k==='Backspace'){
+    e.preventDefault();
+    if(k==='Delete'&&sel.matches('li,tr,.toc .c')){send('removePicked',{slide:cur,n:stampOf(sel),tag:sel.tagName});pick(null);}
+    return true;
+  }
   return false;
 }
 
@@ -2269,6 +2290,21 @@ addEventListener('message',function(e){
   switch(e.data.type){
     case 'mode':setMode(p);break;
     case 'go':if(mode==='edit')preview(Math.max(0,Math.min(N-1,p.slide|0)));break;
+    case 'pick':{
+      var live=p.n>=0&&slides[cur]?slides[cur].querySelector('[data-pw="'+(p.n|0)+'"]'):null;
+      pick(live);break;
+    }
+    case 'preview':{
+      var view=slides[cur]&&slides[cur].querySelector('[data-pw="'+(p.n|0)+'"]');
+      if(!view)break;
+      if(typeof p.tex==='string'){try{view.innerHTML=texConv(p.tex);}catch(x){}}
+      if(typeof p.prop==='string'&&/^--[a-z-]+$/.test(p.prop)&&typeof p.value==='string'){
+        if(p.prop==='--pw-svg'){var box=view.querySelector('svg');if(box)box.style.height=p.value;}
+        else view.style.setProperty(p.prop,p.value);
+      }
+      drawEdit();break;
+    }
+    case 'stepView':stepView(p.on?p.step|0:-1);break;
     case 'format':format(String(p.cmd),String(p.value||''));break;
     case 'hold':holdFocus=!!p.on;if(!holdFocus&&ed&&!ed.label)ed.root.focus();break;
     case 'formulaSrc':

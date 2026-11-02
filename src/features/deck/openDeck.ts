@@ -4,7 +4,7 @@ import { deckAccent, deckFacts, type DeckFacts } from "../../lib/deck/facts";
 import { manifestFor, type DeckParts } from "../../lib/deck/deckParts";
 import { fileTitle, readManifest, type DeckManifest } from "../../lib/deck/manifest";
 import { sanitizeSlides } from "../../lib/deck/sanitize";
-import { splitSlides, type DeckSlide } from "../../lib/deck/slideOps";
+import { splitSlides, withNotes, type DeckSlide } from "../../lib/deck/slideOps";
 
 export interface OpenDeck {
   /** Names this deck on the private slide address. */
@@ -39,6 +39,7 @@ interface OpenedFromRust {
     manifest: unknown;
     slidesHtml: string;
     themeCss: string | null;
+    notes: unknown;
     ink: unknown;
   };
 }
@@ -73,7 +74,7 @@ async function fromRust(opened: OpenedFromRust, path: string): Promise<OpenDeck>
     path: opened.path,
     manifest: readManifest(opened.content.manifest, fileTitle(path)),
     slideCount: slides.slideCount,
-    slides: splitSlides(slides.html),
+    slides: withNotes(splitSlides(slides.html), opened.content.notes),
     draft: opened.draft,
     removed: slides.removed,
     facts: deckFacts(slides.html),

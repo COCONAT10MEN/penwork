@@ -33,6 +33,11 @@ interface AppState {
   startSlide: number;
   /** Open straight into the show, not the edit view. Only Present on Home asks for this. */
   presentOnOpen: boolean;
+  /** Present on Home: the picture standing in for the slide while it opens. */
+  launch: {
+    url: string | null;
+    rect: { left: number; top: number; width: number; height: number };
+  } | null;
   /** Set while a deck is loading, so the UI can show it. */
   opening: boolean;
   /** True once the library has been read, so recovery can look decks up in it. */
@@ -55,6 +60,8 @@ interface AppState {
     ink: boolean;
   }) => void;
   closeDeck: () => void;
+  startLaunch: (launch: NonNullable<AppState["launch"]>) => void;
+  endLaunch: () => void;
   rememberSlide: (slide: number) => void;
   removeFromRecents: (id: string) => void;
   toggleFavorite: (id: string) => void;
@@ -108,6 +115,7 @@ export const useApp = create<AppState>((set, get) => {
     deck: null,
     startSlide: 0,
     presentOnOpen: false,
+    launch: null,
     opening: false,
     libraryReady: false,
     leaveGuard: null,
@@ -123,6 +131,9 @@ export const useApp = create<AppState>((set, get) => {
       set({ library: markExisting(get().library, exists), libraryReady: true });
     },
 
+    startLaunch: (launch) => set({ launch }),
+    endLaunch: () => set({ launch: null }),
+
     openPath: async (path, options) => {
       if (!isDeckPath(path)) {
         showError("Penwork opens .pwpptx presentations only.");
@@ -134,6 +145,7 @@ export const useApp = create<AppState>((set, get) => {
         show(await openDeckFile(path), options?.present);
       } catch (error) {
         if (isDeckError(error) && error.code === "io") commit(markMissing(get().library, path));
+        set({ launch: null });
         reportError(error);
       } finally {
         set({ opening: false });

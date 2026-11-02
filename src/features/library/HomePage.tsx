@@ -1,5 +1,5 @@
 import { useApp } from "../../appStore";
-import { useState } from "react";
+import { useState, type MouseEvent } from "react";
 import { Button, Card, Icon, Shape, Surface } from "../../ui";
 import { cx } from "../../ui/cx";
 import { DeckGrid, DeckMenu, DeckThumb, NewDeckCard, OPEN_BUTTON_ID } from "./DeckCard";
@@ -33,6 +33,16 @@ function DropZone({ dragging }: { dragging: boolean }) {
 
 function ContinueCard({ deck }: { deck: LibraryDeck }) {
   const openPath = useApp((s) => s.openPath);
+  const startLaunch = useApp((s) => s.startLaunch);
+  const startShow = (e: MouseEvent<HTMLElement>) => {
+    const thumb = e.currentTarget.closest("section")?.querySelector<HTMLElement>("[data-thumb]");
+    if (thumb) {
+      const { left, top, width, height } = thumb.getBoundingClientRect();
+      const picture = thumb.querySelector("img")?.src ?? null;
+      startLaunch({ url: picture, rect: { left, top, width, height } });
+    }
+    void openPath(deck.path, { present: true });
+  };
   const tags = [
     slidesLabel(deck.slides),
     deck.quizzes > 0 && (deck.quizzes === 1 ? "1 quiz" : `${deck.quizzes} quizzes`),
@@ -73,7 +83,7 @@ function ContinueCard({ deck }: { deck: LibraryDeck }) {
             iconFilled
             className={styles.present}
             aria-label={`Present ${deck.title}`}
-            onClick={() => void openPath(deck.path, { present: true })}
+            onClick={startShow}
           >
             Present
           </Button>

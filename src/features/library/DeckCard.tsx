@@ -12,7 +12,7 @@ import styles from "./DeckCard.module.css";
 export function DeckThumb({ deck, className }: { deck: LibraryDeck; className?: string }) {
   const url = useThumb(deck.id, deck.thumb);
   return (
-    <div className={`${styles.thumb} ${className ?? ""}`} aria-hidden="true">
+    <div className={`${styles.thumb} ${className ?? ""}`} aria-hidden="true" data-thumb>
       {url ? (
         <img src={url} alt="" className={styles.picture} />
       ) : deck.thumb ? null : (

@@ -1792,6 +1792,7 @@ function setSlides(p){
 }
 
 /* ---------- the slide list in the edit view: the same thumbnails as the grid, in a column ---------- */
+var listFrom=0;
 var relist=false; /* the list was rebuilt while it had focus, so it gets it back */
 function sorterSelect(i,sel){
   /* focus moves with the selection only if it's already in the list: the big slide keeps its own */
@@ -1806,6 +1807,8 @@ function sorterSelect(i,sel){
     c.el.setAttribute('aria-pressed',on?'true':'false');
   });
   if(cells[ovSel])cells[ovSel].el.scrollIntoView({block:'nearest'});
+  /* the list following the slide isn't the user scrolling it */
+  listFrom=ov.scrollTop;
 }
 function sorterLayout(){
   var first=cells[0];if(!first)return;
@@ -1840,11 +1843,10 @@ function bootSorter(){
   /* a size change, not only a window resize: the scroll bar appears once the list fills up */
   new ResizeObserver(sorterLayout).observe(ov);
   /* the toolbar under the slide shrinks going down the list and comes back going up, past 40px as Google's does */
-  var scrollFrom=0;
   ov.addEventListener('scroll',function(){
     var y=ov.scrollTop;
-    if(Math.abs(y-scrollFrom)<40)return;
-    send('scrolled',{down:y>scrollFrom});scrollFrom=y;
+    if(Math.abs(y-listFrom)<40)return;
+    send('scrolled',{down:y>listFrom});listFrom=y;
   },{passive:true});
   var cellOf=function(t){return t&&t.closest?t.closest('.cell'):null;},indexOf=function(c){return +c.getAttribute('data-i');};
   var drag=null,dropTo=-1,dragged=false;
@@ -1943,13 +1945,26 @@ function stampAll(){
   });
 }
 function stampOf(e){return e.hasAttribute('data-pw')?+e.getAttribute('data-pw'):-1;}
-function ownText(e){for(var c=e.firstChild;c;c=c.nextSibling)if(c.nodeType===3&&c.nodeValue.trim())return true;return false;}
+function srcOf(e){
+  var n=stampOf(e),s=e.closest('.slide');
+  if(!s||!s._src||n<0)return null;
+  return n===0?s._src:s._src.querySelector('[data-pw="'+n+'"]');
+}
+/* in the clean copy: the running page has moved every word of the text into a span of its own */
+function ownText(e){
+  var o=srcOf(e);if(!o)return false;
+  for(var c=o.firstChild;c;c=c.nextSibling)if(c.nodeType===3&&c.nodeValue.trim())return true;
+  return false;
+}
 function kindOf(e){
   for(var i=0;i<KINDS.length;i++)if(e.matches(KINDS[i][0]))return KINDS[i][1];
-  return ownText(e)&&getComputedStyle(e).display!=='inline'?'Text':'';
+  if(!ownText(e))return '';
+  /* a word in a sentence belongs to the sentence; a label on its own is text in its own right */
+  var up=e.parentElement;
+  return getComputedStyle(e).display!=='inline'||!up||!ownText(up)?'Text':'';
 }
-/* inside a drawing, a widget or a drawn formula there's nothing of ours to pick */
-function pickable(e){return !e.parentElement.closest('svg,.m,.quiz,[data-w]')&&!!kindOf(e);}
+/* a widget's own drawing has no numbers, so what's numbered in one is what the author wrote */
+function pickable(e){return !e.parentElement.closest('svg,.m,.quiz')&&!!kindOf(e);}
 function chainOf(t){
   var s=slides[cur],c=[];
   if(!s||!t||!s.contains(t)||t===s)return c;
@@ -2028,7 +2043,17 @@ function buildLayer(){
   },true);
   document.addEventListener('dblclick',function(e){
     if(mode!=='edit'||ed)return;
-    var c=chainOf(e.target).filter(textIn);
+    var t=e.target,f=t.closest('.m');
+    if(f&&stampOf(f)>=0&&f.parentElement&&stampOf(f.parentElement)>=0){
+      var mark=stampOf(f);
+      beginText(f.parentElement);
+      var again=ed&&ed.root.querySelector('[data-pw="'+mark+'"]');
+      if(again)openFormula(again);
+      return;
+    }
+    var label=t.closest('svg text');
+    if(label&&stampOf(label)>=0){beginLabel(label);return;}
+    var c=chainOf(t).filter(textIn);
     if(c.length)beginText(c[c.length-1],e.clientX,e.clientY);
   },true);
   document.addEventListener('selectionchange',barSoon);
@@ -2081,6 +2106,13 @@ function beginText(e,x,y){
   root.focus();caretAt(root,x,y);
   drawEdit();barSoon();
 }
+/* words in a drawing can't take a caret, so they're typed in the app's field and appear live */
+function beginLabel(t){
+  ed={root:t,n:stampOf(t),tag:t.tagName,kids:Array.prototype.slice.call(t.childNodes),before:cleanHtml(t),label:true};
+  chip=t;holdFocus=true;sel=null;hov=null;
+  drawEdit();barSoon();
+  send('formula',{src:t.textContent});
+}
 function endText(){
   if(!ed)return;
   var d=ed;ed=null;holdFocus=false;chip=null;
@@ -2127,18 +2159,35 @@ function wrapWith(q,tag,cls){
   w.appendChild(r.extractContents());r.insertNode(w);
   r.selectNodeContents(w);s.removeAllRanges();s.addRange(r);
 }
-function format(c){
-  if(!ed)return;
+/* with nothing selected, a colour goes on the whole of what's being typed */
+function paint(hex){
+  if(!/^#[0-9a-f]{6}$/i.test(hex))return;
+  var s=getSelection();
+  if(!near('span[style]')&&(!s.rangeCount||s.isCollapsed||!ed.root.contains(s.anchorNode))){
+    var all=document.createRange();all.selectNodeContents(ed.root);s.removeAllRanges();s.addRange(all);
+  }
+  var on=near('span[style]');
+  if(on)on.style.color=hex;
+  else{
+    var r=s.getRangeAt(0),w=document.createElement('span');w.style.color=hex;
+    w.appendChild(r.extractContents());r.insertNode(w);
+    r.selectNodeContents(w);s.removeAllRanges();s.addRange(r);
+  }
+  barSoon();
+}
+function format(c,v){
+  if(!ed||ed.label)return;
   ed.root.focus();
   /* not the browser's bold: in a title, already heavy, that would turn it off with a style */
   if(c==='bold')wrapWith('b:not(.or)','b','');
   else if(c==='italic')wrapWith('i','i','');
+  else if(c==='color'){paint(v);return;}
   else if(c==='orange')wrapWith('b.or','b','or');
   else if(c==='teal')wrapWith('.tl','span','tl');
   else if(c==='muted')wrapWith('.mut','span','mut');
   else if(c==='clear'){
     var s=getSelection(),r=s.rangeCount?s.getRangeAt(0):null;
-    if(r)Array.prototype.slice.call(ed.root.querySelectorAll('b,i,.tl,.mut')).forEach(function(e){if(r.intersectsNode(e))unwrap(e);});
+    if(r)Array.prototype.slice.call(ed.root.querySelectorAll('b,i,.tl,.mut,span[style]')).forEach(function(e){if(r.intersectsNode(e))unwrap(e);});
     ed.root.normalize();
   }
   else if(c==='formula'){
@@ -2152,6 +2201,7 @@ function format(c){
 function openFormula(f){chip=f;holdFocus=true;send('formula',{src:f.getAttribute('data-src')});}
 function formulaDone(){
   if(!ed||!chip)return;
+  if(ed.label){endText();return;}
   var r=document.createRange(),s=getSelection(),gone=!chip.getAttribute('data-src');
   if(gone){r.setStartBefore(chip);chip.remove();}else r.setStartAfter(chip);
   r.collapse(true);chip=null;holdFocus=false;
@@ -2219,9 +2269,14 @@ addEventListener('message',function(e){
   switch(e.data.type){
     case 'mode':setMode(p);break;
     case 'go':if(mode==='edit')preview(Math.max(0,Math.min(N-1,p.slide|0)));break;
-    case 'format':format(String(p.cmd));break;
+    case 'format':format(String(p.cmd),String(p.value||''));break;
+    case 'hold':holdFocus=!!p.on;if(!holdFocus&&ed&&!ed.label)ed.root.focus();break;
     case 'formulaSrc':
-      if(chip&&typeof p.src==='string'){chip.setAttribute('data-src',p.src);drawChip(chip);barSoon();}
+      if(chip&&typeof p.src==='string'){
+        if(ed&&ed.label)chip.textContent=p.src;
+        else{chip.setAttribute('data-src',p.src);drawChip(chip);}
+        barSoon();
+      }
       break;
     case 'formulaDone':formulaDone();break;
     case 'key':

@@ -1,12 +1,57 @@
 import { isTauri } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type RefObject } from "react";
 import { flushSync } from "react-dom";
 import { useSettings } from "../settings/settingsStore";
 import type { RuntimeFrameHandle } from "./RuntimeFrame";
+import {
+  frameSize,
+  glide,
+  pageOrigin,
+  setPlace,
+  shifted,
+  slotPlace,
+  stopMoving,
+  windowPlace,
+  type Place,
+} from "./stagePlace";
+
+const SLOT_CORNER = 10;
+// A window that was already that size never says it changed.
+const RESIZE_LIMIT_MS = 900;
+const RESIZE_QUIET_MS = 90;
 
 function setFullscreen(on: boolean): Promise<void> {
   return isTauri() ? getCurrentWindow().setFullscreen(on) : Promise.resolve();
+}
+
+/**
+ * Windows changes the window in steps, and nothing can be drawn while it does. Each step calls
+ * `hold`, which keeps the slide where it was on the screen. Comes back when the window has settled.
+ */
+function windowBecomes(on: boolean, hold: () => void): Promise<void> {
+  return new Promise((done) => {
+    let quiet: ReturnType<typeof setTimeout>;
+    const finish = () => {
+      clearTimeout(limit);
+      clearTimeout(quiet);
+      window.removeEventListener("resize", step);
+      done();
+    };
+    const step = () => {
+      hold();
+      const { width, height } = frameSize();
+      if (on && window.innerWidth >= width && window.innerHeight >= height) {
+        finish();
+        return;
+      }
+      clearTimeout(quiet);
+      quiet = setTimeout(finish, RESIZE_QUIET_MS);
+    };
+    const limit = setTimeout(finish, RESIZE_LIMIT_MS);
+    window.addEventListener("resize", step);
+    void setFullscreen(on);
+  });
 }
 
 function modeMessage(mode: "edit" | "present", from: number) {
@@ -14,49 +59,84 @@ function modeMessage(mode: "edit" | "present", from: number) {
   return { mode, slide: from, reduced: reduceMotion, loop: endOfShow === "loop" };
 }
 
-const afterLayout = () =>
-  new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
-
-/** The slide's frame, full window size, drawn over its place in the edit view. */
-function inSlot(slot: DOMRect): Keyframe {
-  const scale = slot.width / window.innerWidth;
-  const y = slot.top + (slot.height - window.innerHeight * scale) / 2;
-  return {
-    transform: `translate(${slot.left}px, ${y}px) scale(${scale})`,
-    borderRadius: `${10 / scale}px`,
-  };
+function restingPlace(lifted: boolean, slot: HTMLElement | null): Place | null {
+  if (lifted) return windowPlace();
+  return slot ? slotPlace(slot.getBoundingClientRect(), SLOT_CORNER) : null;
 }
 
+type Play = (animation: Animation | null) => Promise<void>;
+
 /**
- * Glides the frame between its place and the whole window, on the spring for full-screen moves.
- * The window itself jumps, so that happens first and this plays out inside it.
+ * All of the big move happens inside the window, where it's smooth. Then comes the one pause that
+ * can't be avoided, while Windows goes full screen, with the slide at rest so it doesn't show as a
+ * stutter. It then eases out to the edges from exactly where it stopped.
  */
-function glide(frame: HTMLElement, slot: DOMRect, to: "full" | "slot"): Animation | null {
-  const motion = getComputedStyle(document.documentElement);
-  const duration = parseFloat(motion.getPropertyValue("--md-sys-motion-spatial-slow-duration"));
-  if (!duration) return null;
-  const full = { transform: "none", borderRadius: "0px" };
-  return frame.animate(to === "full" ? [inSlot(slot), full] : [full, inSlot(slot)], {
-    duration,
-    easing: motion.getPropertyValue("--md-sys-motion-spatial-slow-easing"),
-    fill: "forwards",
-  });
+async function growToFull(
+  frame: HTMLElement,
+  start: Place | null,
+  play: Play,
+  block: (on: boolean) => void,
+  current: () => boolean,
+): Promise<void> {
+  block(true);
+  if (start) await play(glide(frame, start, windowPlace(), "spatial-default"));
+  if (!current()) return;
+  const before = windowPlace();
+  const origin = pageOrigin();
+  await windowBecomes(true, () => setPlace(frame, shifted(before, origin)));
+  if (!current()) return;
+  await play(glide(frame, shifted(before, origin), windowPlace(), "effects-default"));
+  block(false);
 }
 
 /** Starting and ending the full-screen show. */
 export function useShow(
   stage: RefObject<RuntimeFrameHandle | null>,
+  slot: RefObject<HTMLElement | null>,
   latestSlide: RefObject<number>,
   presentOnOpen: boolean,
 ) {
   const [presenting, setPresenting] = useState(presentOnOpen);
-  // The frame is out of the layout. It stays out after a show ends, until it has glided back.
+  // Out of the layout. It stays out after a show ends, until it has glided back.
   const [lifted, setLifted] = useState(presentOnOpen);
   const isLifted = useRef(presentOnOpen);
   // For code that runs outside a render: a show can start while the page is still being set up.
   const showing = useRef(presentOnOpen);
   const presentButton = useRef<HTMLButtonElement>(null);
   const wasPresenting = useRef(presenting);
+  // Each move cancels whatever is still running, so a quick Esc can't leave it stranded.
+  const move = useRef(0);
+  const running = useRef<Animation | null>(null);
+  const moving = useRef(false);
+
+  // Follows the layout whenever nothing is moving it.
+  useLayoutEffect(() => {
+    const frame = stage.current?.element();
+    const box = slot.current;
+    if (!frame || !box) return;
+    const fit = () => {
+      if (moving.current) return;
+      const size = frameSize();
+      frame.style.width = `${size.width}px`;
+      frame.style.height = `${size.height}px`;
+      const now = restingPlace(isLifted.current, box);
+      if (now) setPlace(frame, now);
+    };
+    fit();
+    const watch = new ResizeObserver(fit);
+    watch.observe(box);
+    window.addEventListener("resize", fit);
+    return () => {
+      watch.disconnect();
+      window.removeEventListener("resize", fit);
+    };
+  }, [stage, slot]);
+
+  const play = useCallback(async (animation: Animation | null) => {
+    running.current = animation;
+    await animation?.finished.catch(() => {});
+    if (running.current === animation) running.current = null;
+  }, []);
 
   // The button that ended the show is gone, so focus needs somewhere sensible to land.
   useEffect(() => {
@@ -64,52 +144,54 @@ export function useShow(
     wasPresenting.current = presenting;
   }, [presenting]);
 
-  const present = useCallback(
-    (from: number) => {
-      showing.current = true;
-      // The show starts once the window is full size, so its opening isn't seen at the old size.
-      void setFullscreen(true)
-        .then(afterLayout)
-        .then(() => {
-          const frame = stage.current?.element();
-          const slot = frame?.parentElement?.getBoundingClientRect();
-          const rise = !isLifted.current;
-          isLifted.current = true;
-          flushSync(() => {
-            setPresenting(true);
-            setLifted(true);
-          });
-          stage.current?.post("mode", modeMessage("present", from));
-          stage.current?.focus();
-          const moving = rise && frame && slot ? glide(frame, slot, "full") : null;
-          void moving?.finished.then(() => moving.cancel()).catch(() => {});
-        });
-    },
-    [stage],
-  );
+  const present = (from: number) => {
+    const frame = stage.current?.element();
+    if (!frame) return;
+    showing.current = true;
+    const mine = ++move.current;
+    const start = restingPlace(isLifted.current, slot.current);
+    const rise = !isLifted.current;
+    isLifted.current = true;
+    stopMoving(frame);
+    flushSync(() => {
+      setPresenting(true);
+      setLifted(true);
+    });
+    stage.current?.post("mode", modeMessage("present", from));
+    stage.current?.focus();
+    const block = (on: boolean) => {
+      moving.current = on;
+    };
+    void growToFull(frame, rise ? start : null, play, block, () => mine === move.current);
+  };
 
-  const endShow = useCallback(() => {
+  const endShow = () => {
+    const frame = stage.current?.element();
+    if (!frame) return;
     showing.current = false;
+    const mine = ++move.current;
+    stopMoving(frame);
+    moving.current = true;
     stage.current?.post("mode", modeMessage("edit", latestSlide.current));
-    void setFullscreen(false)
-      .then(afterLayout)
-      .then(async () => {
-        const frame = stage.current?.element();
-        const slot = frame?.parentElement?.getBoundingClientRect();
-        setPresenting(false);
-        const moving = frame && slot ? glide(frame, slot, "slot") : null;
-        await moving?.finished.catch(() => {});
-        isLifted.current = false;
-        flushSync(() => setLifted(false));
-        moving?.cancel();
+    const before = windowPlace();
+    const origin = pageOrigin();
+    const back = async () => {
+      flushSync(() => setPresenting(false));
+      isLifted.current = false;
+      const to = restingPlace(false, slot.current);
+      if (to) await play(glide(frame, shifted(before, origin), to, "spatial-default"));
+    };
+    void windowBecomes(false, () => setPlace(frame, shifted(before, origin)))
+      .then(() => (mine === move.current ? back() : undefined))
+      .then(() => {
+        if (mine !== move.current) return;
+        moving.current = false;
+        setLifted(false);
       });
-  }, [stage, latestSlide]);
+  };
 
   // A show must not leave the window full screen if the app moves on without ending it.
-  useEffect(() => {
-    if (presentOnOpen) void setFullscreen(true);
-    return () => void setFullscreen(false);
-  }, [presentOnOpen]);
+  useEffect(() => () => void setFullscreen(false), []);
 
   return { presenting, lifted, present, endShow, modeMessage, showing, presentButton };
 }

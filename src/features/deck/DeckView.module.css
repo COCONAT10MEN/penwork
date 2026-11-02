@@ -92,13 +92,13 @@
   mask-image: linear-gradient(#000 calc(100% - 14px), transparent);
 }
 .sorterList > iframe,
-.stage > iframe {
+.stageFrame {
   opacity: 0;
   transition: opacity var(--md-sys-motion-effects-default-duration)
     var(--md-sys-motion-effects-default-easing);
 }
 .sorterList[data-ready] > iframe,
-.stage[data-ready] > iframe {
+.frameReady {
   opacity: 1;
 }
 /* 12px on every side, with corners that follow the panel's own. */
@@ -168,17 +168,31 @@
  * The show. The same iframe is lifted out of the layout, so it keeps running. Everything else is
  * hidden, not removed, so the slide list keeps its place for when the show ends.
  */
-.fullFrame {
+.stageFrame.stageFrame {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 1;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+.fullFrame.fullFrame {
+  z-index: 10;
+}
+/* Black gathers behind the slide as it leaves the edit view. */
+.view::after {
+  content: "";
   position: fixed;
   inset: 0;
-  z-index: 10;
-  width: 100vw;
-  height: 100vh;
-  transform-origin: 0 0;
+  z-index: 5;
+  background: var(--md-sys-color-scrim);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--md-sys-motion-effects-slow-duration)
+    var(--md-sys-motion-effects-slow-easing);
 }
-.view[data-lifted] .stage {
-  overflow: visible;
-  box-shadow: none;
+.view[data-presenting]::after {
+  opacity: 1;
 }
 /* The tools slide off the edges as the slide grows, and come back as it settles. */
 .header,
@@ -281,6 +295,5 @@
 @keyframes settle-in {
   from {
     opacity: 0;
-    scale: 0.985;
   }
 }

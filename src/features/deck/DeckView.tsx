@@ -87,8 +87,10 @@ export function DeckView({
   const guard = useLeaveGuard({ dirty, title: deck.manifest.title, save, discard });
 
   const { postChrome, postLogo } = useFrameChrome(stage, sorter);
+  const slot = useRef<HTMLDivElement>(null);
   const { presenting, lifted, present, endShow, modeMessage, showing, presentButton } = useShow(
     stage,
+    slot,
     latestSlide,
     presentOnOpen,
   );
@@ -128,6 +130,7 @@ export function DeckView({
     ink.send(stage);
     if (showing.current) {
       setStageReady(true);
+      useApp.getState().endLaunch();
       present(from);
       return;
     }
@@ -263,15 +266,7 @@ export function DeckView({
           onAdd={() => setGallery(true)}
         />
         <main className={styles.main}>
-          <div className={styles.stage} data-ready={stageReady || undefined}>
-            <RuntimeFrame
-              ref={stage}
-              token={deck.token}
-              title={deck.manifest.title}
-              className={cx(lifted && styles.fullFrame)}
-              onMessage={onStageMessage}
-            />
-          </div>
+          <div ref={slot} className={styles.stage} />
           <EditToolbar
             slide={slide}
             total={slides.length}
@@ -288,6 +283,17 @@ export function DeckView({
           />
         </main>
       </div>
+      <RuntimeFrame
+        ref={stage}
+        token={deck.token}
+        title={deck.manifest.title}
+        className={cx(
+          styles.stageFrame,
+          lifted && styles.fullFrame,
+          stageReady && styles.frameReady,
+        )}
+        onMessage={onStageMessage}
+      />
       <TextToolbar
         bar={presenting ? null : text.bar}
         formula={text.formula}

@@ -3,20 +3,26 @@ import { useEffect, useRef, useState, type RefObject } from "react";
 import { createPortal } from "react-dom";
 import type { TextBar } from "../../lib/deck/bridge";
 import { useReduceMotion, useSpring } from "../../theme/motion";
-import { IconButton, Shape, Surface } from "../../ui";
+import { ColorPicker, ColorSwatches, IconButton, Shape, Surface } from "../../ui";
 import type { RuntimeFrameHandle } from "./RuntimeFrame";
 import styles from "./TextToolbar.module.css";
 
+// Options to pick from, so these are data, not theme colours.
+const SWATCHES = ["#c0562f", "#0e7f9e", "#2e7d32", "#7a4fbf", "#b4287a", "#111111"];
 const HEIGHT = 56;
 const FORMULA_HEIGHT = 58;
-const WIDTH = 330;
+const WIDTH = 372;
+const COLORS_HEIGHT = 420;
 const GAP = 10;
 
 /** Over the text being typed, or under it if there's no room above. */
-function spot(bar: TextBar, frame: DOMRect, writing: boolean) {
-  const above = frame.top + bar.y - HEIGHT - (writing ? FORMULA_HEIGHT : 0) - GAP;
-  const top = above > 8 ? above : frame.top + bar.y + bar.h + GAP;
-  const left = frame.left + bar.x + bar.w / 2 - WIDTH / 2;
+function spot(bar: TextBar, frame: DOMRect, extra: number) {
+  // The slide page is scaled to fit, so its pixels aren't the app's.
+  const scale = frame.width / window.screen.width;
+  const y = frame.top + bar.y * scale;
+  const above = y - HEIGHT - extra - GAP;
+  const top = above > 8 ? above : y + bar.h * scale + GAP;
+  const left = frame.left + (bar.x + bar.w / 2) * scale - WIDTH / 2;
   return { x: Math.max(8, Math.min(window.innerWidth - WIDTH - 8, left)), y: top };
 }
 
@@ -45,15 +51,31 @@ export function TextToolbar({
   if (bar && bar !== last) setLast(bar);
 
   const writing = formula !== null;
+  const [colors, setColors] = useState(false);
+  const [color, setColor] = useState("#c0562f");
+  if (!bar && colors) setColors(false);
+  const toggleColors = () => {
+    const next = !colors;
+    setColors(next);
+    // The hex box takes focus, which mustn't count as typing being finished.
+    frame.current?.post("hold", { on: next });
+  };
+  const paint = (hex: string) => {
+    setColor(hex);
+    frame.current?.post("format", { cmd: "color", value: hex });
+  };
   useEffect(() => {
     if (writing) field.current?.focus();
   }, [writing]);
 
   const send = (cmd: string) => frame.current?.post("format", { cmd });
   const box = frame.current?.rect();
-  const at = last && box ? spot(last, box, writing) : { x: 0, y: 0 };
+  const at =
+    last && box
+      ? spot(last, box, (writing ? FORMULA_HEIGHT : 0) + (colors ? COLORS_HEIGHT : 0))
+      : { x: 0, y: 0 };
 
-  const color = (cmd: string, label: string, tint: string, on: boolean) => (
+  const colorButton = (cmd: string, label: string, tint: string, on: boolean) => (
     <button
       type="button"
       aria-label={label}
@@ -111,9 +133,15 @@ export function TextToolbar({
               selected={last.italic}
               onClick={() => send("italic")}
             />
-            {color("orange", "Orange emphasis", "var(--pw-slide-orange)", last.orange)}
-            {color("teal", "Teal", "var(--pw-slide-teal)", last.teal)}
-            {color("muted", "Muted", "var(--pw-slide-muted)", last.muted)}
+            {colorButton("orange", "Orange emphasis", "var(--pw-slide-orange)", last.orange)}
+            {colorButton("teal", "Teal", "var(--pw-slide-teal)", last.teal)}
+            {colorButton("muted", "Muted", "var(--pw-slide-muted)", last.muted)}
+            <IconButton
+              icon="palette"
+              label="All colours"
+              selected={colors}
+              onClick={toggleColors}
+            />
             <span className={styles.line} aria-hidden="true" />
             <IconButton icon="function" label="Insert formula" onClick={() => send("formula")} />
             <IconButton
@@ -122,6 +150,12 @@ export function TextToolbar({
               onClick={() => send("clear")}
             />
           </Surface>
+          {colors && (
+            <Surface material="glass" strength="thick" floating className={styles.colors}>
+              <ColorSwatches label="Colours" colors={SWATCHES} value={color} onChange={paint} />
+              <ColorPicker value={color} onChange={paint} />
+            </Surface>
+          )}
           {writing && (
             <Surface material="glass" strength="thick" floating className={styles.formula}>
               <label className="pw-visually-hidden" htmlFor="pw-formula">

@@ -1,0 +1,10 @@
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 800;
+  background: var(--md-sys-color-scrim);
+}
+.picture {
+  position: absolute;
+  background: var(--md-sys-color-surface-container) center / contain no-repeat;
+}

@@ -8,6 +8,7 @@ import { RecoveryPrompt } from "./features/deck/RecoveryPrompt";
 import { useFileOpening } from "./features/deck/useFileOpening";
 import { NoticeLayer } from "./features/notices/NoticeLayer";
 import { Home } from "./features/library/Home";
+import { ShowLaunch } from "./features/library/ShowLaunch";
 import { useSettings } from "./features/settings/settingsStore";
 
 // Dev builds only: the import is behind import.meta.env.DEV, so release builds drop the Gallery.
@@ -71,6 +72,7 @@ function Screens() {
         <Home dragging={dragging} />
       )}
       <RecoveryPrompt />
+      <ShowLaunch />
     </>
   );
 }

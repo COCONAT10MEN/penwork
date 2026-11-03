@@ -19,6 +19,26 @@
   border-width: 0 0 1px;
   border-radius: 0;
 }
+/* A PDF's bar: the reader page under it draws the glass, with the slide toolbar in it, so the two
+   are one surface. Only the buttons here take the pointer; everywhere else reaches that toolbar. */
+.place[data-see-through] .bar.bar {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+.place[data-see-through] .bar::before,
+.place[data-see-through] .bar::after {
+  content: none;
+}
+.place[data-see-through],
+.place[data-see-through] .bar {
+  pointer-events: none;
+}
+.place[data-see-through] .bar > :not(.slot),
+.place[data-see-through] .slot [role="group"] {
+  pointer-events: auto;
+}
 /* Past its own height too, or its shadow is left lying across the top of the page. */
 .place[data-hidden] {
   translate: 0 calc(-100% - 48px);

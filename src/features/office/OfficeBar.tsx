@@ -64,6 +64,7 @@ export function OfficeBar({
   hasMenus,
   docked = false,
   hidden = false,
+  seeThrough = false,
   menusOpen,
   slotRef,
   onBack,
@@ -80,6 +81,8 @@ export function OfficeBar({
   docked?: boolean;
   /** Slid out of sight, for reading. */
   hidden?: boolean;
+  /** The editor draws this bar's glass under it, so only the buttons are drawn here. */
+  seeThrough?: boolean;
   menusOpen: boolean;
   slotRef: Ref<HTMLDivElement>;
   onBack: () => void;
@@ -97,6 +100,7 @@ export function OfficeBar({
       className={styles.place}
       data-docked={docked || undefined}
       data-hidden={hidden || undefined}
+      data-see-through={seeThrough || undefined}
       inert={hidden}
       initial={reduce ? { opacity: 0 } : { opacity: 0, y: -28, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1, transition: glide }}

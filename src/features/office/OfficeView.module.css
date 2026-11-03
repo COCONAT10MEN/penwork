@@ -45,13 +45,14 @@
 .pdf[data-sidebar] {
   --pw-pdf-left: 200px;
 }
-/* Always the full width: the side panel narrows the scroller inside it instead. Resizing the page
+/* The whole window, under the bar too: the slide toolbar in it is part of the bar. Always the full
+   width as well: the side panel narrows the scroller inside it instead. Resizing the page
    itself would make the slide engine rebuild its full-window ink layers on every frame of the slide. */
 .pdfFrame {
   position: absolute;
-  inset: var(--pw-pdf-top) 0 0 0;
+  inset: 0;
   width: 100%;
-  height: calc(100% - var(--pw-pdf-top));
+  height: 100%;
   border: 0;
   background: transparent;
   color-scheme: normal;
@@ -404,29 +405,28 @@
 .word :global(.docx-editor) {
   background: transparent !important;
 }
-/* The draw button stays put while the two groups of tools change places beside it. */
+/* The reading tools in the middle, and at the end the place where the slide toolbar's logo sits. */
 .pdfBarTools {
   position: relative;
   display: flex;
+  flex: 1;
   align-items: center;
+  justify-content: center;
   gap: 2px;
+  min-width: 0;
+  height: 100%;
+  padding-right: 56px;
+  box-sizing: border-box;
+}
+.dockSeat {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 56px;
+  height: 100%;
+  pointer-events: none;
 }
 .toolSlot {
   display: inline-flex;
   align-items: center;
-}
-.markTool {
-  position: relative;
-  display: inline-flex;
-}
-/* The tool's colour, as the slide toolbar shows it under each pen. */
-.markColour {
-  position: absolute;
-  bottom: 2px;
-  left: 50%;
-  width: 14px;
-  height: 3px;
-  border-radius: var(--md-sys-shape-corner-full);
-  translate: -50% 0;
-  pointer-events: none;
 }

@@ -31,6 +31,8 @@ export interface OfficeEditorProps {
   onSave: () => void;
   /** For an editor that hides the top bar while reading down. */
   onBarHidden?: (hidden: boolean) => void;
+  /** For an editor that draws the bar's glass itself, under the bar, with tools of its own in it. */
+  onBarGlass?: (drawn: boolean) => void;
 }
 
 export async function openOfficeFile(path: string): Promise<OfficeFile> {

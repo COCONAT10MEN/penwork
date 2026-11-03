@@ -20,27 +20,14 @@ export type PageInk = Record<string, EngineStroke[]>;
 
 export type ToolId = "pen" | "hl" | "laser" | "eraser";
 
-/** What the slide toolbar looks like now, as the engine reports it for the top bar. */
+/** The slide toolbar in the top bar, as the engine reports it: the bar makes room while it's open. */
 export interface DocState {
+  open: boolean;
   tool: ToolId;
   annot: boolean;
-  hidden: boolean;
-  undo: boolean;
-  redo: boolean;
-  clear: boolean;
-  cfg: Record<
-    ToolId,
-    { c?: string; w: number; op?: number; life?: number; press?: boolean; cust?: string[] }
-  >;
-  col: Partial<Record<ToolId, string[]>>;
-  sz: Record<ToolId, number[]>;
-  rng: Record<ToolId, [number, number, number]>;
 }
 
 interface DocApi {
-  use: (tool: string) => void;
-  act: (action: string) => void;
-  set: (tool: string, patch: Record<string, unknown>) => void;
   layout: (
     pages: { n: number; x: number; y: number; w: number; h: number }[],
     current: number,
@@ -54,9 +41,13 @@ interface DocApi {
  */
 export function useReader(onInk: (ink: PageInk) => void) {
   const [frame, setFrame] = useState<HTMLIFrameElement | null>(null);
+  // Set the moment the page has loaded: it says it's ready in that same moment, before React has
+  // caught up with the state above, and that message must not be missed.
+  const loaded = useRef<HTMLIFrameElement | null>(null);
   const [box, setBox] = useState<HTMLDivElement | null>(null);
   const [failed, setFailed] = useState(false);
   const [docState, setDocState] = useState<DocState | null>(null);
+  const [ready, setReady] = useState(false);
   const ink = useRef<PageInk>({});
   const report = useRef(onInk);
   useEffect(() => {
@@ -65,8 +56,8 @@ export function useReader(onInk: (ink: PageInk) => void) {
 
   const post = useCallback(
     (type: string, payload: unknown) =>
-      frame?.contentWindow?.postMessage({ v: 1, type, payload }, location.origin),
-    [frame],
+      loaded.current?.contentWindow?.postMessage({ v: 1, type, payload }, location.origin),
+    [],
   );
 
   // The page is the app's own, so it takes the app's colour tokens straight from it, and again
@@ -80,6 +71,10 @@ export function useReader(onInk: (ink: PageInk) => void) {
       for (const name of css)
         if (name.startsWith("--")) root.style.setProperty(name, css.getPropertyValue(name));
       root.style.setProperty("color-scheme", css.colorScheme);
+      // The bar's glass is drawn in the page, and goes solid with the app's Transparency setting.
+      const transparency = document.documentElement.getAttribute("data-transparency");
+      if (transparency) root.setAttribute("data-transparency", transparency);
+      else root.removeAttribute("data-transparency");
     };
     copy();
     const watcher = new MutationObserver(copy);
@@ -103,11 +98,11 @@ export function useReader(onInk: (ink: PageInk) => void) {
 
   // What the engine says: it's ready, its settings changed, ink changed, or full screen.
   useEffect(() => {
-    if (!frame) return;
     const onMessage = (e: MessageEvent) => {
-      if (e.source !== frame.contentWindow || e.data?.v !== 1) return;
+      if (!e.source || e.source !== loaded.current?.contentWindow || e.data?.v !== 1) return;
       const { type, payload } = e.data as { type: string; payload: Record<string, unknown> };
       if (type === "ready") {
+        setReady(true);
         void loadToolbar().then((toolbar) => toolbar && post("toolbar", toolbar));
         const { settings, systemSeed } = useSettings.getState();
         post("logo", {
@@ -134,7 +129,7 @@ export function useReader(onInk: (ink: PageInk) => void) {
     };
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
-  }, [frame, post]);
+  }, [post]);
 
   /** Ink read from the file, handed to the engine to draw and edit. */
   const setInk = useCallback(
@@ -158,18 +153,12 @@ export function useReader(onInk: (ink: PageInk) => void) {
       setFailed(true);
       return;
     }
+    loaded.current = element;
     setFrame(element);
     setBox(scroller);
   };
 
-  const api = () => (frame?.contentWindow as (Window & { __pwDoc?: DocApi }) | null)?.__pwDoc;
-  const use = (tool: ToolId | "ptr") => api()?.use(tool);
-  const act = (action: "undo" | "redo" | "clear" | "hide") => api()?.act(action);
-  // A plain copy: the engine keeps what it is given, and nothing from this page may be shared.
-  const set = (tool: ToolId, patch: Record<string, unknown>) =>
-    api()?.set(tool, JSON.parse(JSON.stringify(patch)) as Record<string, unknown>);
-
-  return { frame, box, failed, onLoad, setInk, ink, docState, use, act, set };
+  return { frame, box, failed, ready, onLoad, setInk, ink, docState };
 }
 
 /**

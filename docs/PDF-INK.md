@@ -31,6 +31,24 @@ the pen always draws, a finger scrolls and pinches, the mouse draws only with a 
 the text can still be selected and links followed. The React app still owns the bar, zoom, side panel and find, and
 drives pdf.js inside that page directly.
 
+## The toolbar is part of the top bar
+
+The owner's decision (2026-11-03): no copies of the tools in the app's bar. The presentation's own toolbar sits in the
+bar, at its right beside Full screen and Save, and the logo opens it along the bar exactly as in a show.
+
+- The page fills the whole window, under the bar too. It draws the bar's glass itself (`#pwband`), so the toolbar sits
+  in that glass instead of floating over it. The app's bar above it turns see-through: only its buttons are drawn and
+  take the pointer, and everywhere else reaches the toolbar.
+- The app keeps a seat for the logo at the end of the bar's tools and tells the page where it is
+  (`--pw-dock-right`), so the toolbar follows Save and Full screen wherever they are.
+- While the toolbar is open the reading tools step aside: they leave one after another, nearest first, as its edge
+  sweeps toward them, and come back behind that edge as it closes. The engine reports only open, tool and pen-on.
+- In the bar the toolbar is always horizontal and never moves, sinks, dims or fades while drawing; the settings for
+  that are left out. Its other settings are the presentation's, saved to the same file.
+- Hiding the bar while reading takes the glass and the toolbar up with it, on the same spring.
+- With the page under the bar, the pointer's position in the page is the window's, so ink lands under the pointer
+  (inside an offset frame, WebView2's raw pointer updates reported window positions; document mode doesn't use them).
+
 ## Saving
 
 - On Save, each page's ink is written into the PDF as real ink annotations, with appearance streams, so Edge, Acrobat

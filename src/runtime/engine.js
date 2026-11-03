@@ -334,7 +334,7 @@ var ITEMS={
  grid:{g:'v',i:'grid',l:'All slides',t:'All slides (G)'},
  full:{g:'v',i:'close',l:'End show',t:'End show (F)'}
 };
-if(DOC){ITEMS.clear.l='Clear this page';ITEMS.clear.t='Clear this page (C)';ITEMS.full.l='Full screen';ITEMS.full.t='Full screen (F)';}
+if(DOC){ITEMS.clear.l='Clear this page';ITEMS.clear.t='Clear this page (C)';}
 var ORDER_DEF=['ptr','pen','hl','laser','eraser','undo','redo','clear','hide','wb','grid','full'];
 var POS=['br','bc','bl','tr','tc','tl'];
 function defUI(){return {order:ORDER_DEF.slice(),hidden:[],tool:'pen',open:false,sink:true,sinkDelay:4,tablet:'on',vert:false,pos:'bc',tapAgain:true,dbl:true,rclick:true};}
@@ -379,7 +379,7 @@ var tool=UIS.tool,annot=false,inkHidden=false;
 function colorOf(t){t=t||tool;return CFG[t]&&CFG[t].c||'#fff';}
 function sizeOf(t){t=t||tool;return CFG[t].w;}
 
-var vert=UIS.vert,sideR=UIS.pos.charAt(1)==='r',sideT=UIS.pos.charAt(0)==='t',dockOpen=UIS.open;
+var vert=DOC?false:UIS.vert,sideR=DOC||UIS.pos.charAt(1)==='r',sideT=DOC||UIS.pos.charAt(0)==='t',dockOpen=UIS.open;
 /* tablet mode: bigger touch targets. 'on' by default; 'auto' follows the primary pointer (coarse = touch) */
 var mqC=window.matchMedia?matchMedia('(pointer: coarse)'):null;
 function tabletOn(){return UIS.tablet==='on'||(UIS.tablet==='auto'&&!!(mqC&&mqC.matches));}
@@ -395,7 +395,7 @@ function btnHTML(id){
 var BGB='<button id="bbg" data-k="bbg" data-a="wbbg" title="Board background (B)" aria-label="Board background">';
 /* the toolbar as an ordered list of keyed parts (buttons, separators, board-background button) */
 function mainList(){
-  var L=[],pg=null,bg=false,n={},vis=UIS.order.filter(function(id){return UIS.hidden.indexOf(id)<0&&!(DOC&&(id==='grid'||id==='wb'));});
+  var L=[],pg=null,bg=false,n={},vis=UIS.order.filter(function(id){return UIS.hidden.indexOf(id)<0&&!(DOC&&(id==='grid'||id==='wb'||id==='full'));});
   vis.forEach(function(id){
     var g=ITEMS[id].g;
     if(pg&&g!==pg){n[g]=(n[g]||0)+1;L.push({k:'sep'+g+n[g],h:SEPk('sep'+g+n[g])});}
@@ -510,20 +510,21 @@ function toggleFS(){send('end',{});}
 var tt=0;
 function toast(h,ms){toastEl.innerHTML=h;toastEl.classList.add('on');clearTimeout(tt);tt=setTimeout(function(){toastEl.classList.remove('on');},ms||2200);}
 var dimT=0,sinkT=0;
-function poke(){dock.classList.remove('dim');clearTimeout(dimT);dimT=setTimeout(function(){dock.classList.add('dim');},3500);}
+function poke(){dock.classList.remove('dim');clearTimeout(dimT);if(DOC)return;dimT=setTimeout(function(){dock.classList.add('dim');},3500);}
 /* the closed logo sinks half-way off its screen edge when left alone, and rises again on hover / touch */
 function armSink(){
   clearTimeout(sinkT);dock.classList.remove('sink');
-  if(dockOpen||!UIS.sink)return;
+  if(dockOpen||!UIS.sink||DOC)return;
   sinkT=setTimeout(function(){if(!dockOpen&&UIS.sink&&!anyPop()&&!lgG&&!grip&&!G)dock.classList.add('sink');else armSink();},UIS.sinkDelay*1000);
 }
 function toggleDock(on,ani){
   on=!!on;if(on===dockOpen)return;dockOpen=on;
   if(!on)closePops();
   renderDock(ani!==false);poke();armSink();
+  if(DOC)docReport();
 }
 var busyT=0;
-function busy_(on){clearTimeout(busyT);if(on)dock.classList.add('busy');else busyT=setTimeout(function(){dock.classList.remove('busy');},450);}
+function busy_(on){clearTimeout(busyT);if(on&&!DOC)dock.classList.add('busy');else busyT=setTimeout(function(){dock.classList.remove('busy');},450);}
 
 function setTool(t,quiet){
   tool=t;trail=[];headOn=false;renderDock();updRing();if(DOC)docReport();
@@ -585,32 +586,11 @@ function docLayout(pages,current){
   if(docLast&&!docFind(+docLast.slice(1)))docLast=null;
   if(UI)docRedraw();
 }
-/* In document mode the tools live in the app's top bar, so it is told what they look like now */
+/* The app's bar makes room as the toolbar opens, so it is told when that happens */
 var docSent='';
 function docReport(){
-  var k=ikey(),h=hist[k],r=redoS[k];
-  var st={tool:tool,annot:annot,hidden:inkHidden,undo:!!(h&&h.length),redo:!!(r&&r.length),clear:hasInk(),cfg:CFG,col:COL,sz:SZ,rng:RNG};
+  var st={open:dockOpen,tool:tool,annot:annot};
   var j=JSON.stringify(st);if(j===docSent)return;docSent=j;send('docState',st);
-}
-function docUse(t){
-  closePops();
-  if(t==='ptr'){setAnnot(false);}else if(TOOLS.some(function(x){return x[0]===t;})){setTool(t,true);setAnnot(true);}
-  docReport();
-}
-function docAct(a){
-  if(a==='undo')undo();else if(a==='redo')redo();else if(a==='clear')clearInk();
-  else if(a==='hide'){var B=document.body;B.classList.add('inkt');clearTimeout(inkTT);inkTT=setTimeout(function(){B.classList.remove('inkt');},520);inkHidden=!inkHidden;B.classList.toggle('inkhide',inkHidden);renderDock();}
-  docReport();
-}
-/* a tool's settings from the app's pop-over: checked the same way as anything loaded */
-function docSet(t,patch){
-  if(!CFG[t]||!patch)return;
-  if(patch.reset){CFG[t]=defCfg()[t];}
-  else{
-    if(typeof patch.c==='string'&&/^#[0-9a-f]{6}$/i.test(patch.c)){patch.c=patch.c.toLowerCase();if(patch.custom)addCustom(t,patch.c);}
-    delete patch.custom;assign(CFG[t],patch);
-  }
-  fixAll();renderDock();saveSettings();docReport();
 }
 function bootDoc(){mode='present';document.body.classList.remove('editing','still');document.body.classList.add('doc');poke();armSink();docReport();}
 function bbox(st){
@@ -914,7 +894,10 @@ function onMove(e){
   if(tG&&tG.id===e.pointerId&&Math.hypot(e.clientX-tG.x,e.clientY-tG.y)>14&&tG.mouse)tG.cancel=true;
 }
 document.addEventListener('pointermove',onMove,true);
-if('onpointerrawupdate' in window)document.addEventListener('pointerrawupdate',function(e){
+/* In the PDF reader this page sits below the app's bar, and WebView2 gives raw updates in a frame the
+   window's position instead of the page's: every point after the first landed one bar-height low.
+   Ordinary moves and their coalesced points are right, so the PDF reader takes those. */
+if('onpointerrawupdate' in window&&!DOC)document.addEventListener('pointerrawupdate',function(e){
   if(G&&G.id===e.pointerId&&G.mode!=='pending'&&!ovOpen){G.raw=true;moveGesture(e);}
 },true);
 function pend(e){
@@ -1478,12 +1461,16 @@ function setBuild(){
   var sb0=setEl.querySelector('.sbody'),st=sb0?sb0.scrollTop:0,h='<div class="ch"><span class="ci">'+ic('gear')+'</span><b>Toolbar settings</b><button class="rs" data-s="resetall">Reset all</button></div><div class="sbody">';
   h+='<div class="hd">Behaviour</div>';
   h+=srow('Start with toolbar open',tgl('open',UIS.open));
-  h+=srow('Auto-hide when closed',tgl('sink',UIS.sink),'Logo sinks into the screen edge');
-  h+=srow('Hide after',seg('sinkDelay',[[2,'2 s'],[4,'4 s'],[8,'8 s']],UIS.sinkDelay));
+  if(!DOC){
+    h+=srow('Auto-hide when closed',tgl('sink',UIS.sink),'Logo sinks into the screen edge');
+    h+=srow('Hide after',seg('sinkDelay',[[2,'2 s'],[4,'4 s'],[8,'8 s']],UIS.sinkDelay));
+  }
   h+=srowS('Starting tool',seg('tool',[['pen','Pen'],['hl','Marker'],['laser','Laser'],['eraser','Eraser']],UIS.tool));
-  h+='<div class="hd">Layout</div>';
-  h+=srowS('Orientation',seg('vert',[[0,'Horizontal'],[1,'Vertical']],UIS.vert?1:0));
-  h+=srowS('Position',pgrid());
+  if(!DOC){
+    h+='<div class="hd">Layout</div>';
+    h+=srowS('Orientation',seg('vert',[[0,'Horizontal'],[1,'Vertical']],UIS.vert?1:0));
+    h+=srowS('Position',pgrid());
+  }
   h+='<div class="hd">Touch</div>';
   h+=srowS('Tablet mode',seg('tablet',[['auto','Auto'],['on','On'],['off','Off']],UIS.tablet),'Larger buttons and sliders');
   h+='<div class="hd">Tool gestures</div>';
@@ -1512,7 +1499,7 @@ function setPop(on){
   armSink();
 }
 function applyAll(){
-  fixAll();tool=UIS.tool;vert=UIS.vert;applyTablet();
+  fixAll();tool=UIS.tool;vert=DOC?false:UIS.vert;applyTablet();
   fillMain();setPos(UIS.pos);renderDock(true);saveSettings();
 }
 function moveItem(id,d){var o=UIS.order,i=o.indexOf(id),j=i+d;if(j<0||j>=o.length)return;o[i]=o[j];o[j]=id;fillMain();renderDock(false);}
@@ -1521,6 +1508,7 @@ function exportSet(){send('exportToolbar',{text:JSON.stringify({v:1,ui:UIS,tools
 function importSet(){send('importToolbar',{});}
 function importText(text){try{var o=JSON.parse(text);assign(UIS,o.ui);if(o.tools)for(var t in CFG)assign(CFG[t],o.tools[t]);applyAll();setBuild();toast('Settings imported',1400);}catch(x){toast('Not a settings file',1600);}}
 function setVert(v){
+  if(DOC)return;
   if(v===vert)return;vert=UIS.vert=v;
   var pc=UIS.pos;if(v&&pc.charAt(1)==='c')pc=pc.charAt(0)+'r';
   setPos(pc);
@@ -1599,12 +1587,13 @@ function setWB(on){
 
 /* ---------- movable dock: drag the logo anywhere, it snaps to a corner / the centre ---------- */
 function setPos(pos,from){
+  if(DOC)pos='tr';
   closePops();
   POS.forEach(function(p){dock.classList.remove('p-'+p);});
   if(vert&&pos.charAt(1)==='c')pos=pos.charAt(0)+'r';
   sideT=pos.charAt(0)==='t';sideR=pos.charAt(1)==='r';
   dock.style.left=dock.style.top=dock.style.right=dock.style.bottom='';
-  dock.classList.add('p-'+pos);UIS.pos=pos;saveSettings();
+  dock.classList.add('p-'+pos);if(!DOC){UIS.pos=pos;saveSettings();}
   renderDock();armSink();
   if(from&&dock.animate&&!REDUCED){var n=dock.getBoundingClientRect();dock.animate([{transform:'translate('+(from.left-n.left)+'px,'+(from.top-n.top)+'px)'},{transform:'none'}],{duration:420,easing:EASE});}
 }
@@ -1618,6 +1607,7 @@ dock.addEventListener('pointerdown',function(e){
 document.addEventListener('pointermove',function(e){
   var g=lgG;if(!g||e.pointerId!==g.id)return;
   if(!g.drag){
+    if(DOC)return;
     if(Math.hypot(e.clientX-g.x,e.clientY-g.y)<10)return;
     g.drag=true;clearTimeout(g.t);closePops();
     var r0=dock.getBoundingClientRect();
@@ -1644,7 +1634,7 @@ document.addEventListener('pointerup',endLg,true);document.addEventListener('poi
 applyTablet();
 if(!SORTER){buildDock();setPos(UIS.pos);UI=true;renderDock();onFit();poke();armSink();}
 var HINT='<b>Tap the logo</b> to open the toolbar &nbsp;·&nbsp; <b>Drag</b> it to move &nbsp;·&nbsp; <b>Right-click / long-press</b> for settings';
-if(DOC)window.__pwDoc={layout:docLayout,use:docUse,act:docAct,set:docSet,state:function(){return {tool:tool,annot:annot,key:ikey()};}};
+if(DOC)window.__pwDoc={layout:docLayout,state:function(){return {tool:tool,annot:annot,open:dockOpen,key:ikey()};}};
 window.__ui={setWB:setWB,ink:ink,setTool:setTool,setAnnot:setAnnot,openOv:openOv,closeOv:closeOv,toggleDock:toggleDock,cfg:function(){return CFG;},uis:function(){return UIS;},
   state:function(){return {tool:tool,annot:annot,wb:wbOn,wy:wy,ov:ovOpen,cur:cur,step:meta[cur].step,max:meta[cur].max,open:dockOpen,vert:vert};}};
 

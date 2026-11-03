@@ -44,6 +44,7 @@ export default function PdfEditor({
   toolsSlot,
   onChange,
   onBarHidden,
+  onBarGlass,
 }: OfficeEditorProps) {
   const { bytes } = file;
   const settings = useSettings((s) => s.settings);
@@ -51,7 +52,6 @@ export default function PdfEditor({
   const [parts, setParts] = useState<Loaded | null>(null);
   const [page, setPage] = useState(1);
   const [sidebar, setSidebar] = useState(false);
-  const [markup, setMarkup] = useState(false);
   const [query, setQuery] = useState("");
   const [matches, setMatches] = useState<{ current: number; total: number } | null>(null);
   const changed = useRef(onChange);
@@ -72,6 +72,34 @@ export default function PdfEditor({
   useEffect(() => {
     frame?.contentDocument?.documentElement.toggleAttribute("data-hide-bar", pdfHideBar);
   }, [frame, pdfHideBar]);
+
+  // The page draws the bar's glass, with the slide toolbar in it, once it's there to do so.
+  useEffect(() => {
+    onBarGlass?.(reader.ready);
+    return () => onBarGlass?.(false);
+  }, [reader.ready, onBarGlass]);
+
+  // The bar's glass and the slide toolbar go up with the bar while reading.
+  useEffect(() => {
+    frame?.contentDocument?.documentElement.toggleAttribute("data-bar-hidden", barHidden);
+  }, [frame, barHidden]);
+
+  // The slide toolbar sits in its seat at the end of the bar's tools, beside Full screen and Save,
+  // wherever those end up as the window or the file's name changes.
+  useEffect(() => {
+    const seat = toolsSlot?.parentElement;
+    const root = frame?.contentDocument?.documentElement;
+    if (!seat || !root) return;
+    const place = () => {
+      const spot = seat.querySelector("[data-dock-seat]")?.getBoundingClientRect();
+      if (spot) root.style.setProperty("--pw-dock-right", `${innerWidth - spot.right + 4}px`);
+    };
+    const watcher = new ResizeObserver(place);
+    watcher.observe(seat);
+    for (const part of seat.children) watcher.observe(part);
+    place();
+    return () => watcher.disconnect();
+  }, [toolsSlot, frame, parts]);
 
   useEffect(() => {
     if (reader.failed) showError("The PDF reader couldn't start. Try opening the file again.");
@@ -253,16 +281,7 @@ export default function PdfEditor({
           sidebar={sidebar}
           query={query}
           matches={matches}
-          markup={markup}
-          docState={reader.docState}
-          onMarkup={() => {
-            // Drawing starts with the pen, and leaving puts the pointer back for reading.
-            reader.use(markup ? "ptr" : (reader.docState?.tool ?? "pen"));
-            setMarkup(!markup);
-          }}
-          onUse={reader.use}
-          onAct={reader.act}
-          onSet={reader.set}
+          dockOpen={reader.docState?.open ?? false}
           onPage={goTo}
           onFit={zoom.chooseFit}
           onScale={zoom.chooseScale}

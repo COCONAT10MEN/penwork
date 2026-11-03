@@ -17,9 +17,11 @@ body {
   z-index: 5;
   pointer-events: none;
 }
+/* The page fills the window, under the app's bar, so the slide toolbar can sit in that bar. The PDF
+   itself starts below it, or at the top when the bar hides while reading. */
 #scroller {
   position: absolute;
-  inset: 0 0 0 var(--pw-pdf-left, 0px);
+  inset: 64px 0 0 var(--pw-pdf-left, 0px);
   overflow: auto;
   box-sizing: border-box;
   outline: none;
@@ -33,6 +35,9 @@ body {
 }
 #scroller .pdfViewer {
   padding-block: 10px;
+}
+:root[data-hide-bar] #scroller {
+  top: 0;
 }
 :root[data-hide-bar] #scroller .pdfViewer {
   padding-top: 74px;
@@ -65,7 +70,68 @@ body {
 #scroller::-webkit-scrollbar-thumb:hover {
   background: color-mix(in srgb, var(--md-sys-color-primary) 60%, transparent) padding-box;
 }
-/* The tools are in the app's top bar for a PDF, so the slide toolbar itself isn't shown. */
+/* The top bar's glass, across the whole window. It is drawn here, in the same page as the slide
+   toolbar, so the toolbar is part of the bar instead of floating over it. The app's own buttons sit
+   on top of it. */
+#pwband {
+  position: fixed;
+  z-index: 30;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 64px;
+  box-sizing: border-box;
+  border-bottom: var(--pw-glass-rim);
+  background: var(--pw-glass-regular-fill);
+  box-shadow: var(--pw-glass-rim-top), var(--pw-glass-shadow);
+  backdrop-filter: blur(var(--pw-glass-regular-blur)) saturate(var(--pw-glass-saturate));
+}
+#pwband::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--pw-glass-sheen);
+  pointer-events: none;
+}
+:root[data-transparency="reduced"] #pwband {
+  background: var(--md-sys-color-surface-container-high);
+  backdrop-filter: none;
+}
+:root[data-transparency="reduced"] #pwband::after {
+  content: none;
+}
+@media (prefers-reduced-transparency: reduce) {
+  :root:not([data-transparency="glass"]) #pwband {
+    background: var(--md-sys-color-surface-container-high);
+    backdrop-filter: none;
+  }
+  :root:not([data-transparency="glass"]) #pwband::after {
+    content: none;
+  }
+}
+/* The slide toolbar, exactly as in a show, seated at the right of the bar beside Save. Its logo opens
+   it, and it grows to the left along the bar. It never moves, sinks or dims there. */
+:root[data-pw-doc] #dock {
+  top: 0 !important;
+  right: var(--pw-dock-right, 190px) !important;
+  bottom: auto !important;
+  left: auto !important;
+  height: 64px;
+  margin: 0 !important;
+}
+:root[data-pw-doc],
+:root[data-pw-doc].tab {
+  --bmax: 38px;
+}
+#pwband,
 #dock {
-  display: none !important;
+  transition:
+    translate var(--md-sys-motion-spatial-default-duration)
+      var(--md-sys-motion-spatial-default-easing),
+    opacity 0.45s ease;
+}
+/* Reading with the bar hidden: the band and the toolbar go up with the app's bar. */
+:root[data-bar-hidden] #pwband,
+:root[data-bar-hidden] #dock {
+  translate: 0 calc(-100% - 48px);
 }

@@ -2,11 +2,9 @@ import { AnimatePresence, motion } from "motion/react";
 import { Children, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { zoomLabel, type Fit } from "../../lib/pdfZoom";
-import { useReduceMotion, useSpring } from "../../theme/motion";
+import { useReduceMotion } from "../../theme/motion";
 import { IconButton, Menu, RollingNumber } from "../../ui";
-import { PdfMarkupTools } from "./PdfMarkupTools";
 import { useToolArrival } from "./toolMotion";
-import type { DocState, ToolId } from "./useReader";
 import { cx } from "../../ui/cx";
 import styles from "./OfficeView.module.css";
 
@@ -116,19 +114,12 @@ function ZoomControl({
   );
 }
 
-/** One group of the bar's tools. The group arriving rises in, one tool after another. */
-function Group({
-  children,
-  label,
-  wrap = true,
-}: {
-  children: ReactNode;
-  label: string;
-  /** Off when the children arrive one by one themselves. */
-  wrap?: boolean;
-}) {
+/**
+ * The reading tools. They leave as the slide toolbar opens along the bar, the one nearest it first,
+ * as if swept aside by its edge, and come back one after another behind that edge as it closes.
+ */
+function Group({ children, label }: { children: ReactNode; label: string }) {
   const reduce = useReduceMotion();
-  const fade = useSpring("effectsFast");
   const arrive = useToolArrival();
   return (
     <motion.div
@@ -140,17 +131,15 @@ function Group({
       exit="gone"
       variants={{
         out: {},
-        in: { transition: { staggerChildren: reduce ? 0 : 0.022 } },
-        gone: { opacity: 0, y: reduce ? 0 : -10, transition: fade },
+        in: { transition: { delayChildren: reduce ? 0 : 0.1, staggerChildren: reduce ? 0 : 0.03 } },
+        gone: { transition: { staggerChildren: reduce ? 0 : 0.028, staggerDirection: -1 } },
       }}
     >
-      {wrap
-        ? Children.toArray(children).map((child, i) => (
-            <motion.span key={i} className={styles.toolSlot} variants={arrive}>
-              {child}
-            </motion.span>
-          ))
-        : children}
+      {Children.toArray(children).map((child, i) => (
+        <motion.span key={i} className={styles.toolSlot} variants={arrive}>
+          {child}
+        </motion.span>
+      ))}
     </motion.div>
   );
 }
@@ -164,12 +153,7 @@ export function PdfToolbar({
   sidebar,
   query,
   matches,
-  markup,
-  docState,
-  onMarkup,
-  onUse,
-  onAct,
-  onSet,
+  dockOpen,
   onPage,
   onFit,
   onScale,
@@ -185,13 +169,8 @@ export function PdfToolbar({
   sidebar: boolean;
   query: string;
   matches: { current: number; total: number } | null;
-  /** Drawing: the bar shows the slide toolbar's tools instead of the reading ones. */
-  markup: boolean;
-  docState: DocState | null;
-  onMarkup: () => void;
-  onUse: (tool: ToolId | "ptr") => void;
-  onAct: (action: "undo" | "redo" | "clear" | "hide") => void;
-  onSet: (tool: ToolId, patch: Record<string, unknown>) => void;
+  /** The slide toolbar is open across the bar, where these tools were. */
+  dockOpen: boolean;
   onPage: (page: number) => void;
   onFit: (fit: Fit) => void;
   onScale: (scale: number) => void;
@@ -201,20 +180,8 @@ export function PdfToolbar({
 }) {
   return createPortal(
     <div className={styles.pdfBarTools} role="toolbar" aria-label="PDF tools">
-      <IconButton
-        size="compact"
-        icon={markup ? "check" : "draw"}
-        label={markup ? "Done drawing" : "Draw on the PDF"}
-        selected={markup}
-        onClick={onMarkup}
-      />
-      <span className={styles.pdfDivider} />
-      <AnimatePresence mode="popLayout" initial={false}>
-        {markup && docState ? (
-          <Group key="markup" label="Drawing tools" wrap={false}>
-            <PdfMarkupTools state={docState} onUse={onUse} onAct={onAct} onSet={onSet} />
-          </Group>
-        ) : (
+      <AnimatePresence initial={false}>
+        {!dockOpen && (
           <Group key="reading" label="Reading tools">
             <IconButton
               size="compact"
@@ -268,6 +235,8 @@ export function PdfToolbar({
           </Group>
         )}
       </AnimatePresence>
+      {/* The slide toolbar's logo sits here, drawn by the reader page under the bar. */}
+      <span className={styles.dockSeat} data-dock-seat />
     </div>,
     slot,
   );

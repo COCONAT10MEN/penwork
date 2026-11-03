@@ -31,8 +31,9 @@ Licenses below were checked against the installed packages (`package.json` / `LI
 | FortuneSheet (`@fortune-sheet/react`, `@fortune-sheet/core`) | Suzhou Ruilisi Technology Co., Ltd | MIT | The spreadsheet editor |
 | FortuneExcel (`@corbe30/fortune-excel`) | Corbe30 (Shashank Chauhan) and contributors | MIT | Reading and writing Excel files for FortuneSheet |
 | ExcelJS (`exceljs`) | Guyon Roche and contributors | MIT | Writing `.xlsx` files |
+| pdf-lib (`pdf-lib`) | Andrew Dillon and contributors | MIT | Writing ink into PDFs as real annotations |
 
-The packages those five bring in (ProseMirror, HarfBuzz, lodash, dayjs and others), and the
+The packages those six bring in (ProseMirror, HarfBuzz, lodash, dayjs and others), and the
 full licence text of every one, are in [`LICENSES/office-libraries.txt`](LICENSES/office-libraries.txt).
 `npm run licenses` rebuilds that file and stops if a licence isn't one we allow. It also ships
 inside the installed app, because MIT and Apache-2.0 ask for their text to go with every copy.

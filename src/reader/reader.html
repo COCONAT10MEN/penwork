@@ -1,0 +1,28 @@
+<!doctype html>
+<!-- The PDF reader's page: pdf.js's pages and the slide engine in document mode, in one document, so the
+     engine's pen, finger and mouse rules work on the PDF as they do in a show (docs/PDF-INK.md). The app
+     drives it from outside; it is same-origin because there is no untrusted content in it. -->
+<html lang="en" data-pw-doc>
+  <head>
+    <meta charset="utf-8" />
+    <title>Reader</title>
+    <link rel="stylesheet" href="engine.css" />
+    <link rel="stylesheet" href="app.css" />
+    <link rel="stylesheet" href="pdf_viewer.css" />
+    <link rel="stylesheet" href="reader.css" />
+  </head>
+  <body>
+    <div id="scroller"><div class="pdfViewer"></div></div>
+    <div id="stage"></div>
+    <div id="wb">
+      <div id="wbg"></div>
+      <div id="wbbar"><i></i></div>
+    </div>
+    <div id="inkwrap"></div>
+    <div id="dock"></div>
+    <div id="ov"></div>
+    <div id="toast"></div>
+    <script src="freehand.js"></script>
+    <script src="engine.js"></script>
+  </body>
+</html>

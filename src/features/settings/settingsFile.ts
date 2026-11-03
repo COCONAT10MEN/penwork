@@ -51,9 +51,6 @@ export interface Settings {
   /** The top bar slides away while reading down a PDF, and comes back on the way up. */
   pdfHideBar: boolean;
   pdfTwoPages: boolean;
-  pdfPen: string;
-  pdfHighlight: string;
-  pdfPenSize: number;
   /** Whether a new presentation starts with its ink saved into the file. */
   newKeepInk: boolean;
   /** What "next" does on the last slide of a show. Back to the first is the template's way. */
@@ -91,9 +88,6 @@ export const DEFAULT_SETTINGS: Settings = {
   pdfZoom: "page-width",
   pdfHideBar: false,
   pdfTwoPages: false,
-  pdfPen: "#1b1b1f",
-  pdfHighlight: "#ffff98",
-  pdfPenSize: 2,
   newKeepInk: true,
   endOfShow: "loop",
 };
@@ -176,9 +170,6 @@ export function parseSettings(text: string | null): Settings {
     pdfZoom: oneOf(d.pdfZoom, ["page-fit", "page-width", "100"], DEFAULT_SETTINGS.pdfZoom),
     pdfHideBar: d.pdfHideBar === true,
     pdfTwoPages: d.pdfTwoPages === true,
-    pdfPen: hex(d.pdfPen, DEFAULT_SETTINGS.pdfPen),
-    pdfHighlight: hex(d.pdfHighlight, DEFAULT_SETTINGS.pdfHighlight),
-    pdfPenSize: choice(d.pdfPenSize, [1, 2, 4, 8], DEFAULT_SETTINGS.pdfPenSize),
     newKeepInk: d.newKeepInk !== false,
     endOfShow: d.endOfShow === "stop" ? "stop" : "loop",
   };

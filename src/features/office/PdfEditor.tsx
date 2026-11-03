@@ -2,34 +2,40 @@ import type { PDFDocumentProxy } from "pdfjs-dist";
 import type { EventBus, PDFFindController, PDFViewer } from "pdfjs-dist/web/pdf_viewer.mjs";
 import { AnimatePresence } from "motion/react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { toPoints, toUnits, type PointStroke } from "../../lib/pdfInk";
 import type { Fit } from "../../lib/pdfZoom";
 import { LoadingIndicator } from "../../ui";
 import { useSettings } from "../settings/settingsStore";
 import { showError } from "../notices/notices";
 import type { OfficeEditorProps } from "./officeFile";
 import { PdfSidebar } from "./PdfSidebar";
-import { PdfToolbar, type PdfTool } from "./PdfToolbar";
+import { PdfToolbar } from "./PdfToolbar";
+import { putInk, takeInk } from "./pdfInkFile";
 import { loadPdf, PDF_ASSETS } from "./pdfLoader";
 import { useBarHiding } from "./useBarHiding";
 import { measurePage } from "./flipViewer";
-import { setEditorMode, setPage as showPage } from "./pdfViewerSet";
+import { setPage as showPage } from "./pdfViewerSet";
 import { usePdfZoom } from "./usePdfZoom";
+import { usePageLayout, useReader, type PageInk } from "./useReader";
 import styles from "./OfficeView.module.css";
 
-/** Numbers from pdf.js's AnnotationEditorType. */
-const MODES: Record<PdfTool, number> = { select: 0, text: 3, highlight: 9, draw: 15 };
 // What pdf.js paints a page with, so these are data for it and not app colours.
 const DARK_PAGE = { background: "#1b1b1f", foreground: "#e4e2e6" };
-const HIGHLIGHT_COLORS = "yellow=#FFFF98,green=#53FFBC,blue=#80EBFF,pink=#FFCBE6,red=#FF4F5F";
 // Each page's picture tops out here and zooming further draws only what's on screen. Lower than
 // pdf.js's own, because the laptop this is for has 8 GB shared with the graphics.
 const MAX_CANVAS_PIXELS = 2 ** 24;
+// pdf.js's AnnotationEditorType.DISABLE: its own markup tools are off, the slide toolbar replaces them.
+const NO_EDITORS = -1;
 
 interface Loaded {
   viewer: PDFViewer;
   bus: EventBus;
   find: PDFFindController;
   document: PDFDocumentProxy;
+}
+
+async function viewOf(document: PDFDocumentProxy, number: number) {
+  return (await document.getPage(number)).getViewport({ scale: 1 });
 }
 
 export default function PdfEditor({
@@ -41,19 +47,20 @@ export default function PdfEditor({
 }: OfficeEditorProps) {
   const { bytes } = file;
   const settings = useSettings((s) => s.settings);
-  const { darkPages, pdfZoom, pdfTwoPages, pdfPen, pdfHighlight, pdfPenSize, pdfHideBar } =
-    settings;
-  const [box, setBox] = useState<HTMLDivElement | null>(null);
+  const { darkPages, pdfZoom, pdfTwoPages, pdfHideBar } = settings;
   const [parts, setParts] = useState<Loaded | null>(null);
   const [page, setPage] = useState(1);
   const [sidebar, setSidebar] = useState(false);
-  const [tool, setTool] = useState<PdfTool>("select");
   const [query, setQuery] = useState("");
   const [matches, setMatches] = useState<{ current: number; total: number } | null>(null);
   const changed = useRef(onChange);
   useEffect(() => {
     changed.current = onChange;
   });
+
+  const reader = useReader(() => changed.current());
+  const { box, frame } = reader;
+  usePageLayout(frame, box, parts?.viewer ?? null);
 
   const [startFit] = useState<Fit | null>(() =>
     pdfZoom === "page-fit" ? "page" : pdfZoom === "100" ? null : "width",
@@ -62,12 +69,20 @@ export default function PdfEditor({
   const barHidden = useBarHiding(box, pdfHideBar, onBarHidden);
 
   useEffect(() => {
+    frame?.contentDocument?.documentElement.toggleAttribute("data-hide-bar", pdfHideBar);
+  }, [frame, pdfHideBar]);
+
+  useEffect(() => {
+    if (reader.failed) showError("The PDF reader couldn't start. Try opening the file again.");
+  }, [reader.failed]);
+
+  useEffect(() => {
     if (!bytes || !box) return;
     const quit = new AbortController();
     let opened: { destroy: () => Promise<void> } | null = null;
 
     void (async () => {
-      const { pdfjs, viewer: kit } = await loadPdf();
+      const [{ pdfjs, viewer: kit }, taken] = await Promise.all([loadPdf(), takeInk(bytes)]);
       if (quit.signal.aborted) return;
       const bus = new kit.EventBus();
       const links = new kit.PDFLinkService({ eventBus: bus });
@@ -79,8 +94,7 @@ export default function PdfEditor({
         findController: find,
         removePageBorders: true,
         maxCanvasPixels: MAX_CANVAS_PIXELS,
-        annotationEditorMode: MODES.select,
-        annotationEditorHighlightColors: HIGHLIGHT_COLORS,
+        annotationEditorMode: NO_EDITORS,
         abortSignal: quit.signal,
         ...(darkPages ? { pageColors: DARK_PAGE } : {}),
       };
@@ -88,14 +102,6 @@ export default function PdfEditor({
       links.setViewer(viewer);
       bus.on("pagesinit", () => {
         viewer.spreadMode = pdfTwoPages ? 1 : 0;
-        // AnnotationEditorParamsType: INK_COLOR, INK_THICKNESS and HIGHLIGHT_COLOR.
-        for (const [type, value] of [
-          [21, pdfPen],
-          [22, pdfPenSize],
-          [31, pdfHighlight],
-        ]) {
-          bus.dispatch("switchannotationeditorparams", { source: null, type, value });
-        }
       });
       bus.on("pagechanging", (e: { pageNumber: number }) => setPage(e.pageNumber));
       bus.on("updatefindmatchescount", (e: { matchesCount: { current: number; total: number } }) =>
@@ -105,16 +111,24 @@ export default function PdfEditor({
         setMatches(e.matchesCount),
       );
 
-      const task = pdfjs.getDocument({ ...PDF_ASSETS, data: bytes.slice() });
+      // pdf.js shows the file without Penwork's own ink: the engine draws that, and can change it.
+      const task = pdfjs.getDocument({ ...PDF_ASSETS, data: taken.clean.slice() });
       opened = task;
       const document = await task.promise;
       if (quit.signal.aborted) return;
-      // Typed as null, but this is the hook pdf.js calls on the first change after a save.
+      // A filled-in form field is a change too.
       Object.assign(document.annotationStorage, { onSetModified: () => changed.current() });
       viewer.setDocument(document);
       links.setDocument(document);
       find.setDocument(document);
       setParts({ viewer, bus, find, document });
+
+      const ink: PageInk = {};
+      for (const [number, strokes] of Object.entries(taken.pages)) {
+        const view = await viewOf(document, Number(number));
+        ink[`p${number}`] = strokes.map((stroke) => toUnits(stroke, view));
+      }
+      if (!quit.signal.aborted && Object.keys(ink).length > 0) reader.setInk(ink);
     })().catch((error: unknown) => {
       const locked = error instanceof Error && error.name === "PasswordException";
       showError(
@@ -129,17 +143,31 @@ export default function PdfEditor({
       setParts(null);
       void opened?.destroy();
     };
-  }, [bytes, box, darkPages, pdfTwoPages, pdfPen, pdfHighlight, pdfPenSize]);
+    // reader.setInk only posts to the page, which `box` already stands for.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bytes, box, darkPages, pdfTwoPages]);
 
   useEffect(() => {
     handleRef.current = {
-      fileBytes: async () => (await parts?.document.saveDocument()) ?? null,
+      // The file as shown (with any form filled in), and then the ink on top as PDF ink.
+      fileBytes: async () => {
+        if (!parts) return null;
+        const shown = await parts.document.saveDocument();
+        const pages: Record<number, PointStroke[]> = {};
+        for (const [key, strokes] of Object.entries(reader.ink.current)) {
+          const number = Number(key.slice(1));
+          if (!strokes.length || !number) continue;
+          const view = await viewOf(parts.document, number);
+          pages[number] = strokes.map((stroke) => toPoints(stroke, view));
+        }
+        return putInk(shown, pages);
+      },
       saved: () => parts?.document.annotationStorage.resetModified(),
     };
     return () => {
       handleRef.current = null;
     };
-  }, [handleRef, parts]);
+  }, [handleRef, parts, reader.ink]);
 
   const search = (text: string, findPrevious = false, again = false) => {
     setQuery(text);
@@ -154,17 +182,6 @@ export default function PdfEditor({
       matchDiacritics: false,
       findPrevious,
     });
-  };
-
-  const choose = (next: PdfTool) => {
-    setTool(next);
-    if (parts) setEditorMode(parts.viewer, MODES[next]);
-  };
-
-  const colour = (value: string) => {
-    // INK_COLOR, HIGHLIGHT_COLOR and FREETEXT_COLOR in pdf.js's AnnotationEditorParamsType.
-    const type = tool === "draw" ? 21 : tool === "highlight" ? 31 : 12;
-    parts?.bus.dispatch("switchannotationeditorparams", { source: null, type, value });
   };
 
   // The pages shrink to make room as the panel slides in, instead of jumping once it's there.
@@ -190,9 +207,12 @@ export default function PdfEditor({
       data-hide-bar={pdfHideBar || undefined}
       data-bar-hidden={barHidden || undefined}
     >
-      <div ref={setBox} className={styles.pdfScroll} tabIndex={0}>
-        <div className="pdfViewer" />
-      </div>
+      <iframe
+        className={styles.pdfFrame}
+        title={file.name}
+        src="/reader/reader.html"
+        onLoad={(e) => reader.onLoad(e.currentTarget)}
+      />
       <AnimatePresence>
         {sidebar && parts && (
           <PdfSidebar
@@ -214,13 +234,11 @@ export default function PdfEditor({
       {parts && toolsSlot && (
         <PdfToolbar
           slot={toolsSlot}
-          startColours={{ draw: pdfPen, highlight: pdfHighlight }}
           page={page}
           pages={parts.document.numPages}
           scale={zoom.scale}
           fit={zoom.fit}
           sidebar={sidebar}
-          tool={tool}
           query={query}
           matches={matches}
           onPage={goTo}
@@ -228,8 +246,6 @@ export default function PdfEditor({
           onScale={zoom.chooseScale}
           onStep={zoom.step}
           onSidebar={toggleSidebar}
-          onTool={choose}
-          onColour={colour}
           onSearch={search}
         />
       )}

@@ -45,34 +45,14 @@
 .pdf[data-sidebar] {
   --pw-pdf-left: 200px;
 }
-.pdfScroll {
+.pdfFrame {
   position: absolute;
   inset: var(--pw-pdf-top) 0 0 var(--pw-pdf-left);
-  overflow: auto;
-  box-sizing: border-box;
-  outline: none;
-  touch-action: pan-x pan-y;
-  --pw-scroll-thumb: color-mix(in srgb, var(--md-sys-color-on-surface) 38%, transparent);
-}
-/* Always there, and wide enough to grab, as in any reader. */
-.pdfScroll::-webkit-scrollbar {
-  width: 14px;
-  height: 14px;
-}
-.pdfScroll :global(.pdfViewer) {
-  padding-block: 10px;
-}
-.pdf[data-hide-bar] .pdfScroll :global(.pdfViewer) {
-  padding-top: 74px;
-}
-.pdfScroll :global(.pdfViewer.removePageBorders .page) {
-  margin: 0 auto 10px;
-  box-shadow: 0 2px 10px -2px rgb(0 0 0 / 0.45);
-}
-/* pdf.js moves focus onto its page layers, and the app's focus ring would outline a whole page. */
-.pdfScroll :global(.annotationEditorLayer):focus-visible,
-.pdfScroll :global(.page):focus-visible {
-  outline: none;
+  width: calc(100% - var(--pw-pdf-left));
+  height: calc(100% - var(--pw-pdf-top));
+  border: 0;
+  background: transparent;
+  color-scheme: normal;
 }
 .pdfColours {
   position: absolute;
@@ -110,8 +90,9 @@
   position: relative;
   display: inline-grid;
 }
-/* The number rolls in its own layer. The box underneath takes the click and the typing. */
-.pageShown {
+/* The number rolls in its own layer. The box underneath takes the click and the typing. Doubled up,
+   because the number's own styles can load after these and would put it back in the flow. */
+.pageField .pageShown {
   position: absolute;
   inset: 0;
   justify-content: center;

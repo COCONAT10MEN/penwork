@@ -1,28 +1,9 @@
-import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { zoomLabel, type Fit } from "../../lib/pdfZoom";
-import { useSpring } from "../../theme/motion";
-import { ColorSwatches, IconButton, Menu, RollingNumber, Surface } from "../../ui";
+import { IconButton, Menu, RollingNumber } from "../../ui";
 import { cx } from "../../ui/cx";
 import styles from "./OfficeView.module.css";
-
-export type PdfTool = "select" | "highlight" | "draw" | "text";
-
-const TOOLS: { id: PdfTool; label: string; icon: string }[] = [
-  { id: "select", label: "Select text", icon: "text_select_start" },
-  { id: "highlight", label: "Highlight", icon: "ink_highlighter" },
-  { id: "draw", label: "Draw", icon: "draw" },
-  { id: "text", label: "Add text", icon: "title" },
-];
-
-// What a user picks for ink on paper, so these stay the same in either theme.
-const COLOURS: Record<PdfTool, string[]> = {
-  select: [],
-  highlight: ["#ffff98", "#53ffbc", "#80ebff", "#ffcbe6", "#ff4f5f"],
-  draw: ["#1b1b1f", "#e5352b", "#1a73e8", "#188038", "#f9ab00"],
-  text: ["#1b1b1f", "#e5352b", "#1a73e8", "#188038", "#f9ab00"],
-};
 
 const STEPS = [0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4];
 
@@ -132,13 +113,11 @@ function ZoomControl({
 
 export function PdfToolbar({
   slot,
-  startColours,
   page,
   pages,
   scale,
   fit,
   sidebar,
-  tool,
   query,
   matches,
   onPage,
@@ -146,18 +125,14 @@ export function PdfToolbar({
   onScale,
   onStep,
   onSidebar,
-  onTool,
-  onColour,
   onSearch,
 }: {
   slot: HTMLElement;
-  startColours: { draw: string; highlight: string };
   page: number;
   pages: number;
   scale: number;
   fit: Fit | null;
   sidebar: boolean;
-  tool: PdfTool;
   query: string;
   matches: { current: number; total: number } | null;
   onPage: (page: number) => void;
@@ -165,43 +140,10 @@ export function PdfToolbar({
   onScale: (scale: number) => void;
   onStep: (steps: number) => void;
   onSidebar: () => void;
-  onTool: (tool: PdfTool) => void;
-  onColour: (colour: string) => void;
   onSearch: (query: string, backwards?: boolean, again?: boolean) => void;
 }) {
-  const [picked, setPicked] = useState<Record<PdfTool, string>>({
-    select: "",
-    highlight: startColours.highlight,
-    draw: startColours.draw,
-    text: COLOURS.text[0] ?? "",
-  });
-  const glide = useSpring("spatialDefault");
-  const fade = useSpring("effectsFast");
   return (
     <>
-      <AnimatePresence>
-        {tool !== "select" && (
-          <motion.div
-            key={tool}
-            className={styles.pdfColours}
-            initial={{ opacity: 0, y: -14, scale: 0.92 }}
-            animate={{ opacity: 1, y: 0, scale: 1, transition: glide }}
-            exit={{ opacity: 0, y: -8, transition: fade }}
-          >
-            <Surface material="glass" floating className={styles.pdfBar}>
-              <ColorSwatches
-                label="Colour"
-                colors={COLOURS[tool]}
-                value={picked[tool]}
-                onChange={(colour) => {
-                  setPicked({ ...picked, [tool]: colour });
-                  onColour(colour);
-                }}
-              />
-            </Surface>
-          </motion.div>
-        )}
-      </AnimatePresence>
       {createPortal(
         <div className={styles.pdfTools} role="toolbar" aria-label="PDF tools">
           <IconButton
@@ -229,17 +171,6 @@ export function PdfToolbar({
           />
           <span className={styles.pdfDivider} />
           <ZoomControl scale={scale} fit={fit} onFit={onFit} onScale={onScale} onStep={onStep} />
-          <span className={styles.pdfDivider} />
-          {TOOLS.map(({ id, label, icon }) => (
-            <IconButton
-              key={id}
-              size="compact"
-              icon={icon}
-              label={label}
-              selected={tool === id}
-              onClick={() => onTool(id)}
-            />
-          ))}
           <span className={styles.pdfDivider} />
           <input
             className={styles.pdfFind}

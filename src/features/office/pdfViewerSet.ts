@@ -12,7 +12,3 @@ export function setScale(viewer: PDFViewer, scale: number): void {
 export function setPage(viewer: PDFViewer, page: number): void {
   viewer.currentPageNumber = page;
 }
-
-export function setEditorMode(viewer: PDFViewer, mode: number): void {
-  viewer.annotationEditorMode = { mode };
-}

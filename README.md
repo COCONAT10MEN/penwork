@@ -22,5 +22,6 @@ Penwork's Word, Excel and PDF screens are built on these free, open-source proje
 - [FortuneSheet](https://github.com/ruilisi/fortune-sheet) by Suzhou Ruilisi Technology Co., Ltd, MIT
 - [FortuneExcel](https://github.com/Corbe30/FortuneExcel) by Corbe30, MIT
 - [ExcelJS](https://github.com/exceljs/exceljs) by Guyon Roche, MIT
+- [pdf-lib](https://github.com/Hopding/pdf-lib) by Andrew Dillon, MIT
 
 Everything else Penwork uses is listed in [`THIRD_PARTY.md`](THIRD_PARTY.md). The full licence texts are in [`LICENSES/`](LICENSES/).

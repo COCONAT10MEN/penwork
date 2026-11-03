@@ -26,3 +26,4 @@ Thumbs.db
 *.sw?
 *.log
 tests/parity/out
+public/reader/

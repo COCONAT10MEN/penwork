@@ -42,11 +42,15 @@ export function useBarHiding(
     const onPointer = (e: PointerEvent) => {
       if (e.clientY < EDGE) setHidden(false);
     };
+    // The PDF is in a page of its own, so its pointer is watched there as well as here.
+    const inner = box.ownerDocument.defaultView;
     box.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("pointermove", onPointer, { passive: true });
+    inner?.addEventListener("pointermove", onPointer, { passive: true });
     return () => {
       box.removeEventListener("scroll", onScroll);
       window.removeEventListener("pointermove", onPointer);
+      inner?.removeEventListener("pointermove", onPointer);
     };
   }, [box, enabled]);
 

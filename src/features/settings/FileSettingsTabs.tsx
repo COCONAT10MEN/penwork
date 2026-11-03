@@ -3,7 +3,7 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { useApp } from "../../appStore";
 import { Button, Switch, TextField } from "../../ui";
 import { askGoAhead, notify, showError } from "../notices/notices";
-import { Choice, ColorChoice, Section } from "./parts";
+import { Choice, Section } from "./parts";
 import { useChoices } from "./useChoices";
 import styles from "./Settings.module.css";
 
@@ -230,28 +230,11 @@ export function PdfTab() {
           onCheckedChange={(pdfTwoPages) => update({ pdfTwoPages })}
         />
       </Section>
-      <Section title="Pen and highlighter">
-        <ColorChoice
-          label="Pen colour"
-          value={settings.pdfPen}
-          onChange={(pdfPen) => update({ pdfPen })}
-        />
-        <ColorChoice
-          label="Highlight colour"
-          value={settings.pdfHighlight}
-          onChange={(pdfHighlight) => update({ pdfHighlight })}
-        />
-        <Choice
-          label="Pen thickness"
-          options={[
-            { value: 1, label: "Thin" },
-            { value: 2, label: "Normal" },
-            { value: 4, label: "Thick" },
-            { value: 8, label: "Marker" },
-          ]}
-          value={settings.pdfPenSize}
-          onChange={(pdfPenSize) => update({ pdfPenSize })}
-        />
+      <Section
+        title="Pen and highlighter"
+        hint="PDFs use the slide toolbar, with the same tools and settings as a presentation. Change them on the toolbar itself."
+      >
+        <span />
       </Section>
     </div>
   );

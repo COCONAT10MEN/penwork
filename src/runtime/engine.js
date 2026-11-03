@@ -9,6 +9,10 @@
 var W = {};
 (function () {
 "use strict";
+/* Penwork's PDF reader runs this same file in document mode: no slides, PDF pages instead, each one a "slide"
+   for ink, keyed p<number> (docs/PDF-INK.md). Everything that mode changes checks DOC, so a presentation runs
+   exactly as before. */
+var DOC=document.documentElement.hasAttribute('data-pw-doc');
 var SORTER=location.search.indexOf('view=sorter')>=0,mode='boot',loop=true;
 var stage=document.getElementById('stage');
 var slides=Array.prototype.slice.call(stage.querySelectorAll('.slide'));
@@ -20,10 +24,11 @@ function makeMeta(){return slides.map(function(s){
   els.forEach(function(e){var a=e.getAttribute('data-st'); if(a==='='){} else k++; e._k=k;});
   return {els:els,max:k,step:0,init:false};
 });}
-if(!SORTER)stampAll();
+if(!SORTER&&!DOC)stampAll();
 var meta=makeMeta();
 function $(s,r){return (r||document).querySelector(s);}
 function fit(){
+  if(DOC){scaleF=1;if(typeof onFit==='function')onFit();return;}
   var s=Math.min(innerWidth/1920,innerHeight/1080);scaleF=s;
   stage.style.transform='translate3d('+((innerWidth-1920*s)/2)+'px,'+((innerHeight-1080*s)/2)+'px,0) scale('+s+')';
   if(typeof onFit==='function')onFit();
@@ -329,6 +334,7 @@ var ITEMS={
  grid:{g:'v',i:'grid',l:'All slides',t:'All slides (G)'},
  full:{g:'v',i:'close',l:'End show',t:'End show (F)'}
 };
+if(DOC){ITEMS.clear.l='Clear this page';ITEMS.clear.t='Clear this page (C)';ITEMS.full.l='Full screen';ITEMS.full.t='Full screen (F)';}
 var ORDER_DEF=['ptr','pen','hl','laser','eraser','undo','redo','clear','hide','wb','grid','full'];
 var POS=['br','bc','bl','tr','tc','tl'];
 function defUI(){return {order:ORDER_DEF.slice(),hidden:[],tool:'pen',open:false,sink:true,sinkDelay:4,tablet:'on',vert:false,pos:'bc',tapAgain:true,dbl:true,rclick:true};}
@@ -367,7 +373,7 @@ function saveSettings(){if(mode==='boot')return;clearTimeout(saveT);saveT=setTim
 loadSettings();
 
 var wbOn=false,wy=0,prevAnnot=false,hidSave=false;
-function ikey(){return wbOn?'wb':cur;}
+function ikey(){if(DOC){if(docKey)return docKey;if(docLast&&docFind(+docLast.slice(1)))return docLast;return 'p'+docCur;}return wbOn?'wb':cur;}
 function inkMode(){return annot||wbOn;}
 var tool=UIS.tool,annot=false,inkHidden=false;
 function colorOf(t){t=t||tool;return CFG[t]&&CFG[t].c||'#fff';}
@@ -389,7 +395,7 @@ function btnHTML(id){
 var BGB='<button id="bbg" data-k="bbg" data-a="wbbg" title="Board background (B)" aria-label="Board background">';
 /* the toolbar as an ordered list of keyed parts (buttons, separators, board-background button) */
 function mainList(){
-  var L=[],pg=null,bg=false,n={},vis=UIS.order.filter(function(id){return UIS.hidden.indexOf(id)<0;});
+  var L=[],pg=null,bg=false,n={},vis=UIS.order.filter(function(id){return UIS.hidden.indexOf(id)<0&&!(DOC&&(id==='grid'||id==='wb'));});
   vis.forEach(function(id){
     var g=ITEMS[id].g;
     if(pg&&g!==pg){n[g]=(n[g]||0)+1;L.push({k:'sep'+g+n[g],h:SEPk('sep'+g+n[g])});}
@@ -397,7 +403,7 @@ function mainList(){
     if(id==='wb'){L.push({k:'bbg',h:BGB+ic('bgk')+'</button>'});bg=true;}
     L.push({k:id,h:btnHTML(id)});
   });
-  if(!bg){L.push({k:'sepbg',h:SEPk('sepbg')});L.push({k:'bbg',h:BGB+ic('bgk')+'</button>'});}
+  if(!bg&&!DOC){L.push({k:'sepbg',h:SEPk('sepbg')});L.push({k:'bbg',h:BGB+ic('bgk')+'</button>'});}
   return L;
 }
 function mainHTML(){return mainList().map(function(o){return o.h;}).join('');}
@@ -538,20 +544,54 @@ function sizeCanvases(){
   dpr=Math.min(window.devicePixelRatio||1,2);
   for(var id in cv){var c=cv[id],x=cx[id];c.width=Math.round(innerWidth*dpr);c.height=Math.round(innerHeight*dpr);
     x.setTransform(dpr*scaleF,0,0,dpr*scaleF,dpr*ox,dpr*oy);
-    if(!wbOn){x.beginPath();x.rect(0,0,1920,1080);x.clip();}}
+    if(!wbOn&&!DOC){x.beginPath();x.rect(0,0,1920,1080);x.clip();}}
   hlT.width=cv.cHL.width;hlT.height=cv.cHL.height;
-  if(!wbOn){hlX.setTransform(dpr*scaleF,0,0,dpr*scaleF,dpr*ox,dpr*oy);hlX.beginPath();hlX.rect(0,0,1920,1080);hlX.clip();}
+  if(!wbOn&&!DOC){hlX.setTransform(dpr*scaleF,0,0,dpr*scaleF,dpr*ox,dpr*oy);hlX.beginPath();hlX.rect(0,0,1920,1080);hlX.clip();}
   applyTx();
 }
-function applyTx(){var ty=dpr*(oy-scaleF*(wbOn?wy:0));for(var id in cx)cx[id].setTransform(dpr*scaleF,0,0,dpr*scaleF,dpr*ox,ty);}
+function applyTx(){if(DOC){docTx();return;}var ty=dpr*(oy-scaleF*(wbOn?wy:0));for(var id in cx)cx[id].setTransform(dpr*scaleF,0,0,dpr*scaleF,dpr*ox,ty);}
 function clearAll(){for(var id in cx){var x=cx[id];x.save();x.setTransform(1,0,0,1,0,0);x.clearRect(0,0,cv[id].width,cv[id].height);x.restore();}}
+/* ---------- document mode: where each PDF page is, from the app, after every scroll and zoom ---------- */
+var docPages=[],docCur=1,docPg=null,docKey=null,docLast=null,SCREEN={n:0,x:0,y:0,w:1920,h:1080};
+function docScaleOf(p){return p.w/1920;}
+function docFind(n){for(var i=0;i<docPages.length;i++)if(docPages[i].n===n)return docPages[i];return null;}
+function docScale(){var p=docFind(docCur);return p?docScaleOf(p):1;}
+function pageAt(x,y){for(var i=0;i<docPages.length;i++){var p=docPages[i];if(x>=p.x&&x<=p.x+p.w&&y>=p.y&&y<=p.y+p.h)return p;}return null;}
+/* the page a stroke started on, where it is now: the page may have scrolled since */
+function docLive(){return docPg&&docPg.n?docFind(docPg.n)||docPg:docPg;}
+function setPageTx(p){var s=docScaleOf(p);for(var id in cx)cx[id].setTransform(dpr*s,0,0,dpr*s,dpr*p.x,dpr*p.y);}
+function docTx(){var k=ikey(),p=(G&&docLive())||docFind(+String(k).slice(1))||docFind(docCur);if(p)setPageTx(p);}
+/* a pen down on a page draws on that page; anywhere else (the gap, the scroll bar) is left to the browser */
+function docHit(e,er){
+  if(!er&&tool==='laser'){docPg=SCREEN;docKey=null;setPageTx(SCREEN);return true;}
+  var p=pageAt(e.clientX,e.clientY);if(!p)return false;
+  docPg=p;docKey='p'+p.n;setPageTx(p);return true;
+}
+function docPt(e){var p=docLive()||SCREEN,s=docScaleOf(p);return [(e.clientX-p.x)/s,(e.clientY-p.y)/s,e.pointerType==='pen'&&e.pressure>0?e.pressure:.5];}
+function docRedraw(){
+  clearAll();
+  for(var i=0;i<docPages.length;i++){
+    var pg=docPages[i],a=ink['p'+pg.n];if(!a||!a.length)continue;
+    setPageTx(pg);
+    [cx.cPen,cx.cHL].forEach(function(x){x.save();x.beginPath();x.rect(0,0,1920,pg.h/docScaleOf(pg));x.clip();});
+    for(var j=0;j<a.length;j++){if(G&&G.st===a[j]&&a[j].k==='h'&&!G.committed)continue;if(inkSkip&&inkSkip.indexOf(a[j])>=0)continue;drawStroke(a[j]);}
+    cx.cPen.restore();cx.cHL.restore();
+  }
+  docTx();updActs();
+}
+function docLayout(pages,current){
+  docPages=pages;docCur=current;
+  if(docLast&&!docFind(+docLast.slice(1)))docLast=null;
+  if(UI)docRedraw();
+}
+function bootDoc(){mode='present';document.body.classList.remove('editing','still');document.body.classList.add('doc');poke();armSink();}
 function bbox(st){
   if(st.bb&&st.bbn===st.pts.length)return st.bb;
   var P=st.pts,x0=1e9,y0=1e9,x1=-1e9,y1=-1e9,i,m=st.w+2;
   for(i=0;i<P.length;i++){if(P[i][0]<x0)x0=P[i][0];if(P[i][0]>x1)x1=P[i][0];if(P[i][1]<y0)y0=P[i][1];if(P[i][1]>y1)y1=P[i][1];}
   st.bb=[x0-m,y0-m,x1+m,y1+m];st.bbn=P.length;return st.bb;
 }
-function onFit(){if(bgOpen)setTimeout(bgPlace,0);ox=(innerWidth-1920*scaleF)/2;oy=(innerHeight-1080*scaleF)/2;if(!UI)return;sizeCanvases();inkRedraw();if(wbOn)layoutWb();if(ovOpen)layoutOv();}
+function onFit(){if(bgOpen)setTimeout(bgPlace,0);if(DOC){ox=0;oy=0;}else{ox=(innerWidth-1920*scaleF)/2;oy=(innerHeight-1080*scaleF)/2;}if(!UI)return;sizeCanvases();inkRedraw();if(wbOn)layoutWb();if(ovOpen)layoutOv();}
 function pw(st,p){return (st.k==='h'||st.np)?st.w:Math.max(.9,st.w*(.4+1.2*p));}
 /* the template's width rule, pw(), is the same curve: thinning .6 gives .4 to 1.6 times the size */
 function outline(st,done){
@@ -584,6 +624,7 @@ function drawHL(st,c,T,X){
 function drawStroke(st){if(st.k==='h')drawHL(st);else strokeTo(cx.cPen,st);}
 function inkRedraw(){
   if(!UI)return;
+  if(DOC){docRedraw();return;}
   clearAll();
   var a=ink[ikey()]||[],top=0,bot=0;
   if(wbOn){top=wy-oy/scaleF-80;bot=wy+(innerHeight-oy)/scaleF+80;}
@@ -602,7 +643,9 @@ function fxCancel(){
 function fxLayer(cls,before){
   var c=document.createElement('canvas');c.className='fx '+cls;c.width=cv.cPen.width;c.height=cv.cPen.height;
   inkwrap.insertBefore(c,before||null);fxEls.push(c);
-  var x=c.getContext('2d');x.setTransform(dpr*scaleF,0,0,dpr*scaleF,dpr*ox,dpr*(oy-scaleF*(wbOn?wy:0)));
+  var x=c.getContext('2d');
+  if(DOC){x.setTransform(cx.cPen.getTransform());return x;}
+  x.setTransform(dpr*scaleF,0,0,dpr*scaleF,dpr*ox,dpr*(oy-scaleF*(wbOn?wy:0)));
   if(!wbOn){x.beginPath();x.rect(0,0,1920,1080);x.clip();}
   return x;
 }
@@ -611,6 +654,7 @@ function inkFx(list,mode,done){
   var pens=[],hls=[],x0=1e9,y0=1e9,x1=-1e9,y1=-1e9,els=[],i,b;
   list.forEach(function(s){(s.k==='h'?hls:pens).push(s);b=bbox(s);if(b[0]<x0)x0=b[0];if(b[1]<y0)y0=b[1];if(b[2]>x1)x1=b[2];if(b[3]>y1)y1=b[3];});
   var px=ox+scaleF*((x0+x1)/2),py=oy+scaleF*((y0+y1)/2-(wbOn?wy:0));
+  if(DOC){var M=cx.cPen.getTransform();px=(M.a*(x0+x1)/2+M.e)/dpr;py=(M.d*(y0+y1)/2+M.f)/dpr;}
   if(hls.length){var h=fxLayer('fxh',cv.cPen);hls.forEach(function(s){drawHL(s,h);});els.push(h.canvas);}
   if(pens.length){var p=fxLayer('fxp');pens.forEach(function(s){strokeTo(p,s);});els.push(p.canvas);}
   var kf,opt;
@@ -675,11 +719,12 @@ function eraseTo(x,y,g){
 var trail=[],headOn=false,lx=0,ly=0,lraf=0;
 function laserKick(){if(!lraf)lraf=requestAnimationFrame(laserTick);}
 function laserTick(){
-  lraf=0;var c=cx.cLive,now=performance.now();
-  c.clearRect(0,0,1920,1080);
+  lraf=0;var c=cx.cLive,now=performance.now(),zk=1;
+  if(DOC){c.setTransform(dpr,0,0,dpr,0,0);c.clearRect(0,0,innerWidth,innerHeight);zk=docScale();}
+  else c.clearRect(0,0,1920,1080);
   var LIFE=CFG.laser.life;
   while(trail.length&&now-trail[0][2]>LIFE)trail.shift();
-  var col=colorOf('laser'),w=sizeOf('laser');
+  var col=colorOf('laser'),w=sizeOf('laser')*zk;
   c.lineCap='round';c.lineJoin='round';c.strokeStyle=col;
   for(var i=1;i<trail.length;i++){
     var a=trail[i-1],b=trail[i],k=1-(now-b[2])/LIFE;if(k<=0)continue;
@@ -694,6 +739,7 @@ function laserTick(){
     c.fillStyle=g;c.beginPath();c.arc(lx,ly,w*1.9,0,6.2832);c.fill();
     c.fillStyle='rgba(255,255,255,.9)';c.beginPath();c.arc(lx,ly,w*.2,0,6.2832);c.fill();
   }
+  if(DOC)docTx();
   if(trail.length||headOn)lraf=requestAnimationFrame(laserTick);
 }
 function hexA(h,a){var n=parseInt(h.slice(1),16);return 'rgba('+(n>>16&255)+','+(n>>8&255)+','+(n&255)+','+a+')';}
@@ -730,7 +776,7 @@ var INTER='input,button,select,textarea,a,.op,.btn,.wsel,[data-r],[data-a]';
 function inUI(t){return !!(t&&t.closest&&t.closest('#dock,#ov,#bgpop,#cfgpop,#cpop,#setpop'));}
 function isInter(t){return !!(t&&t.closest&&t.closest(INTER));}
 function isEraserBtn(e){return e.pointerType==='pen'?!!((e.buttons&32)||e.button===5||(e.buttons&2)):(e.pointerType==='mouse'&&!!(e.buttons&2));}
-function stPt(e){return [(e.clientX-ox)/scaleF,(e.clientY-oy)/scaleF+(wbOn?wy:0),e.pointerType==='pen'&&e.pressure>0?e.pressure:.5];}
+function stPt(e){if(DOC)return docPt(e);return [(e.clientX-ox)/scaleF,(e.clientY-oy)/scaleF+(wbOn?wy:0),e.pointerType==='pen'&&e.pressure>0?e.pressure:.5];}
 var G=null,penSeen=0,swallowUntil=0,tG=null;
 function capture(e){try{document.documentElement.setPointerCapture(e.pointerId);}catch(x){}}
 function startGesture(e,er){
@@ -758,6 +804,7 @@ function endGesture(){
   else if(g.mode==='laser'){trail.push([lx,ly,performance.now(),1]);laserKick();}
   if(g.mode!=='pending')swallowUntil=performance.now()+350;
   busy_(false);
+  if(DOC){if(g.mode!=='laser'&&g.slide)docLast=g.slide;docKey=null;docPg=null;docTx();}
 }
 function moveGesture(e){
   var g=G,er=isEraserBtn(e);
@@ -786,6 +833,8 @@ document.addEventListener('pointerdown',function(e){
   if(ovOpen||inUI(e.target))return;
   var ty=e.pointerType;
   if(ty==='touch'){
+    /* a finger scrolls and pinches the PDF, which the browser does by itself */
+    if(DOC)return;
     if(performance.now()-penSeen<1200||e.width>90&&e.height>90)return; // palm rejection
     if(tG){tG.cancel=true;return;}
     cancelAnimationFrame(inr);
@@ -795,6 +844,7 @@ document.addEventListener('pointerdown',function(e){
   if(G)return;
   var er=isEraserBtn(e),drawing=(ty==='pen')||(ty==='mouse'&&inkMode()&&(e.button===0||e.button===2));
   if(ty==='mouse'&&e.button===2&&!inkMode())return;
+  if(drawing&&DOC&&!docHit(e,er))drawing=false;
   if(drawing){
     var t=e.target;
     if(ty==='pen'&&!inkMode()&&!er&&isInter(t)){ // pen on a control while tools are closed: tap = click, drag = draw
@@ -805,7 +855,7 @@ document.addEventListener('pointerdown',function(e){
     if(ty==='pen')moveRing(e,er||tool==='eraser');
     return;
   }
-  if(ty==='mouse'&&e.button===0){tG={id:e.pointerId,x:e.clientX,y:e.clientY,t:e.timeStamp,inter:isInter(e.target),cancel:false,mouse:true};}
+  if(ty==='mouse'&&e.button===0&&!DOC){tG={id:e.pointerId,x:e.clientX,y:e.clientY,t:e.timeStamp,inter:isInter(e.target),cancel:false,mouse:true};}
 },true);
 function onMove(e){
   if(mode!=='present')return;
@@ -1076,6 +1126,7 @@ addEventListener('keydown',function(e){
   if(e.ctrlKey||e.altKey||e.metaKey){keyUp(e);return;}
   if(ovOpen){ovKey(e);return;}
   var k=e.key,h=true;
+  if(DOC&&(/^(Arrow|Page|Home|End)/.test(k)||k===' '||k==='Enter'||k==='Backspace'||k==='g'||k==='G'||k==='w'||k==='W'))return;
   if(wbOn){
     if(k==='Escape'&&anyPop())closePops();
     else if(k==='Escape'||k==='w'||k==='W')setWB(false);
@@ -1565,6 +1616,7 @@ document.addEventListener('pointerup',endLg,true);document.addEventListener('poi
 applyTablet();
 if(!SORTER){buildDock();setPos(UIS.pos);UI=true;renderDock();onFit();poke();armSink();}
 var HINT='<b>Tap the logo</b> to open the toolbar &nbsp;·&nbsp; <b>Drag</b> it to move &nbsp;·&nbsp; <b>Right-click / long-press</b> for settings';
+if(DOC)window.__pwDoc={layout:docLayout,state:function(){return {tool:tool,annot:annot,key:ikey()};}};
 window.__ui={setWB:setWB,ink:ink,setTool:setTool,setAnnot:setAnnot,openOv:openOv,closeOv:closeOv,toggleDock:toggleDock,cfg:function(){return CFG;},uis:function(){return UIS;},
   state:function(){return {tool:tool,annot:annot,wb:wbOn,wy:wy,ov:ovOpen,cur:cur,step:meta[cur].step,max:meta[cur].max,open:dockOpen,vert:vert};}};
 
@@ -1699,21 +1751,21 @@ window.ns=ns;window.arrowHead=arrowHead;window.mi=mi;window.texAll=texAll;window
 
 /* ---------- ink goes to the app by slide id, which survives reordering ---------- */
 var inkDirty={},inkT=0;
-function slideId(k){return k==='wb'?'wb':(slides[k]?slides[k].getAttribute('data-id'):null);}
+function slideId(k){if(DOC)return /^p\d+$/.test(String(k))?k:null;return k==='wb'?'wb':(slides[k]?slides[k].getAttribute('data-id'):null);}
 function inkChanged(k){inkDirty[k]=1;clearTimeout(inkT);inkT=setTimeout(flushInk,300);}
 function plain(a){return (a||[]).map(function(s){return {k:s.k,c:s.c,w:s.w,op:s.op,np:!!s.np,pts:s.pts};});}
 function flushInk(){
   for(var k in inkDirty){var id=slideId(k);if(id)send('ink',{id:id,strokes:plain(ink[k])});}
   inkDirty={};
 }
-function indexOfId(id){if(id==='wb')return 'wb';for(var i=0;i<N;i++)if(slides[i].getAttribute('data-id')===id)return i;return -1;}
+function indexOfId(id){if(DOC)return /^p\d+$/.test(id)?id:-1;if(id==='wb')return 'wb';for(var i=0;i<N;i++)if(slides[i].getAttribute('data-id')===id)return i;return -1;}
 function setInk(all){
   for(var id in all){
     var k=indexOfId(id);if(k===-1)continue;
     ink[k]=all[id];
     if(SORTER&&cells[k]&&cells[k].done)paintThumbInk(k);
   }
-  if(!SORTER&&cur>=0)inkRedraw();
+  if(!SORTER&&(cur>=0||DOC))inkRedraw();
   if(!SORTER)updActs();
 }
 
@@ -2400,7 +2452,7 @@ texAll(document);
 document.body.classList.add('still','editing');
 /* load, not now: widgets.js comes after this file, and a slide's widgets start on first show */
 addEventListener('load',function(){
-  if(SORTER)bootSorter();else buildLayer();
+  if(DOC)bootDoc();else if(SORTER)bootSorter();else buildLayer();
   send('ready',{total:N});
 });
 

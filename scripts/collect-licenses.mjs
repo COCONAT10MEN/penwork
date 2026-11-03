@@ -12,6 +12,7 @@ const ROOTS = [
   "@fortune-sheet/core",
   "@corbe30/fortune-excel",
   "exceljs",
+  "pdf-lib",
 ];
 const ALLOWED = /^\(?(MIT|ISC|Apache-2\.0|BSD-[23]-Clause|0BSD|Unlicense|Zlib|BlueOak-1\.0\.0)/;
 // jszip offers a choice of two licences, and Penwork takes the MIT one.

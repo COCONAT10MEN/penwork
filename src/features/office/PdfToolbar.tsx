@@ -159,6 +159,8 @@ export function PdfToolbar({
   onStep,
   onSidebar,
   onSearch,
+  moreOpen,
+  onMore,
 }: {
   slot: HTMLElement;
   page: number;
@@ -174,6 +176,9 @@ export function PdfToolbar({
   onStep: (steps: number) => void;
   onSidebar: () => void;
   onSearch: (query: string, backwards?: boolean, again?: boolean) => void;
+  /** The ⋮ sheet with every PDF tool. */
+  moreOpen: boolean;
+  onMore: () => void;
 }) {
   return createPortal(
     <div className={styles.pdfBarTools} role="toolbar" aria-label="PDF tools">
@@ -231,6 +236,13 @@ export function PdfToolbar({
             )}
           </span>
         ) : null}
+        <IconButton
+          size="compact"
+          icon="more_vert"
+          label="PDF tools"
+          selected={moreOpen}
+          onClick={onMore}
+        />
       </Group>
     </div>,
     slot,

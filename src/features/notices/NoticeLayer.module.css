@@ -21,6 +21,13 @@
   line-height: var(--md-sys-typescale-body-medium-line-height);
   font-weight: var(--md-sys-typescale-body-medium-weight-emphasized);
 }
+.message {
+  flex: 1;
+}
+/* Buttons on it take the pointer; the empty strip around it never does. */
+.notice button {
+  pointer-events: auto;
+}
 .noticeIcon {
   color: var(--md-sys-color-on-primary);
 }

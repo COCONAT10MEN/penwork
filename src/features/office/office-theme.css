@@ -178,3 +178,61 @@
   ) {
   animation: none;
 }
+
+/* Save as PDF: a copy of the document's pages, printed alone. Paper is white with black text
+   whatever the app's theme, so these are the paper's colours, not the app's. */
+#pw-print {
+  position: fixed;
+  top: 0;
+  left: -100000px;
+}
+@media print {
+  @page {
+    margin: 0;
+  }
+  html[data-printing],
+  html[data-printing] body {
+    background: #fff !important;
+  }
+  html[data-printing] body > :not(#pw-print) {
+    display: none !important;
+  }
+  html[data-printing] #pw-print {
+    position: static;
+  }
+  #pw-print .docx-pages {
+    display: block !important;
+    gap: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    transform: none !important;
+  }
+  #pw-print .docx-pages > * {
+    margin: 0 !important;
+    box-shadow: none !important;
+    transform: none !important;
+    break-after: page;
+  }
+  #pw-print section {
+    padding: 0.5in;
+    color: #000;
+    font:
+      10pt Arial,
+      sans-serif;
+    break-after: page;
+  }
+  #pw-print h2 {
+    margin: 0 0 8pt;
+    font-size: 13pt;
+  }
+  #pw-print table {
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+  #pw-print td {
+    overflow: hidden;
+    padding: 2pt 4pt;
+    border: 0.5pt solid #bbb;
+    white-space: nowrap;
+  }
+}

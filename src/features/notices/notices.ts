@@ -2,10 +2,17 @@ import { create } from "zustand";
 
 /** What the app has to say to the user. NoticeHost and QuestionHost put it on screen. */
 
+export interface NoticeAction {
+  label: string;
+  run: () => void;
+}
+
 export interface Notice {
   id: number;
   message: string;
   icon: string;
+  /** Buttons on the notice: Open, Show in folder, Undo. It then stays up longer. */
+  actions?: NoticeAction[];
 }
 
 export interface Question {
@@ -29,8 +36,8 @@ export const useNotices = create<{ notice: Notice | null; questions: Question[] 
 let nextId = 1;
 
 /** A short message that goes away by itself. A new one replaces the last. */
-export function notify(message: string, icon = "check_circle"): void {
-  useNotices.setState({ notice: { id: nextId++, message, icon } });
+export function notify(message: string, icon = "check_circle", actions?: NoticeAction[]): void {
+  useNotices.setState({ notice: { id: nextId++, message, icon, actions } });
 }
 
 export function clearNotice(id: number): void {

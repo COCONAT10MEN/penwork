@@ -6,6 +6,7 @@ import { askGoAhead, notify, showError } from "../notices/notices";
 import { Choice, Section } from "./parts";
 import { useChoices } from "./useChoices";
 import styles from "./Settings.module.css";
+import { ToolbarSettings } from "./ToolbarSettings";
 
 export function GeneralTab() {
   const { settings, update } = useChoices();
@@ -230,12 +231,7 @@ export function PdfTab() {
           onCheckedChange={(pdfTwoPages) => update({ pdfTwoPages })}
         />
       </Section>
-      <Section
-        title="Pen and highlighter"
-        hint="PDFs use the slide toolbar, with the same tools and settings as a presentation. Change them on the toolbar itself."
-      >
-        <span />
-      </Section>
+      <ToolbarSettings />
     </div>
   );
 }

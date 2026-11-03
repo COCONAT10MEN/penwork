@@ -3,6 +3,7 @@ mod capture;
 pub mod deck;
 mod files;
 mod office;
+mod pdftools;
 mod window;
 
 use deck::saving::{self, SlideClipboard};
@@ -79,6 +80,10 @@ pub fn run() {
             office::rename_office_file,
             office::show_in_folder,
             office::open_app_folder,
+            pdftools::read_input_file,
+            pdftools::write_new_file,
+            pdftools::make_folder,
+            pdftools::print_to_pdf,
             session::open_deck,
             session::create_deck_session,
             session::add_deck_asset,

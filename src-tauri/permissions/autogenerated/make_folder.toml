@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-make-folder"
+description = "Enables the make_folder command without any pre-configured scope."
+commands.allow = ["make_folder"]
+
+[[permission]]
+identifier = "deny-make-folder"
+description = "Denies the make_folder command without any pre-configured scope."
+commands.deny = ["make_folder"]

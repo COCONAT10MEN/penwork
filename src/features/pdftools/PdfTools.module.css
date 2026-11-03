@@ -1,0 +1,361 @@
+/* The ⋮ sheet: under the bar, at the right, over the pages. */
+.sheetPlace {
+  position: absolute;
+  z-index: 6;
+  top: calc(var(--pw-pdf-top, 64px) + 10px);
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  pointer-events: none;
+}
+.sheetPlace > * {
+  pointer-events: auto;
+}
+.sheetPlace[data-hidden] {
+  visibility: hidden;
+}
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 12px;
+}
+.group {
+  display: flex;
+  flex-direction: column;
+}
+.groupTitle {
+  margin: 12px 0 2px;
+  color: var(--md-sys-color-primary);
+  font-size: var(--md-sys-typescale-label-large-size);
+  font-weight: var(--md-sys-typescale-label-large-weight-emphasized);
+  letter-spacing: 0.02em;
+}
+/* On the sheet's glass, fields are a soft tint of it rather than a dark well. */
+.panel,
+.list {
+  --md-sys-color-surface-container-lowest: color-mix(
+    in srgb,
+    var(--md-sys-color-on-surface) 7%,
+    transparent
+  );
+}
+.panel {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 16px;
+  padding-bottom: 16px;
+}
+.panel > button {
+  align-self: flex-start;
+}
+.blurb {
+  margin: 0;
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: var(--md-sys-typescale-body-medium-size);
+}
+.fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+.label {
+  color: var(--md-sys-color-on-surface);
+  font-size: var(--md-sys-typescale-label-large-size);
+  font-weight: var(--md-sys-typescale-label-large-weight);
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.note {
+  margin: 0;
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: var(--md-sys-typescale-body-small-size);
+  line-height: var(--md-sys-typescale-body-small-line-height);
+}
+.error {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: var(--md-sys-shape-corner-medium);
+  background: var(--md-sys-color-error-container);
+  color: var(--md-sys-color-on-error-container);
+  font-size: var(--md-sys-typescale-body-medium-size);
+}
+.progress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.count {
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: var(--md-sys-typescale-body-small-size);
+  font-variant-numeric: tabular-nums;
+}
+.files {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.files li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-left: 12px;
+  border-radius: var(--md-sys-shape-corner-medium);
+  background: var(--md-sys-color-surface-container-highest);
+  font-size: var(--md-sys-typescale-body-medium-size);
+}
+.files li span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Compare */
+.changes {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.change {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 4px 10px;
+  align-items: start;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: var(--md-sys-shape-corner-medium);
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface);
+  font: inherit;
+  text-align: start;
+}
+.changeKind {
+  padding: 2px 8px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+  font-size: var(--md-sys-typescale-label-small-size);
+  font-weight: var(--md-sys-typescale-label-small-weight-emphasized);
+}
+.changeKind[data-kind="added"] {
+  background: var(--md-sys-color-tertiary-container);
+  color: var(--md-sys-color-on-tertiary-container);
+}
+.changeKind[data-kind="removed"] {
+  background: var(--md-sys-color-error-container);
+  color: var(--md-sys-color-on-error-container);
+}
+.changeText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  font-size: var(--md-sys-typescale-body-small-size);
+  overflow-wrap: anywhere;
+}
+.changeText del {
+  color: var(--md-sys-color-error);
+}
+.changeText ins {
+  color: var(--md-sys-color-tertiary);
+  text-decoration: none;
+}
+.changePage {
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: var(--md-sys-typescale-label-small-size);
+  white-space: nowrap;
+}
+
+/* Signature */
+.signature {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+.pad {
+  width: 300px;
+  height: 120px;
+  border-radius: var(--md-sys-shape-corner-large);
+  /* The paper a signature is drawn on: white in both themes, like the pages. */
+  background: #fff;
+  box-shadow: inset 0 0 0 1px var(--md-sys-color-outline-variant);
+  touch-action: none;
+  cursor: crosshair;
+}
+.typedSignature {
+  margin: 0;
+  font-family: "Caveat Variable", "Caveat", cursive;
+  font-size: 40px;
+}
+
+/* Placing things on pages: over the pages, under the bar. */
+.placeLayer {
+  position: absolute;
+  z-index: 4;
+  inset: var(--pw-pdf-top, 64px) 0 0 var(--pw-pdf-left, 0px);
+  cursor: crosshair;
+  touch-action: none;
+}
+.placed {
+  position: fixed;
+  box-sizing: border-box;
+  border: 2px solid var(--md-sys-color-primary);
+  border-radius: var(--md-sys-shape-corner-extra-small);
+  background: color-mix(in srgb, var(--md-sys-color-primary) 10%, transparent);
+  pointer-events: none;
+}
+.placed[data-look="dark"] {
+  border-color: transparent;
+  background: rgb(0 0 0 / 0.85);
+}
+.placed[data-look="picture"] {
+  border-style: dashed;
+  background: transparent;
+}
+.placed img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.placed[data-draft] {
+  border-style: dashed;
+}
+.typing,
+.typed {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font-family: Helvetica, Arial, sans-serif;
+  line-height: 1.2;
+  resize: none;
+  pointer-events: auto;
+  white-space: pre-wrap;
+}
+.placeBar,
+.organizeBar {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: calc(100% - 32px);
+  padding: 8px 8px 8px 20px;
+  border-radius: var(--md-sys-shape-corner-full);
+  translate: -50% 0;
+  cursor: default;
+}
+.placeHint {
+  margin-right: 8px;
+  font-size: var(--md-sys-typescale-body-medium-size);
+  font-weight: var(--md-sys-typescale-body-medium-weight-emphasized);
+}
+
+/* Organize: every page as a card, over the PDF. */
+.organize {
+  position: absolute;
+  z-index: 5;
+  inset: var(--pw-pdf-top, 64px) 0 0 0;
+  overflow: auto;
+}
+.organizeBar {
+  position: sticky;
+  top: 12px;
+  bottom: auto;
+  z-index: 1;
+  width: max-content;
+  margin: 12px auto 0;
+  translate: none;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(176px, 1fr));
+  gap: 16px;
+  padding: 24px 32px 96px;
+  touch-action: none;
+}
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  border: 0;
+  border-radius: var(--md-sys-shape-corner-large);
+  background: transparent;
+  color: var(--md-sys-color-on-surface);
+  font: inherit;
+}
+.card[data-picked] {
+  background: color-mix(in srgb, var(--md-sys-color-primary) 22%, transparent);
+  box-shadow: inset 0 0 0 2px var(--md-sys-color-primary);
+}
+.card[data-dragging] {
+  opacity: 0.45;
+}
+.card[data-drop="before"]::before {
+  content: "";
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: -10px;
+  width: 4px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-primary);
+}
+.thumbBox {
+  display: grid;
+  place-items: center;
+  width: 150px;
+  height: 150px;
+}
+.thumb {
+  max-width: 150px;
+  max-height: 150px;
+  border-radius: 4px;
+  /* Pages are white paper in both themes. */
+  background: #fff;
+  box-shadow: 0 2px 10px rgb(0 0 0 / 0.25);
+  transition: rotate var(--md-sys-motion-spatial-default-duration)
+    var(--md-sys-motion-spatial-default-easing);
+}
+.thumb[data-blank] {
+  width: 106px;
+  height: 150px;
+}
+.cardNumber {
+  font-size: var(--md-sys-typescale-label-medium-size);
+  font-variant-numeric: tabular-nums;
+}

@@ -7,6 +7,7 @@ import { useLeaveGuard } from "../deck/useLeaveGuard";
 import { notify, showError } from "../notices/notices";
 import { EditorBoundary } from "./EditorBoundary";
 import { OfficeBar } from "./OfficeBar";
+import { saveAsPdf } from "./saveAsPdf";
 import { useOfficeThumb } from "./useOfficeThumb";
 import { pickSavePath, writeOfficeFile, type OfficeEditor, type OfficeFile } from "./officeFile";
 import "./office-theme.css";
@@ -145,6 +146,7 @@ export function OfficeView({ file }: { file: OfficeFile }) {
         onMenus={() => setMenusOpen((open) => !open)}
         onSave={() => void save()}
         onSaveAs={() => void saveAs()}
+        onSaveAsPdf={file.kind === "pdf" ? undefined : () => void saveAsPdf(file, editor.current)}
       />
       <Suspense
         fallback={

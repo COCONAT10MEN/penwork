@@ -23,5 +23,10 @@ Penwork's Word, Excel and PDF screens are built on these free, open-source proje
 - [FortuneExcel](https://github.com/Corbe30/FortuneExcel) by Corbe30, MIT
 - [ExcelJS](https://github.com/exceljs/exceljs) by Guyon Roche, MIT
 - [pdf-lib](https://github.com/Hopding/pdf-lib) by Andrew Dillon, MIT
+- [qpdf](https://github.com/qpdf/qpdf) by Jay Berkenbilt, Apache-2.0, as [qpdf-wasm](https://github.com/neslinesli93/qpdf-wasm) by Tommaso Pifferi, ISC
+- [Tesseract.js](https://github.com/naptha/tesseract.js) by Jerome Wu and Guillermo Webster, Apache-2.0, with Google's Tesseract and its language data
+- [docx](https://github.com/dolanmiu/docx) by Dolan Miu, MIT
+- [PptxGenJS](https://github.com/gitbrent/PptxGenJS) by Brent Ely, MIT
+- [jsdiff](https://github.com/kpdecker/jsdiff) by Kevin Decker, BSD-3-Clause
 
 Everything else Penwork uses is listed in [`THIRD_PARTY.md`](THIRD_PARTY.md). The full licence texts are in [`LICENSES/`](LICENSES/).

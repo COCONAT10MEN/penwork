@@ -31,7 +31,13 @@ Licenses below were checked against the installed packages (`package.json` / `LI
 | FortuneSheet (`@fortune-sheet/react`, `@fortune-sheet/core`) | Suzhou Ruilisi Technology Co., Ltd | MIT | The spreadsheet editor |
 | FortuneExcel (`@corbe30/fortune-excel`) | Corbe30 (Shashank Chauhan) and contributors | MIT | Reading and writing Excel files for FortuneSheet |
 | ExcelJS (`exceljs`) | Guyon Roche and contributors | MIT | Writing `.xlsx` files |
-| pdf-lib (`pdf-lib`) | Andrew Dillon and contributors | MIT | Writing ink into PDFs as real annotations |
+| pdf-lib (`pdf-lib`) | Andrew Dillon and contributors | MIT | Writing ink into PDFs as real annotations; the PDF tools (pages, stamps, flatten, forms) |
+| qpdf, compiled to WebAssembly (`@neslinesli93/qpdf-wasm`) | Jay Berkenbilt and contributors (qpdf, Apache-2.0); WebAssembly build by Tommaso Pifferi (ISC) | Apache-2.0 / ISC | PDF passwords, repair and packing files smaller |
+| Tesseract.js (`tesseract.js`, `tesseract.js-core`) | Jerome Wu, Guillermo Webster and contributors; Tesseract by Google and contributors | Apache-2.0 | OCR, on this computer |
+| Tesseract language data (`@tesseract.js-data/eng`, `@tesseract.js-data/ara`) | Google (tessdata_best); packaged by Balearica | Apache-2.0 data, MIT package | English and Arabic for OCR |
+| docx (`docx`) | Dolan Miu and contributors | MIT | PDF to Word |
+| PptxGenJS (`pptxgenjs`) | Brent Ely and contributors | MIT | PDF to PowerPoint |
+| jsdiff (`diff`) | Kevin Decker and contributors | BSD-3-Clause | Compare PDFs |
 
 The packages those six bring in (ProseMirror, HarfBuzz, lodash, dayjs and others), and the
 full licence text of every one, are in [`LICENSES/office-libraries.txt`](LICENSES/office-libraries.txt).

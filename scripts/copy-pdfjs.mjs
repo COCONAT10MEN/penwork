@@ -24,3 +24,20 @@ writeFileSync(
   `${reader}/freehand.js`,
   `(function(){var module={exports:{}},exports=module.exports;\n${freehand}\n;window.__pf=module.exports;})();`,
 );
+
+// The PDF tools: qpdf (passwords, repair, packing) and Tesseract for OCR, with its English and
+// Arabic data. Only the one OCR engine build WebView2 uses (SIMD, LSTM) ships.
+mkdirSync("public/qpdf", { recursive: true });
+cpSync("node_modules/@neslinesli93/qpdf-wasm/dist/qpdf.wasm", "public/qpdf/qpdf.wasm");
+mkdirSync("public/ocr/lang", { recursive: true });
+cpSync("node_modules/tesseract.js/dist/worker.min.js", "public/ocr/worker.min.js");
+cpSync(
+  "node_modules/tesseract.js-core/tesseract-core-simd-lstm.wasm.js",
+  "public/ocr/tesseract-core-simd-lstm.wasm.js",
+);
+for (const lang of ["eng", "ara"]) {
+  cpSync(
+    `node_modules/@tesseract.js-data/${lang}/4.0.0_best_int/${lang}.traineddata.gz`,
+    `public/ocr/lang/${lang}.traineddata.gz`,
+  );
+}

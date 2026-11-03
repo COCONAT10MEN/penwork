@@ -9,6 +9,7 @@ import { Choice, Section } from "./parts";
 import { useChoices } from "./useChoices";
 import { DEFAULT_SETTINGS } from "./settingsFile";
 import styles from "./Settings.module.css";
+import { ToolbarSettings } from "./ToolbarSettings";
 
 export function AnimationsTab() {
   const { settings, update } = useChoices();
@@ -122,6 +123,7 @@ export function PresentationsTab() {
           onCheckedChange={(newKeepInk) => update({ newKeepInk })}
         />
       </Section>
+      <ToolbarSettings />
       <ToolbarSection />
     </div>
   );

@@ -6,7 +6,10 @@ import { toPoints, toUnits, type PointStroke } from "../../lib/pdfInk";
 import type { Fit } from "../../lib/pdfZoom";
 import { LoadingIndicator } from "../../ui";
 import { useSettings } from "../settings/settingsStore";
-import { showError } from "../notices/notices";
+import { askGoAhead, showError } from "../notices/notices";
+import { runTool } from "../pdftools/client";
+import type { Lock } from "../pdftools/types";
+import { unlockIfNeeded, usePdfTools } from "../pdftools/usePdfTools";
 import type { OfficeEditorProps } from "./officeFile";
 import { PdfSidebar } from "./PdfSidebar";
 import { PdfToolbar } from "./PdfToolbar";
@@ -48,6 +51,11 @@ export default function PdfEditor({
   onBarGlass,
 }: OfficeEditorProps) {
   const { bytes } = file;
+  // What pdf.js shows: the file without its password, or as a tool changed it.
+  const [source, setSource] = useState<Uint8Array | null>(null);
+  const [lock, setLock] = useState<Lock | null>(null);
+  // Where the reader was, to come back to after a tool changes the file.
+  const keepPage = useRef(0);
   const settings = useSettings((s) => s.settings);
   const { darkPages, pdfZoom, pdfTwoPages, pdfHideBar } = settings;
   const [parts, setParts] = useState<Loaded | null>(null);
@@ -91,10 +99,30 @@ export default function PdfEditor({
     if (reader.failed) showError("The PDF reader couldn't start. Try opening the file again.");
   }, [reader.failed]);
 
+  // A file with a password is opened with it first.
   useEffect(() => {
-    if (!bytes || !box) return;
+    if (!bytes) return;
+    let gone = false;
+    unlockIfNeeded(bytes, file.name)
+      .then((open) => {
+        if (gone) return;
+        if (!open) return showError("Without its password this PDF can't be shown.", "Not opened");
+        setLock(open.lock);
+        setSource(open.bytes);
+      })
+      .catch(() => !gone && setSource(bytes));
+    return () => {
+      gone = true;
+    };
+  }, [bytes, file.name]);
+
+  useEffect(() => {
+    if (!source || !box) return;
+    const bytes = source;
+    const back = keepPage.current;
     const quit = new AbortController();
     let opened: { destroy: () => Promise<void> } | null = null;
+    let shown: PDFViewer | null = null;
 
     void (async () => {
       const [{ pdfjs, viewer: kit }, taken] = await Promise.all([loadPdf(), takeInk(bytes)]);
@@ -114,9 +142,11 @@ export default function PdfEditor({
         ...(darkPages ? { pageColors: DARK_PAGE } : {}),
       };
       const viewer = new kit.PDFViewer(options);
+      shown = viewer;
       links.setViewer(viewer);
       bus.on("pagesinit", () => {
         viewer.spreadMode = pdfTwoPages ? 1 : 0;
+        if (back > 1) showPage(viewer, Math.min(back, viewer.pagesCount));
       });
       bus.on("pagechanging", (e: { pageNumber: number }) => setPage(e.pageNumber));
       bus.on("updatefindmatchescount", (e: { matchesCount: { current: number; total: number } }) =>
@@ -143,46 +173,69 @@ export default function PdfEditor({
         const view = await viewOf(document, Number(number));
         ink[`p${number}`] = strokes.map((stroke) => toUnits(stroke, view));
       }
-      if (!quit.signal.aborted && Object.keys(ink).length > 0) reader.setInk(ink);
-    })().catch((error: unknown) => {
-      const locked = error instanceof Error && error.name === "PasswordException";
-      showError(
-        locked
-          ? "This PDF has a password, which Penwork can't open yet."
-          : "This PDF couldn't be opened.",
-      );
+      // After a tool, the ink moves with its pages, and pages without any are cleared.
+      if (!quit.signal.aborted && (back > 0 || Object.keys(ink).length > 0)) reader.setInk(ink);
+    })().catch(async (error: unknown) => {
+      if (quit.signal.aborted) return;
+      const yes = await askGoAhead({
+        title: "This PDF couldn't be opened",
+        text: "It may be damaged. Penwork can try to rebuild it; the file itself isn't changed unless you save.",
+        ok: "Try to repair",
+        cancel: "Not now",
+        icon: "build",
+      });
+      if (!yes) return;
+      try {
+        setSource(await runTool("repair", [bytes]));
+        changed.current();
+      } catch {
+        showError("It's too damaged to repair.");
+      }
+      void error;
     });
 
     return () => {
       quit.abort();
       setParts(null);
+      // The old viewer lets go of its pages and stops adding any, before the next one starts.
+      shown?.setDocument(null as unknown as PDFDocumentProxy);
+      box.querySelector(".pdfViewer")?.replaceChildren();
       void opened?.destroy();
     };
     // reader.setInk only posts to the page, which `box` already stands for.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bytes, box, darkPages, pdfTwoPages]);
+  }, [source, box, darkPages, pdfTwoPages]);
+
+  // The file as shown (with any form filled in), and then the ink on top as PDF ink.
+  const asSaved = async () => {
+    if (!parts) return null;
+    const shown = await parts.document.saveDocument();
+    const pages: Record<number, PointStroke[]> = {};
+    for (const [key, strokes] of Object.entries(reader.ink.current)) {
+      const number = Number(key.slice(1));
+      if (!strokes.length || !number) continue;
+      const view = await viewOf(parts.document, number);
+      pages[number] = strokes.map((stroke) => toPoints(stroke, view));
+    }
+    return putInk(shown, pages);
+  };
 
   useEffect(() => {
     handleRef.current = {
-      // The file as shown (with any form filled in), and then the ink on top as PDF ink.
+      // With its password put back on, when it has one.
       fileBytes: async () => {
-        if (!parts) return null;
-        const shown = await parts.document.saveDocument();
-        const pages: Record<number, PointStroke[]> = {};
-        for (const [key, strokes] of Object.entries(reader.ink.current)) {
-          const number = Number(key.slice(1));
-          if (!strokes.length || !number) continue;
-          const view = await viewOf(parts.document, number);
-          pages[number] = strokes.map((stroke) => toPoints(stroke, view));
-        }
-        return putInk(shown, pages);
+        const plain = await asSaved();
+        if (!plain || !lock) return plain;
+        return runTool("protect", [plain, lock.password, "", lock.allow]);
       },
       saved: () => parts?.document.annotationStorage.resetModified(),
     };
     return () => {
       handleRef.current = null;
     };
-  }, [handleRef, parts, reader.ink]);
+    // asSaved reads parts and the ink, which are listed.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [handleRef, parts, reader.ink, lock]);
 
   const search = (text: string, findPrevious = false, again = false) => {
     setQuery(text);
@@ -225,6 +278,24 @@ export default function PdfEditor({
   const goTo = (number: number) => {
     if (parts) showPage(parts.viewer, number);
   };
+
+  const tools = usePdfTools({
+    name: file.name,
+    path: file.path,
+    doc: parts?.document ?? null,
+    viewer: parts?.viewer ?? null,
+    frame,
+    page,
+    current: asSaved,
+    show: (next) => {
+      keepPage.current = page;
+      setSource(next);
+    },
+    changed: () => changed.current(),
+    goTo,
+    lock,
+    setLock,
+  });
 
   return (
     <div
@@ -273,8 +344,11 @@ export default function PdfEditor({
           onStep={zoom.step}
           onSidebar={toggleSidebar}
           onSearch={search}
+          moreOpen={tools.open}
+          onMore={() => tools.setOpen(!tools.open)}
         />
       )}
+      {tools.layers}
     </div>
   );
 }

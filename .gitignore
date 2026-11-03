@@ -27,3 +27,5 @@ Thumbs.db
 *.log
 tests/parity/out
 public/reader/
+public/qpdf/
+public/ocr/

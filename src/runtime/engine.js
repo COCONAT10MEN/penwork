@@ -334,11 +334,11 @@ var ITEMS={
  grid:{g:'v',i:'grid',l:'All slides',t:'All slides (G)'},
  full:{g:'v',i:'close',l:'End show',t:'End show (F)'}
 };
-if(DOC){ITEMS.clear.l='Clear this page';ITEMS.clear.t='Clear this page (C)';ITEMS.ptr.t='Pointer — select text, follow links (Esc) · Right-click: toolbar settings';}
+if(DOC){ITEMS.clear.l='Clear this page';ITEMS.clear.t='Clear this page (C)';ITEMS.ptr.t='Pointer — select text, follow links (Esc)';}
 /* on a PDF there are no slides to see all of, no whiteboard, no show to end, and the ink is always shown */
 function here(id){return !DOC||(id!=='grid'&&id!=='wb'&&id!=='full'&&id!=='hide');}
-/* the toolbar settings open from the logo in a show; on a PDF, where the tools are always out, from the pointer */
-function setAnchor(){return (DOC&&document.getElementById('bptr'))||document.getElementById('logo');}
+/* on a PDF the toolbar settings are in the app's Settings; tool popovers still open from the tools */
+function setAnchor(){return document.getElementById('logo');}
 var ORDER_DEF=['ptr','pen','hl','laser','eraser','undo','redo','clear','hide','wb','grid','full'];
 var POS=['br','bc','bl','tr','tc','tl'];
 function defUI(){return {order:ORDER_DEF.slice(),hidden:[],tool:'pen',open:false,sink:true,sinkDelay:4,tablet:'on',vert:false,pos:'bc',tapAgain:true,dbl:true,rclick:true};}
@@ -991,7 +991,7 @@ dock.addEventListener('contextmenu',function(e){
   e.preventDefault();e.stopPropagation();
   var b=e.target.closest('button[data-a]');if(!b)return;
   var a=b.getAttribute('data-a');
-  if(a==='logo'||(DOC&&a==='ptr')){if(setOpen&&performance.now()-setAt<1000)return;setPop(!setOpen);}   /* a long-press already opened it */
+  if(a==='logo'){if(setOpen&&performance.now()-setAt<1000)return;setPop(!setOpen);}   /* a long-press already opened it */
   else if(a==='tool'&&UIS.rclick&&!b.classList.contains('dis')){closeOther();openToolCfg(b.getAttribute('data-v'),b);poke();}
 });
 function closeOther(){if(setOpen)setPop(false);if(bgOpen)bgPop(false);}

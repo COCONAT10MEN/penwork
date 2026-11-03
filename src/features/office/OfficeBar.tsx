@@ -72,6 +72,7 @@ export function OfficeBar({
   onMenus,
   onSave,
   onSaveAs,
+  onSaveAsPdf,
 }: {
   name: string;
   status: string;
@@ -90,6 +91,8 @@ export function OfficeBar({
   onMenus: () => void;
   onSave: () => void;
   onSaveAs: () => void;
+  /** Word and spreadsheets: a PDF of the document, beside it. */
+  onSaveAsPdf?: () => void;
 }) {
   const fullScreen = useFullScreen();
   const reduce = useReduceMotion();
@@ -147,7 +150,12 @@ export function OfficeBar({
           onClick={onSave}
           menuLabel="More ways to save"
           menuMaterial="glass"
-          items={[{ label: "Save as", icon: "save_as", onSelect: onSaveAs }]}
+          items={[
+            { label: "Save as", icon: "save_as", onSelect: onSaveAs },
+            ...(onSaveAsPdf
+              ? [{ label: "Save as PDF", icon: "picture_as_pdf", onSelect: onSaveAsPdf }]
+              : []),
+          ]}
         />
       </Surface>
     </motion.div>

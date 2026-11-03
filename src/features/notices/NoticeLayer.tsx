@@ -7,6 +7,8 @@ import { TextMenu } from "./TextMenu";
 import styles from "./NoticeLayer.module.css";
 
 const NOTICE_MS = 3000;
+// Long enough to read it and reach a button.
+const ACTION_MS = 8000;
 
 function NoticeHost() {
   const notice = useNotices((s) => s.notice);
@@ -16,7 +18,10 @@ function NoticeHost() {
 
   useEffect(() => {
     if (!notice) return;
-    const timer = setTimeout(() => clearNotice(notice.id), NOTICE_MS);
+    const timer = setTimeout(
+      () => clearNotice(notice.id),
+      notice.actions?.length ? ACTION_MS : NOTICE_MS,
+    );
     return () => clearTimeout(timer);
   }, [notice]);
 
@@ -51,7 +56,20 @@ function NoticeHost() {
               >
                 <Icon name={notice.icon} size={20} filled />
               </Shape>
-              {notice.message}
+              <span className={styles.message}>{notice.message}</span>
+              {notice.actions?.map((action) => (
+                <Button
+                  key={action.label}
+                  variant="text"
+                  size="small"
+                  onClick={() => {
+                    clearNotice(notice.id);
+                    action.run();
+                  }}
+                >
+                  {action.label}
+                </Button>
+              ))}
             </Surface>
           </motion.div>
         )}

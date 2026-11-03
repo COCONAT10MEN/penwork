@@ -114,3 +114,22 @@
   color: var(--pw-glass-on-variant);
   text-align: end;
 }
+
+/* The annotation toolbar's buttons: shown or not, and their order. */
+.buttonList {
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.buttonRow {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.buttonRow > :first-child {
+  flex: 1;
+}

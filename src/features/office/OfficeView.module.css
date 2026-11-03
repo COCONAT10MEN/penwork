@@ -404,3 +404,29 @@
 .word :global(.docx-editor) {
   background: transparent !important;
 }
+/* The draw button stays put while the two groups of tools change places beside it. */
+.pdfBarTools {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.toolSlot {
+  display: inline-flex;
+  align-items: center;
+}
+.markTool {
+  position: relative;
+  display: inline-flex;
+}
+/* The tool's colour, as the slide toolbar shows it under each pen. */
+.markColour {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  width: 14px;
+  height: 3px;
+  border-radius: var(--md-sys-shape-corner-full);
+  translate: -50% 0;
+  pointer-events: none;
+}

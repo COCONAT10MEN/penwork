@@ -51,6 +51,7 @@ export default function PdfEditor({
   const [parts, setParts] = useState<Loaded | null>(null);
   const [page, setPage] = useState(1);
   const [sidebar, setSidebar] = useState(false);
+  const [markup, setMarkup] = useState(false);
   const [query, setQuery] = useState("");
   const [matches, setMatches] = useState<{ current: number; total: number } | null>(null);
   const changed = useRef(onChange);
@@ -252,6 +253,16 @@ export default function PdfEditor({
           sidebar={sidebar}
           query={query}
           matches={matches}
+          markup={markup}
+          docState={reader.docState}
+          onMarkup={() => {
+            // Drawing starts with the pen, and leaving puts the pointer back for reading.
+            reader.use(markup ? "ptr" : (reader.docState?.tool ?? "pen"));
+            setMarkup(!markup);
+          }}
+          onUse={reader.use}
+          onAct={reader.act}
+          onSet={reader.set}
           onPage={goTo}
           onFit={zoom.chooseFit}
           onScale={zoom.chooseScale}

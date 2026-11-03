@@ -486,6 +486,7 @@ function setIc(b,n,ani){
 function updActs(){
   var k=ikey(),h=hist[k],r=redoS[k],u=document.getElementById('bundo'),d=document.getElementById('bredo'),c=document.getElementById('bclear');
   if(u)u.classList.toggle('dis',!(h&&h.length));if(d)d.classList.toggle('dis',!(r&&r.length));if(c)c.classList.toggle('dis',!hasInk());
+  if(DOC)docReport();
 }
 function renderDock(ani){
   if(!document.getElementById('shell'))buildDock();
@@ -525,13 +526,13 @@ var busyT=0;
 function busy_(on){clearTimeout(busyT);if(on)dock.classList.add('busy');else busyT=setTimeout(function(){dock.classList.remove('busy');},450);}
 
 function setTool(t,quiet){
-  tool=t;trail=[];headOn=false;renderDock();updRing();
+  tool=t;trail=[];headOn=false;renderDock();updRing();if(DOC)docReport();
   if(!quiet)toast('<b>'+TOOLS.filter(function(x){return x[0]===t;})[0][1].replace(/ \(.\)/,'')+'</b>',1100);
 }
 function setAnnot(on){
   if(!on&&wbOn)on=true;
   annot=!!on;if(!annot){trail=[];headOn=false;hideRing();closePops();}
-  renderDock(true);poke();
+  renderDock(true);poke();if(DOC)docReport();
 }
 
 /* ---------- ink data ---------- */
@@ -584,7 +585,34 @@ function docLayout(pages,current){
   if(docLast&&!docFind(+docLast.slice(1)))docLast=null;
   if(UI)docRedraw();
 }
-function bootDoc(){mode='present';document.body.classList.remove('editing','still');document.body.classList.add('doc');poke();armSink();}
+/* In document mode the tools live in the app's top bar, so it is told what they look like now */
+var docSent='';
+function docReport(){
+  var k=ikey(),h=hist[k],r=redoS[k];
+  var st={tool:tool,annot:annot,hidden:inkHidden,undo:!!(h&&h.length),redo:!!(r&&r.length),clear:hasInk(),cfg:CFG,col:COL,sz:SZ,rng:RNG};
+  var j=JSON.stringify(st);if(j===docSent)return;docSent=j;send('docState',st);
+}
+function docUse(t){
+  closePops();
+  if(t==='ptr'){setAnnot(false);}else if(TOOLS.some(function(x){return x[0]===t;})){setTool(t,true);setAnnot(true);}
+  docReport();
+}
+function docAct(a){
+  if(a==='undo')undo();else if(a==='redo')redo();else if(a==='clear')clearInk();
+  else if(a==='hide'){var B=document.body;B.classList.add('inkt');clearTimeout(inkTT);inkTT=setTimeout(function(){B.classList.remove('inkt');},520);inkHidden=!inkHidden;B.classList.toggle('inkhide',inkHidden);renderDock();}
+  docReport();
+}
+/* a tool's settings from the app's pop-over: checked the same way as anything loaded */
+function docSet(t,patch){
+  if(!CFG[t]||!patch)return;
+  if(patch.reset){CFG[t]=defCfg()[t];}
+  else{
+    if(typeof patch.c==='string'&&/^#[0-9a-f]{6}$/i.test(patch.c)){patch.c=patch.c.toLowerCase();if(patch.custom)addCustom(t,patch.c);}
+    delete patch.custom;assign(CFG[t],patch);
+  }
+  fixAll();renderDock();saveSettings();docReport();
+}
+function bootDoc(){mode='present';document.body.classList.remove('editing','still');document.body.classList.add('doc');poke();armSink();docReport();}
 function bbox(st){
   if(st.bb&&st.bbn===st.pts.length)return st.bb;
   var P=st.pts,x0=1e9,y0=1e9,x1=-1e9,y1=-1e9,i,m=st.w+2;
@@ -1616,7 +1644,7 @@ document.addEventListener('pointerup',endLg,true);document.addEventListener('poi
 applyTablet();
 if(!SORTER){buildDock();setPos(UIS.pos);UI=true;renderDock();onFit();poke();armSink();}
 var HINT='<b>Tap the logo</b> to open the toolbar &nbsp;·&nbsp; <b>Drag</b> it to move &nbsp;·&nbsp; <b>Right-click / long-press</b> for settings';
-if(DOC)window.__pwDoc={layout:docLayout,state:function(){return {tool:tool,annot:annot,key:ikey()};}};
+if(DOC)window.__pwDoc={layout:docLayout,use:docUse,act:docAct,set:docSet,state:function(){return {tool:tool,annot:annot,key:ikey()};}};
 window.__ui={setWB:setWB,ink:ink,setTool:setTool,setAnnot:setAnnot,openOv:openOv,closeOv:closeOv,toggleDock:toggleDock,cfg:function(){return CFG;},uis:function(){return UIS;},
   state:function(){return {tool:tool,annot:annot,wb:wbOn,wy:wy,ov:ovOpen,cur:cur,step:meta[cur].step,max:meta[cur].max,open:dockOpen,vert:vert};}};
 

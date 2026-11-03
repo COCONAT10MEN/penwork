@@ -1,7 +1,12 @@
-import { useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
+import { Children, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { zoomLabel, type Fit } from "../../lib/pdfZoom";
+import { useReduceMotion, useSpring } from "../../theme/motion";
 import { IconButton, Menu, RollingNumber } from "../../ui";
+import { PdfMarkupTools } from "./PdfMarkupTools";
+import { useToolArrival } from "./toolMotion";
+import type { DocState, ToolId } from "./useReader";
 import { cx } from "../../ui/cx";
 import styles from "./OfficeView.module.css";
 
@@ -111,6 +116,45 @@ function ZoomControl({
   );
 }
 
+/** One group of the bar's tools. The group arriving rises in, one tool after another. */
+function Group({
+  children,
+  label,
+  wrap = true,
+}: {
+  children: ReactNode;
+  label: string;
+  /** Off when the children arrive one by one themselves. */
+  wrap?: boolean;
+}) {
+  const reduce = useReduceMotion();
+  const fade = useSpring("effectsFast");
+  const arrive = useToolArrival();
+  return (
+    <motion.div
+      className={styles.pdfTools}
+      role="group"
+      aria-label={label}
+      initial="out"
+      animate="in"
+      exit="gone"
+      variants={{
+        out: {},
+        in: { transition: { staggerChildren: reduce ? 0 : 0.022 } },
+        gone: { opacity: 0, y: reduce ? 0 : -10, transition: fade },
+      }}
+    >
+      {wrap
+        ? Children.toArray(children).map((child, i) => (
+            <motion.span key={i} className={styles.toolSlot} variants={arrive}>
+              {child}
+            </motion.span>
+          ))
+        : children}
+    </motion.div>
+  );
+}
+
 export function PdfToolbar({
   slot,
   page,
@@ -120,6 +164,12 @@ export function PdfToolbar({
   sidebar,
   query,
   matches,
+  markup,
+  docState,
+  onMarkup,
+  onUse,
+  onAct,
+  onSet,
   onPage,
   onFit,
   onScale,
@@ -135,6 +185,13 @@ export function PdfToolbar({
   sidebar: boolean;
   query: string;
   matches: { current: number; total: number } | null;
+  /** Drawing: the bar shows the slide toolbar's tools instead of the reading ones. */
+  markup: boolean;
+  docState: DocState | null;
+  onMarkup: () => void;
+  onUse: (tool: ToolId | "ptr") => void;
+  onAct: (action: "undo" | "redo" | "clear" | "hide") => void;
+  onSet: (tool: ToolId, patch: Record<string, unknown>) => void;
   onPage: (page: number) => void;
   onFit: (fit: Fit) => void;
   onScale: (scale: number) => void;
@@ -142,62 +199,76 @@ export function PdfToolbar({
   onSidebar: () => void;
   onSearch: (query: string, backwards?: boolean, again?: boolean) => void;
 }) {
-  return (
-    <>
-      {createPortal(
-        <div className={styles.pdfTools} role="toolbar" aria-label="PDF tools">
-          <IconButton
-            size="compact"
-            icon="side_navigation"
-            label="Pages and contents"
-            selected={sidebar}
-            onClick={onSidebar}
-          />
-          <span className={styles.pdfDivider} />
-          <IconButton
-            size="compact"
-            icon="keyboard_arrow_up"
-            label="Previous page"
-            disabled={page <= 1}
-            onClick={() => onPage(page - 1)}
-          />
-          <PageBox page={page} pages={pages} onPage={onPage} />
-          <IconButton
-            size="compact"
-            icon="keyboard_arrow_down"
-            label="Next page"
-            disabled={page >= pages}
-            onClick={() => onPage(page + 1)}
-          />
-          <span className={styles.pdfDivider} />
-          <ZoomControl scale={scale} fit={fit} onFit={onFit} onScale={onScale} onStep={onStep} />
-          <span className={styles.pdfDivider} />
-          <input
-            className={styles.pdfFind}
-            type="search"
-            value={query}
-            placeholder="Find"
-            aria-label="Find in this PDF"
-            onChange={(e) => onSearch(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") onSearch(query, e.shiftKey, true);
-            }}
-          />
-          {query && (
-            <span className={styles.pdfPage} aria-live="polite">
-              {matches && matches.total > 0 ? (
-                <>
-                  <RollingNumber value={String(matches.current)} /> of{" "}
-                  <RollingNumber value={String(matches.total)} />
-                </>
-              ) : (
-                "None"
-              )}
-            </span>
-          )}
-        </div>,
-        slot,
-      )}
-    </>
+  return createPortal(
+    <div className={styles.pdfBarTools} role="toolbar" aria-label="PDF tools">
+      <IconButton
+        size="compact"
+        icon={markup ? "check" : "draw"}
+        label={markup ? "Done drawing" : "Draw on the PDF"}
+        selected={markup}
+        onClick={onMarkup}
+      />
+      <span className={styles.pdfDivider} />
+      <AnimatePresence mode="popLayout" initial={false}>
+        {markup && docState ? (
+          <Group key="markup" label="Drawing tools" wrap={false}>
+            <PdfMarkupTools state={docState} onUse={onUse} onAct={onAct} onSet={onSet} />
+          </Group>
+        ) : (
+          <Group key="reading" label="Reading tools">
+            <IconButton
+              size="compact"
+              icon="side_navigation"
+              label="Pages and contents"
+              selected={sidebar}
+              onClick={onSidebar}
+            />
+            <span className={styles.pdfDivider} />
+            <IconButton
+              size="compact"
+              icon="keyboard_arrow_up"
+              label="Previous page"
+              disabled={page <= 1}
+              onClick={() => onPage(page - 1)}
+            />
+            <PageBox page={page} pages={pages} onPage={onPage} />
+            <IconButton
+              size="compact"
+              icon="keyboard_arrow_down"
+              label="Next page"
+              disabled={page >= pages}
+              onClick={() => onPage(page + 1)}
+            />
+            <span className={styles.pdfDivider} />
+            <ZoomControl scale={scale} fit={fit} onFit={onFit} onScale={onScale} onStep={onStep} />
+            <span className={styles.pdfDivider} />
+            <input
+              className={styles.pdfFind}
+              type="search"
+              value={query}
+              placeholder="Find"
+              aria-label="Find in this PDF"
+              onChange={(e) => onSearch(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") onSearch(query, e.shiftKey, true);
+              }}
+            />
+            {query ? (
+              <span className={styles.pdfPage} aria-live="polite">
+                {matches && matches.total > 0 ? (
+                  <>
+                    <RollingNumber value={String(matches.current)} /> of{" "}
+                    <RollingNumber value={String(matches.total)} />
+                  </>
+                ) : (
+                  "None"
+                )}
+              </span>
+            ) : null}
+          </Group>
+        )}
+      </AnimatePresence>
+    </div>,
+    slot,
   );
 }

@@ -18,7 +18,29 @@ export interface EngineStroke {
 }
 export type PageInk = Record<string, EngineStroke[]>;
 
+export type ToolId = "pen" | "hl" | "laser" | "eraser";
+
+/** What the slide toolbar looks like now, as the engine reports it for the top bar. */
+export interface DocState {
+  tool: ToolId;
+  annot: boolean;
+  hidden: boolean;
+  undo: boolean;
+  redo: boolean;
+  clear: boolean;
+  cfg: Record<
+    ToolId,
+    { c?: string; w: number; op?: number; life?: number; press?: boolean; cust?: string[] }
+  >;
+  col: Partial<Record<ToolId, string[]>>;
+  sz: Record<ToolId, number[]>;
+  rng: Record<ToolId, [number, number, number]>;
+}
+
 interface DocApi {
+  use: (tool: string) => void;
+  act: (action: string) => void;
+  set: (tool: string, patch: Record<string, unknown>) => void;
   layout: (
     pages: { n: number; x: number; y: number; w: number; h: number }[],
     current: number,
@@ -34,6 +56,7 @@ export function useReader(onInk: (ink: PageInk) => void) {
   const [frame, setFrame] = useState<HTMLIFrameElement | null>(null);
   const [box, setBox] = useState<HTMLDivElement | null>(null);
   const [failed, setFailed] = useState(false);
+  const [docState, setDocState] = useState<DocState | null>(null);
   const ink = useRef<PageInk>({});
   const report = useRef(onInk);
   useEffect(() => {
@@ -93,7 +116,8 @@ export function useReader(onInk: (ink: PageInk) => void) {
         });
         if (Object.keys(ink.current).length > 0) post("ink", { slides: ink.current });
       } else if (type === "toolbar") {
-        saveToolbar(payload.settings as Record<string, unknown>);
+        // The settings are the whole message, as from a presentation (see lib/deck/bridge).
+        saveToolbar(payload);
       } else if (type === "exportToolbar") {
         void exportToolbar(String(payload.text));
       } else if (type === "importToolbar") {
@@ -101,6 +125,8 @@ export function useReader(onInk: (ink: PageInk) => void) {
       } else if (type === "end" && isTauri()) {
         const win = getCurrentWindow();
         void win.isFullscreen().then((on) => win.setFullscreen(!on));
+      } else if (type === "docState") {
+        setDocState(payload as unknown as DocState);
       } else if (type === "ink" && typeof payload.id === "string") {
         ink.current = { ...ink.current, [payload.id]: payload.strokes as EngineStroke[] };
         report.current(ink.current);
@@ -136,7 +162,14 @@ export function useReader(onInk: (ink: PageInk) => void) {
     setBox(scroller);
   };
 
-  return { frame, box, failed, onLoad, setInk, ink };
+  const api = () => (frame?.contentWindow as (Window & { __pwDoc?: DocApi }) | null)?.__pwDoc;
+  const use = (tool: ToolId | "ptr") => api()?.use(tool);
+  const act = (action: "undo" | "redo" | "clear" | "hide") => api()?.act(action);
+  // A plain copy: the engine keeps what it is given, and nothing from this page may be shared.
+  const set = (tool: ToolId, patch: Record<string, unknown>) =>
+    api()?.set(tool, JSON.parse(JSON.stringify(patch)) as Record<string, unknown>);
+
+  return { frame, box, failed, onLoad, setInk, ink, docState, use, act, set };
 }
 
 /**

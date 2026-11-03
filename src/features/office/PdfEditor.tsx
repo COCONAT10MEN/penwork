@@ -1,12 +1,17 @@
 import type { PDFDocumentProxy } from "pdfjs-dist";
 import type { EventBus, PDFFindController, PDFViewer } from "pdfjs-dist/web/pdf_viewer.mjs";
 import { useEffect, useRef, useState } from "react";
+import type { Fit } from "../../lib/pdfZoom";
 import { LoadingIndicator } from "../../ui";
 import { useSettings } from "../settings/settingsStore";
 import { showError } from "../notices/notices";
 import type { OfficeEditorProps } from "./officeFile";
+import { PdfSidebar } from "./PdfSidebar";
 import { PdfToolbar, type PdfTool } from "./PdfToolbar";
 import { loadPdf, PDF_ASSETS } from "./pdfLoader";
+import { useBarHiding } from "./useBarHiding";
+import { setEditorMode, setPage as showPage } from "./pdfViewerSet";
+import { usePdfZoom } from "./usePdfZoom";
 import styles from "./OfficeView.module.css";
 
 /** Numbers from pdf.js's AnnotationEditorType. */
@@ -14,6 +19,9 @@ const MODES: Record<PdfTool, number> = { select: 0, text: 3, highlight: 9, draw:
 // What pdf.js paints a page with, so these are data for it and not app colours.
 const DARK_PAGE = { background: "#1b1b1f", foreground: "#e4e2e6" };
 const HIGHLIGHT_COLORS = "yellow=#FFFF98,green=#53FFBC,blue=#80EBFF,pink=#FFCBE6,red=#FF4F5F";
+// Each page's picture tops out here and zooming further draws only what's on screen. Lower than
+// pdf.js's own, because the laptop this is for has 8 GB shared with the graphics.
+const MAX_CANVAS_PIXELS = 2 ** 24;
 
 interface Loaded {
   viewer: PDFViewer;
@@ -22,17 +30,21 @@ interface Loaded {
   document: PDFDocumentProxy;
 }
 
-export default function PdfEditor({ file, handleRef, toolsSlot, onChange }: OfficeEditorProps) {
+export default function PdfEditor({
+  file,
+  handleRef,
+  toolsSlot,
+  onChange,
+  onBarHidden,
+}: OfficeEditorProps) {
   const { bytes } = file;
-  const { darkPages, pdfZoom, pdfTwoPages, pdfPen, pdfHighlight, pdfPenSize } = useSettings(
-    (s) => s.settings,
-  );
-  const startZoom = pdfZoom === "100" ? "1" : pdfZoom;
-  const container = useRef<HTMLDivElement>(null);
-  const pdf = useRef<Loaded | null>(null);
-  const [ready, setReady] = useState(false);
+  const settings = useSettings((s) => s.settings);
+  const { darkPages, pdfZoom, pdfTwoPages, pdfPen, pdfHighlight, pdfPenSize, pdfHideBar } =
+    settings;
+  const [box, setBox] = useState<HTMLDivElement | null>(null);
+  const [parts, setParts] = useState<Loaded | null>(null);
   const [page, setPage] = useState(1);
-  const [pages, setPages] = useState(0);
+  const [sidebar, setSidebar] = useState(false);
   const [tool, setTool] = useState<PdfTool>("select");
   const [query, setQuery] = useState("");
   const [matches, setMatches] = useState<{ current: number; total: number } | null>(null);
@@ -41,32 +53,38 @@ export default function PdfEditor({ file, handleRef, toolsSlot, onChange }: Offi
     changed.current = onChange;
   });
 
+  const [startFit] = useState<Fit | null>(() =>
+    pdfZoom === "page-fit" ? "page" : pdfZoom === "100" ? null : "width",
+  );
+  const zoom = usePdfZoom(box, parts, { fit: startFit, scale: 1, across: pdfTwoPages ? 2 : 1 });
+  const barHidden = useBarHiding(box, pdfHideBar, onBarHidden);
+
   useEffect(() => {
-    const box = container.current;
     if (!bytes || !box) return;
     const quit = new AbortController();
     let opened: { destroy: () => Promise<void> } | null = null;
 
     void (async () => {
-      const { pdfjs, viewer: parts } = await loadPdf();
+      const { pdfjs, viewer: kit } = await loadPdf();
       if (quit.signal.aborted) return;
-      const bus = new parts.EventBus();
-      const links = new parts.PDFLinkService({ eventBus: bus });
-      const find = new parts.PDFFindController({ eventBus: bus, linkService: links });
+      const bus = new kit.EventBus();
+      const links = new kit.PDFLinkService({ eventBus: bus });
+      const find = new kit.PDFFindController({ eventBus: bus, linkService: links });
       const options = {
         container: box,
         eventBus: bus,
         linkService: links,
         findController: find,
+        removePageBorders: true,
+        maxCanvasPixels: MAX_CANVAS_PIXELS,
         annotationEditorMode: MODES.select,
         annotationEditorHighlightColors: HIGHLIGHT_COLORS,
         abortSignal: quit.signal,
         ...(darkPages ? { pageColors: DARK_PAGE } : {}),
       };
-      const viewer = new parts.PDFViewer(options);
+      const viewer = new kit.PDFViewer(options);
       links.setViewer(viewer);
       bus.on("pagesinit", () => {
-        viewer.currentScaleValue = startZoom;
         viewer.spreadMode = pdfTwoPages ? 1 : 0;
         // AnnotationEditorParamsType: INK_COLOR, INK_THICKNESS and HIGHLIGHT_COLOR.
         for (const [type, value] of [
@@ -94,9 +112,7 @@ export default function PdfEditor({ file, handleRef, toolsSlot, onChange }: Offi
       viewer.setDocument(document);
       links.setDocument(document);
       find.setDocument(document);
-      pdf.current = { viewer, bus, find, document };
-      setPages(document.numPages);
-      setReady(true);
+      setParts({ viewer, bus, find, document });
     })().catch((error: unknown) => {
       const locked = error instanceof Error && error.name === "PasswordException";
       showError(
@@ -108,25 +124,25 @@ export default function PdfEditor({ file, handleRef, toolsSlot, onChange }: Offi
 
     return () => {
       quit.abort();
-      pdf.current = null;
+      setParts(null);
       void opened?.destroy();
     };
-  }, [bytes, darkPages, startZoom, pdfTwoPages, pdfPen, pdfHighlight, pdfPenSize]);
+  }, [bytes, box, darkPages, pdfTwoPages, pdfPen, pdfHighlight, pdfPenSize]);
 
   useEffect(() => {
     handleRef.current = {
-      fileBytes: async () => (await pdf.current?.document.saveDocument()) ?? null,
-      saved: () => pdf.current?.document.annotationStorage.resetModified(),
+      fileBytes: async () => (await parts?.document.saveDocument()) ?? null,
+      saved: () => parts?.document.annotationStorage.resetModified(),
     };
     return () => {
       handleRef.current = null;
     };
-  }, [handleRef]);
+  }, [handleRef, parts]);
 
   const search = (text: string, findPrevious = false, again = false) => {
     setQuery(text);
     if (!text) setMatches(null);
-    pdf.current?.bus.dispatch("find", {
+    parts?.bus.dispatch("find", {
       source: null,
       type: again ? "again" : "",
       query: text,
@@ -140,46 +156,61 @@ export default function PdfEditor({ file, handleRef, toolsSlot, onChange }: Offi
 
   const choose = (next: PdfTool) => {
     setTool(next);
-    if (pdf.current) pdf.current.viewer.annotationEditorMode = { mode: MODES[next] };
-  };
-
-  const zoom = (way: "in" | "out" | "fit") => {
-    if (!pdf.current) return;
-    const { viewer } = pdf.current;
-    if (way === "in") viewer.increaseScale();
-    else if (way === "out") viewer.decreaseScale();
-    else pdf.current.viewer.currentScaleValue = "page-width";
+    if (parts) setEditorMode(parts.viewer, MODES[next]);
   };
 
   const colour = (value: string) => {
     // INK_COLOR, HIGHLIGHT_COLOR and FREETEXT_COLOR in pdf.js's AnnotationEditorParamsType.
     const type = tool === "draw" ? 21 : tool === "highlight" ? 31 : 12;
-    pdf.current?.bus.dispatch("switchannotationeditorparams", { source: null, type, value });
+    parts?.bus.dispatch("switchannotationeditorparams", { source: null, type, value });
+  };
+
+  const goTo = (number: number) => {
+    if (parts) showPage(parts.viewer, number);
   };
 
   return (
-    <div className={styles.pdf}>
-      <div ref={container} className={styles.pdfScroll} tabIndex={0}>
+    <div
+      className={styles.pdf}
+      data-sidebar={sidebar || undefined}
+      data-hide-bar={pdfHideBar || undefined}
+      data-bar-hidden={barHidden || undefined}
+    >
+      <div ref={setBox} className={styles.pdfScroll} tabIndex={0}>
         <div className="pdfViewer" />
       </div>
-      {!ready && (
+      {sidebar && parts && (
+        <PdfSidebar
+          document={parts.document}
+          page={page}
+          onPage={goTo}
+          onDestination={(dest) => {
+            if (dest) void parts.viewer.linkService.goToDestination(dest);
+          }}
+        />
+      )}
+      {!parts && (
         <div className={styles.loading}>
           <LoadingIndicator label="Opening" size={48} />
         </div>
       )}
-      {ready && toolsSlot && (
+      {parts && toolsSlot && (
         <PdfToolbar
           slot={toolsSlot}
           startColours={{ draw: pdfPen, highlight: pdfHighlight }}
           page={page}
-          pages={pages}
+          pages={parts.document.numPages}
+          scale={zoom.scale}
+          fit={zoom.fit}
+          sidebar={sidebar}
           tool={tool}
           query={query}
           matches={matches}
-          onPage={(next) => {
-            if (pdf.current) pdf.current.viewer.currentPageNumber = next;
-          }}
-          onZoom={zoom}
+          onPage={goTo}
+          onFit={zoom.chooseFit}
+          onScale={zoom.chooseScale}
+          onStep={(steps) => zoom.zoomAt({ steps })}
+          onSidebar={() => setSidebar((open) => !open)}
           onTool={choose}
           onColour={colour}
           onSearch={search}

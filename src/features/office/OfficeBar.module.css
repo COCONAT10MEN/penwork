@@ -6,6 +6,23 @@
   right: 10px;
   left: 10px;
 }
+/* Attached to the top of the window, for reading: no space is lost around it. */
+.place[data-docked] {
+  top: 0;
+  right: 0;
+  left: 0;
+  transition: translate var(--md-sys-motion-spatial-default-duration)
+    var(--md-sys-motion-spatial-default-easing);
+}
+.place[data-docked] .bar {
+  min-height: 64px;
+  border-width: 0 0 1px;
+  border-radius: 0;
+}
+/* Past its own height too, or its shadow is left lying across the top of the page. */
+.place[data-hidden] {
+  translate: 0 calc(-100% - 48px);
+}
 .bar {
   position: relative;
   display: flex;

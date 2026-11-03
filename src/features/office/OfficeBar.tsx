@@ -61,6 +61,8 @@ export function OfficeBar({
   status,
   dirty,
   hasMenus,
+  docked = false,
+  hidden = false,
   menusOpen,
   slotRef,
   onBack,
@@ -73,6 +75,10 @@ export function OfficeBar({
   status: string;
   dirty: boolean;
   hasMenus: boolean;
+  /** Attached across the top of the window, instead of floating. */
+  docked?: boolean;
+  /** Slid out of sight, for reading. */
+  hidden?: boolean;
   menusOpen: boolean;
   slotRef: Ref<HTMLDivElement>;
   onBack: () => void;
@@ -87,6 +93,9 @@ export function OfficeBar({
   return (
     <motion.div
       className={styles.place}
+      data-docked={docked || undefined}
+      data-hidden={hidden || undefined}
+      inert={hidden}
       initial={reduce ? { opacity: 0 } : { opacity: 0, y: -28, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1, transition: glide }}
     >

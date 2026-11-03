@@ -29,6 +29,8 @@ export interface OfficeEditorProps {
   toolsSlot: HTMLElement | null;
   onChange: () => void;
   onSave: () => void;
+  /** For an editor that hides the top bar while reading down. */
+  onBarHidden?: (hidden: boolean) => void;
 }
 
 export async function openOfficeFile(path: string): Promise<OfficeFile> {

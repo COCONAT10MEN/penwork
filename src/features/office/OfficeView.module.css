@@ -32,13 +32,42 @@
 }
 
 /* pdf.js needs its scroller absolutely placed, and it draws its own text layer inside. It scrolls
-   a page to the very top of this box, so the box starts where the bar ends or pages would hide. */
+   a page to the very top of this box, so the box starts where the bar ends or pages would hide.
+   With the bar hiding while reading, the box takes the whole height and the first page starts
+   below where the bar rests. */
+.pdf {
+  --pw-pdf-top: 64px;
+  --pw-pdf-left: 0px;
+}
+.pdf[data-hide-bar] {
+  --pw-pdf-top: 0px;
+}
+.pdf[data-sidebar] {
+  --pw-pdf-left: 200px;
+}
 .pdfScroll {
   position: absolute;
-  inset: 74px 0 0;
+  inset: var(--pw-pdf-top) 0 0 var(--pw-pdf-left);
   overflow: auto;
   box-sizing: border-box;
   outline: none;
+  touch-action: pan-x pan-y;
+  --pw-scroll-thumb: color-mix(in srgb, var(--md-sys-color-on-surface) 38%, transparent);
+}
+/* Always there, and wide enough to grab, as in any reader. */
+.pdfScroll::-webkit-scrollbar {
+  width: 14px;
+  height: 14px;
+}
+.pdfScroll :global(.pdfViewer) {
+  padding-block: 10px;
+}
+.pdf[data-hide-bar] .pdfScroll :global(.pdfViewer) {
+  padding-top: 74px;
+}
+.pdfScroll :global(.pdfViewer.removePageBorders .page) {
+  margin: 0 auto 10px;
+  box-shadow: 0 2px 10px -2px rgb(0 0 0 / 0.45);
 }
 /* pdf.js moves focus onto its page layers, and the app's focus ring would outline a whole page. */
 .pdfScroll :global(.annotationEditorLayer):focus-visible,
@@ -48,7 +77,9 @@
 .pdfColours {
   position: absolute;
   z-index: 3;
-  top: 84px;
+  top: 74px;
+  transition: top var(--md-sys-motion-spatial-default-duration)
+    var(--md-sys-motion-spatial-default-easing);
   left: 50%;
   translate: -50% 0;
 }
@@ -58,6 +89,43 @@
   gap: 2px;
   padding: 4px 10px;
   border-radius: var(--md-sys-shape-corner-full);
+}
+.pdf[data-bar-hidden] .pdfColours {
+  top: 10px;
+}
+.pageInput {
+  width: 3.2em;
+  height: 36px;
+  padding: 0 6px;
+  box-sizing: border-box;
+  border: 0;
+  border-radius: var(--md-sys-shape-corner-small);
+  background: var(--md-sys-color-surface-container-highest);
+  color: var(--md-sys-color-on-surface);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+.pageInput:focus-visible {
+  outline: 2px solid var(--md-sys-color-primary);
+}
+.pageCount {
+  padding-inline: 6px 2px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+.zoomButton {
+  position: relative;
+  min-width: 64px;
+  height: 40px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: transparent;
+  color: var(--md-sys-color-on-surface);
+  font: inherit;
+  font-size: var(--md-sys-typescale-label-large-size);
+  font-weight: var(--md-sys-typescale-label-large-weight-emphasized);
+  font-variant-numeric: tabular-nums;
 }
 .pdfTools {
   display: flex;

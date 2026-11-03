@@ -211,13 +211,18 @@ export function PdfTab() {
         <Choice
           label="Starting zoom"
           options={[
-            { value: "auto", label: "Automatic" },
+            { value: "page-width", label: "Fit width" },
             { value: "page-fit", label: "Whole page" },
-            { value: "page-width", label: "Page width" },
             { value: "100", label: "100%" },
           ]}
           value={settings.pdfZoom}
           onChange={(pdfZoom) => update({ pdfZoom })}
+        />
+        <Switch
+          label="Hide the top bar while reading"
+          description="It slides away as you scroll down and comes back as you scroll up, or when you point at the top of the window."
+          checked={settings.pdfHideBar}
+          onCheckedChange={(pdfHideBar) => update({ pdfHideBar })}
         />
         <Switch
           label="Two pages side by side"

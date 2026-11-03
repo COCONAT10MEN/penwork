@@ -47,7 +47,9 @@ export interface Settings {
   sheetFontSize: number;
   sheetGridlines: boolean;
   sheetZoom: number;
-  pdfZoom: "auto" | "page-fit" | "page-width" | "100";
+  pdfZoom: "page-fit" | "page-width" | "100";
+  /** The top bar slides away while reading down a PDF, and comes back on the way up. */
+  pdfHideBar: boolean;
   pdfTwoPages: boolean;
   pdfPen: string;
   pdfHighlight: string;
@@ -86,7 +88,8 @@ export const DEFAULT_SETTINGS: Settings = {
   sheetFontSize: 10,
   sheetGridlines: true,
   sheetZoom: 1,
-  pdfZoom: "auto",
+  pdfZoom: "page-width",
+  pdfHideBar: false,
   pdfTwoPages: false,
   pdfPen: "#1b1b1f",
   pdfHighlight: "#ffff98",
@@ -170,7 +173,8 @@ export function parseSettings(text: string | null): Settings {
     sheetFontSize: choice(d.sheetFontSize, [10, 11, 12, 14], DEFAULT_SETTINGS.sheetFontSize),
     sheetGridlines: d.sheetGridlines !== false,
     sheetZoom: choice(d.sheetZoom, [0.75, 1, 1.25, 1.5], DEFAULT_SETTINGS.sheetZoom),
-    pdfZoom: oneOf(d.pdfZoom, ["auto", "page-fit", "page-width", "100"], DEFAULT_SETTINGS.pdfZoom),
+    pdfZoom: oneOf(d.pdfZoom, ["page-fit", "page-width", "100"], DEFAULT_SETTINGS.pdfZoom),
+    pdfHideBar: d.pdfHideBar === true,
     pdfTwoPages: d.pdfTwoPages === true,
     pdfPen: hex(d.pdfPen, DEFAULT_SETTINGS.pdfPen),
     pdfHighlight: hex(d.pdfHighlight, DEFAULT_SETTINGS.pdfHighlight),

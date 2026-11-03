@@ -128,6 +128,9 @@ Decision 17 in `docs/PIVOT.md`. The code is in `src/features/office/`.
 - [x] Word: edit and save
 - [x] Excel and CSV: edit and save
 - [x] PDF: page through, zoom, find, highlight, draw, add text, save
+- [x] PDF reader, part 1: bar attached to the top (can hide while reading), real scroll bars, fit width edge to edge, pinch, Ctrl+scroll and keyboard zoom, page box, thumbnails, contents. Tested with 500 pages
+- [ ] PDF part 2: the slide toolbar replaces pdf.js's markup tools, ink saved as real PDF ink
+- [ ] PDF part 3: iLovePDF-style tools (merge, split, organize, sign, protect, convert...)
 - [x] Unsaved-changes prompt, and the old version kept on Save
 - [x] New document and New spreadsheet; a Documents page on Home
 - [x] Credits in `README.md`, `THIRD_PARTY.md` and `LICENSES/`

@@ -1,8 +1,10 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import { createPortal } from "react-dom";
+import { zoomLabel, type Fit } from "../../lib/pdfZoom";
 import { useSpring } from "../../theme/motion";
-import { ColorSwatches, IconButton, Surface } from "../../ui";
+import { ColorSwatches, IconButton, Menu, Surface } from "../../ui";
+import { cx } from "../../ui/cx";
 import styles from "./OfficeView.module.css";
 
 export type PdfTool = "select" | "highlight" | "draw" | "text";
@@ -22,16 +24,124 @@ const COLOURS: Record<PdfTool, string[]> = {
   text: ["#1b1b1f", "#e5352b", "#1a73e8", "#188038", "#f9ab00"],
 };
 
+const STEPS = [0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4];
+
+/** Type a page number and press Enter. What's shown follows the page on screen otherwise. */
+function PageBox({
+  page,
+  pages,
+  onPage,
+}: {
+  page: number;
+  pages: number;
+  onPage: (page: number) => void;
+}) {
+  const [draft, setDraft] = useState<string | null>(null);
+  const go = () => {
+    const wanted = Number(draft);
+    setDraft(null);
+    if (Number.isInteger(wanted) && wanted >= 1 && wanted <= pages) onPage(wanted);
+  };
+  return (
+    <span className={styles.pdfPage}>
+      <input
+        className={styles.pageInput}
+        inputMode="numeric"
+        aria-label={`Page, of ${pages}`}
+        value={draft ?? String(page)}
+        onFocus={(e) => {
+          setDraft(String(page));
+          e.target.select();
+        }}
+        onChange={(e) => setDraft(e.target.value.replace(/\D/g, ""))}
+        onBlur={go}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") e.currentTarget.blur();
+          if (e.key === "Escape") {
+            setDraft(null);
+            e.currentTarget.blur();
+          }
+        }}
+      />
+      <span className={styles.pageCount}>/ {pages}</span>
+    </span>
+  );
+}
+
+function ZoomControl({
+  scale,
+  fit,
+  onFit,
+  onScale,
+  onStep,
+}: {
+  scale: number;
+  fit: Fit | null;
+  onFit: (fit: Fit) => void;
+  onScale: (scale: number) => void;
+  onStep: (steps: number) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [anchor, setAnchor] = useState<HTMLButtonElement | null>(null);
+  return (
+    <>
+      <IconButton size="compact" icon="remove" label="Zoom out" onClick={() => onStep(-1)} />
+      <button
+        ref={setAnchor}
+        type="button"
+        className={cx("pw-state pw-press", styles.zoomButton)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label={`Zoom, ${zoomLabel(scale)}`}
+        onClick={() => setOpen((o) => !o)}
+      >
+        {zoomLabel(scale)}
+      </button>
+      <IconButton size="compact" icon="add" label="Zoom in" onClick={() => onStep(1)} />
+      <Menu
+        open={open}
+        anchor={anchor}
+        label="Zoom"
+        material="glass"
+        onClose={() => setOpen(false)}
+        items={[
+          {
+            label: "Fit width",
+            icon: fit === "width" ? "check" : "fit_width",
+            onSelect: () => onFit("width"),
+          },
+          {
+            label: "Whole page",
+            icon: fit === "page" ? "check" : "fit_page",
+            onSelect: () => onFit("page"),
+          },
+          ...STEPS.map((step) => ({
+            label: zoomLabel(step),
+            icon: !fit && Math.abs(scale - step) < 0.005 ? "check" : "zoom_in",
+            onSelect: () => onScale(step),
+          })),
+        ]}
+      />
+    </>
+  );
+}
+
 export function PdfToolbar({
   slot,
   startColours,
   page,
   pages,
+  scale,
+  fit,
+  sidebar,
   tool,
   query,
   matches,
   onPage,
-  onZoom,
+  onFit,
+  onScale,
+  onStep,
+  onSidebar,
   onTool,
   onColour,
   onSearch,
@@ -40,11 +150,17 @@ export function PdfToolbar({
   startColours: { draw: string; highlight: string };
   page: number;
   pages: number;
+  scale: number;
+  fit: Fit | null;
+  sidebar: boolean;
   tool: PdfTool;
   query: string;
   matches: { current: number; total: number } | null;
   onPage: (page: number) => void;
-  onZoom: (way: "in" | "out" | "fit") => void;
+  onFit: (fit: Fit) => void;
+  onScale: (scale: number) => void;
+  onStep: (steps: number) => void;
+  onSidebar: () => void;
   onTool: (tool: PdfTool) => void;
   onColour: (colour: string) => void;
   onSearch: (query: string, backwards?: boolean, again?: boolean) => void;
@@ -86,14 +202,20 @@ export function PdfToolbar({
         <div className={styles.pdfTools} role="toolbar" aria-label="PDF tools">
           <IconButton
             size="compact"
+            icon="side_navigation"
+            label="Pages and contents"
+            selected={sidebar}
+            onClick={onSidebar}
+          />
+          <span className={styles.pdfDivider} />
+          <IconButton
+            size="compact"
             icon="keyboard_arrow_up"
             label="Previous page"
             disabled={page <= 1}
             onClick={() => onPage(page - 1)}
           />
-          <span className={styles.pdfPage} aria-live="polite">
-            {page} / {pages}
-          </span>
+          <PageBox page={page} pages={pages} onPage={onPage} />
           <IconButton
             size="compact"
             icon="keyboard_arrow_down"
@@ -102,14 +224,7 @@ export function PdfToolbar({
             onClick={() => onPage(page + 1)}
           />
           <span className={styles.pdfDivider} />
-          <IconButton size="compact" icon="remove" label="Zoom out" onClick={() => onZoom("out")} />
-          <IconButton
-            size="compact"
-            icon="fit_width"
-            label="Fit to width"
-            onClick={() => onZoom("fit")}
-          />
-          <IconButton size="compact" icon="add" label="Zoom in" onClick={() => onZoom("in")} />
+          <ZoomControl scale={scale} fit={fit} onFit={onFit} onScale={onScale} onStep={onStep} />
           <span className={styles.pdfDivider} />
           {TOOLS.map(({ id, label, icon }) => (
             <IconButton

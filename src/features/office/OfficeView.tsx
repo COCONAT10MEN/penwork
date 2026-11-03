@@ -48,6 +48,7 @@ export function OfficeView({ file }: { file: OfficeFile }) {
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
   const [menusOpen, setMenusOpen] = useState(false);
+  const [barHidden, setBarHidden] = useState(false);
   const { view, slot, setSlot } = useSlotPlace();
   const takeThumb = useOfficeThumb(file.kind, file.path);
   const Editor = EDITORS[file.kind];
@@ -133,6 +134,8 @@ export function OfficeView({ file }: { file: OfficeFile }) {
         status={status}
         dirty={dirty}
         hasMenus={file.kind === "word"}
+        docked={file.kind === "pdf"}
+        hidden={barHidden}
         menusOpen={menusOpen}
         slotRef={setSlot}
         onBack={() => void guard().then((go) => go && closeOffice())}
@@ -155,6 +158,7 @@ export function OfficeView({ file }: { file: OfficeFile }) {
             toolsSlot={slot}
             onChange={() => setDirty(true)}
             onSave={() => void saveRef.current()}
+            onBarHidden={setBarHidden}
           />
         </EditorBoundary>
       </Suspense>

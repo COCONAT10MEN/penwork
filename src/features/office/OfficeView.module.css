@@ -45,10 +45,12 @@
 .pdf[data-sidebar] {
   --pw-pdf-left: 200px;
 }
+/* Always the full width: the side panel narrows the scroller inside it instead. Resizing the page
+   itself would make the slide engine rebuild its full-window ink layers on every frame of the slide. */
 .pdfFrame {
   position: absolute;
-  inset: var(--pw-pdf-top) 0 0 var(--pw-pdf-left);
-  width: calc(100% - var(--pw-pdf-left));
+  inset: var(--pw-pdf-top) 0 0 0;
+  width: 100%;
   height: calc(100% - var(--pw-pdf-top));
   border: 0;
   background: transparent;

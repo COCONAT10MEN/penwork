@@ -37,13 +37,29 @@ export function playFrom(
   const tokens = getComputedStyle(document.documentElement);
   const duration = parseFloat(tokens.getPropertyValue(`--md-sys-motion-${motion}-duration`));
   const easing = tokens.getPropertyValue(`--md-sys-motion-${motion}-easing`).trim();
+  const timing = { duration: duration || 500, easing: easing || "ease-out" };
+  const move = `translate(${dx}px, ${dy}px) scale(${scale})`;
   viewer.animate(
     [
-      { transformOrigin: origin, transform: `translate(${dx}px, ${dy}px) scale(${scale})` },
+      { transformOrigin: origin, transform: move },
       { transformOrigin: origin, transform: "none" },
     ],
-    { duration: duration || 500, easing: easing || "ease-out" },
+    timing,
   );
+  // The PDF reader's ink is drawn where the pages end up. It plays the same move, so it rides on
+  // the pages instead of being measured and redrawn every frame. It covers the whole window, so its
+  // origin is the page's corner in the window.
+  const ink = box.ownerDocument.getElementById("inkwrap");
+  if (ink) {
+    const corner = `${after.left}px ${after.top}px`;
+    ink.animate(
+      [
+        { transformOrigin: corner, transform: move },
+        { transformOrigin: corner, transform: "none" },
+      ],
+      timing,
+    );
+  }
 }
 
 /** Measure, change, animate, all at once. */

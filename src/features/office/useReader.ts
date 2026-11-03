@@ -122,7 +122,7 @@ export function useReader(onInk: (ink: PageInk) => void) {
   // Only the app's own reader page is used. Anything else (a blocked or failed load) is left alone,
   // because reaching into a page from elsewhere throws.
   const onLoad = (element: HTMLIFrameElement) => {
-    let scroller: HTMLDivElement | null = null;
+    let scroller: HTMLDivElement | null;
     try {
       scroller = element.contentDocument?.getElementById("scroller") as HTMLDivElement | null;
     } catch {
@@ -140,8 +140,8 @@ export function useReader(onInk: (ink: PageInk) => void) {
 }
 
 /**
- * Keeps the engine told where every page on screen is. It runs on each scroll in the same frame,
- * and every frame while the pages are animating (a glide, the side panel), so ink never lags.
+ * Keeps the engine told where every page on screen is, on each scroll in the same frame, so ink
+ * never lags behind its page.
  */
 export function usePageLayout(
   frame: HTMLIFrameElement | null,
@@ -152,7 +152,6 @@ export function usePageLayout(
     const win = frame?.contentWindow as (Window & { __pwDoc?: DocApi }) | null | undefined;
     if (!win || !box || !viewer) return;
     let frameId = 0;
-    let until = 0;
     const send = () => {
       const api = win.__pwDoc;
       if (!api) return;
@@ -167,15 +166,12 @@ export function usePageLayout(
       }
       api.layout(pages, current);
     };
-    const pump = () => {
-      send();
-      const moving = (box.querySelector(".pdfViewer")?.getAnimations().length ?? 0) > 0;
-      frameId = moving || performance.now() < until ? requestAnimationFrame(pump) : 0;
-    };
+    // Scroll and zoom events already come once a frame. One more after the last catches the
+    // pages that pdf.js lays out just after it. Animations need nothing: the ink plays them too.
     const kick = () => {
-      until = performance.now() + 150;
       send();
-      if (!frameId) frameId = requestAnimationFrame(pump);
+      cancelAnimationFrame(frameId);
+      frameId = requestAnimationFrame(send);
     };
     box.addEventListener("scroll", kick, { passive: true });
     viewer.eventBus.on("scalechanging", kick);

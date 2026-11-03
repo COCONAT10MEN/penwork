@@ -1,7 +1,7 @@
 import type { PDFDocumentProxy } from "pdfjs-dist";
 import type { EventBus, PDFFindController, PDFViewer } from "pdfjs-dist/web/pdf_viewer.mjs";
 import { AnimatePresence } from "motion/react";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toPoints, toUnits, type PointStroke } from "../../lib/pdfInk";
 import type { Fit } from "../../lib/pdfZoom";
 import { LoadingIndicator } from "../../ui";
@@ -190,11 +190,22 @@ export default function PdfEditor({
     if (box && parts) before.current = measurePage(box, parts.viewer.currentPageNumber);
     setSidebar((open) => !open);
   };
-  useLayoutEffect(() => {
-    if (!before.current) return;
-    zoom.refit(before.current);
+  // The panel shows first, and the pages make room in the next frame: done in one, the two together
+  // were the one slow frame of the slide.
+  useEffect(() => {
+    const from = before.current;
     before.current = null;
-  });
+    const next = requestAnimationFrame(() => {
+      frame?.contentDocument?.documentElement.style.setProperty(
+        "--pw-pdf-left",
+        sidebar ? "200px" : "0px",
+      );
+      if (from) zoom.refit(from);
+    });
+    return () => cancelAnimationFrame(next);
+    // Only the panel opening or closing moves the pages; zoom is read when that happens.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sidebar, frame]);
 
   const goTo = (number: number) => {
     if (parts) showPage(parts.viewer, number);

@@ -123,6 +123,7 @@ export default function PdfEditor({
     const quit = new AbortController();
     let opened: { destroy: () => Promise<void> } | null = null;
     let shown: PDFViewer | null = null;
+    let pageTimer: ReturnType<typeof setTimeout> | 0 = 0;
 
     void (async () => {
       const [{ pdfjs, viewer: kit }, taken] = await Promise.all([loadPdf(), takeInk(bytes)]);
@@ -148,7 +149,18 @@ export default function PdfEditor({
         viewer.spreadMode = pdfTwoPages ? 1 : 0;
         if (back > 1) showPage(viewer, Math.min(back, viewer.pagesCount));
       });
-      bus.on("pagechanging", (e: { pageNumber: number }) => setPage(e.pageNumber));
+      // At most four times a second while scrolling: each change rolls the number in the bar, and
+      // ten rolls a second through a long PDF cost a quarter of every frame. The last always shows.
+      let wanted = 0;
+      bus.on("pagechanging", (e: { pageNumber: number }) => {
+        wanted = e.pageNumber;
+        if (pageTimer) return;
+        setPage(wanted);
+        pageTimer = setTimeout(function settle() {
+          pageTimer = 0;
+          setPage(wanted);
+        }, 250);
+      });
       bus.on("updatefindmatchescount", (e: { matchesCount: { current: number; total: number } }) =>
         setMatches(e.matchesCount),
       );
@@ -196,6 +208,7 @@ export default function PdfEditor({
 
     return () => {
       quit.abort();
+      clearTimeout(pageTimer || undefined);
       setParts(null);
       // The old viewer lets go of its pages and stops adding any, before the next one starts.
       shown?.setDocument(null as unknown as PDFDocumentProxy);

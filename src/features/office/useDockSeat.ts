@@ -46,8 +46,16 @@ export function useDockSeat(
     (frame?.contentWindow as (Window & { __pwDoc?: Arrival }) | null)?.__pwDoc?.arrive?.();
     const watcher = new ResizeObserver(follow);
     watcher.observe(slot);
+    // The tools' row changing width (the page number gaining a digit) moves the seat too.
+    const row = slot.querySelector("[role=group]");
+    if (row) watcher.observe(row);
     // Reading tools stepping aside or back in a narrow window move it without resizing the bar.
-    slot.addEventListener("transitionrun", follow);
+    // Only those: every frame of following measures the PDF's page, which is too costly to do
+    // for each colour change while scrolling (a page arrow turning on or off).
+    const moved = (e: TransitionEvent) => {
+      if (/width|margin/.test(e.propertyName)) follow();
+    };
+    slot.addEventListener("transitionrun", moved);
     // A tool shown or hidden in the toolbar's settings changes its width.
     const changes = new ResizeObserver(follow);
     const tools = doc.getElementById("main");
@@ -56,7 +64,7 @@ export function useDockSeat(
       cancelAnimationFrame(frameId);
       watcher.disconnect();
       changes.disconnect();
-      slot.removeEventListener("transitionrun", follow);
+      slot.removeEventListener("transitionrun", moved);
     };
   }, [frame, slot, shown]);
 }

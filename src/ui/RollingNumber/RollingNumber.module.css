@@ -1,0 +1,27 @@
+.number {
+  position: relative;
+  display: inline-flex;
+  font-variant-numeric: tabular-nums;
+}
+.row {
+  display: inline-flex;
+}
+/* Each place clips its own digit, so the old one rolls out of sight as the new one rolls in. */
+.place {
+  position: relative;
+  display: inline-flex;
+  overflow: hidden;
+  overflow-clip-margin: 0;
+}
+.char {
+  display: inline-block;
+  white-space: pre;
+}
+.hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

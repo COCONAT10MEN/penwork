@@ -35,6 +35,7 @@ export {
   type CircularProgressProps,
   type LinearProgressProps,
 } from "./Progress/Progress";
+export { RollingNumber } from "./RollingNumber/RollingNumber";
 export { SearchBar, type SearchBarProps } from "./SearchBar/SearchBar";
 export { SegmentedButton, type SegmentedButtonProps } from "./SegmentedButton/SegmentedButton";
 export { SideSheet, type SideSheetProps } from "./SideSheet/SideSheet";

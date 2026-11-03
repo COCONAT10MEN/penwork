@@ -10,13 +10,7 @@
   border-right: var(--pw-glass-rim);
   background: var(--pw-glass-regular-fill);
   backdrop-filter: blur(var(--pw-glass-regular-blur)) saturate(var(--pw-glass-saturate));
-  animation: panel-in var(--md-sys-motion-spatial-default-duration)
-    var(--md-sys-motion-spatial-default-easing);
-}
-@keyframes panel-in {
-  from {
-    translate: -100% 0;
-  }
+  will-change: transform;
 }
 .tabs {
   display: flex;

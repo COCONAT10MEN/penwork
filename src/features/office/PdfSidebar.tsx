@@ -1,5 +1,7 @@
 import type { PDFDocumentProxy } from "pdfjs-dist";
+import { motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
+import { useReduceMotion, useSpring } from "../../theme/motion";
 import { Tabs } from "../../ui";
 import { cx } from "../../ui/cx";
 import styles from "./PdfSidebar.module.css";
@@ -17,12 +19,15 @@ function Thumb({
   number,
   current,
   ratio,
+  settled,
   onGo,
 }: {
   document: PDFDocumentProxy;
   number: number;
   current: boolean;
   ratio: number;
+  /** Drawing waits until the panel has stopped moving, so the slide stays smooth. */
+  settled: boolean;
   onGo: (page: number) => void;
 }) {
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -31,7 +36,7 @@ function Thumb({
 
   useEffect(() => {
     const target = button.current;
-    if (!target || drawn) return;
+    if (!target || drawn || !settled) return;
     let task: { cancel: () => void; promise: Promise<void> } | null = null;
     const watcher = new IntersectionObserver(
       ([entry]) => {
@@ -57,7 +62,7 @@ function Thumb({
       watcher.disconnect();
       task?.cancel();
     };
-  }, [document, number, drawn]);
+  }, [document, number, drawn, settled]);
 
   useEffect(() => {
     if (current) button.current?.scrollIntoView({ block: "nearest" });
@@ -123,6 +128,10 @@ export function PdfSidebar({
   const [view, setView] = useState("pages");
   const [outline, setOutline] = useState<Outline | null>(null);
   const [ratio, setRatio] = useState(1.294);
+  const [settled, setSettled] = useState(false);
+  const reduce = useReduceMotion();
+  // A panel slides without overshoot: a bounce at the edge of the window would look broken.
+  const slide = useSpring("effectsSlow");
 
   useEffect(() => {
     let cancelled = false;
@@ -139,7 +148,14 @@ export function PdfSidebar({
   }, [document]);
 
   return (
-    <nav className={styles.panel} aria-label="Pages">
+    <motion.nav
+      className={styles.panel}
+      aria-label="Pages"
+      initial={reduce ? { opacity: 0 } : { x: "-100%" }}
+      animate={{ x: "0%", opacity: 1, transition: slide }}
+      exit={reduce ? { opacity: 0 } : { x: "-100%", transition: slide }}
+      onAnimationComplete={() => setSettled(true)}
+    >
       {outline && (
         <div className={styles.tabs}>
           <Tabs
@@ -164,11 +180,12 @@ export function PdfSidebar({
               number={i + 1}
               current={page === i + 1}
               ratio={ratio}
+              settled={settled}
               onGo={onPage}
             />
           ))
         )}
       </div>
-    </nav>
+    </motion.nav>
   );
 }

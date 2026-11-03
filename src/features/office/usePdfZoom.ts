@@ -2,10 +2,13 @@ import type { PDFDocumentProxy } from "pdfjs-dist";
 import type { PDFViewer } from "pdfjs-dist/web/pdf_viewer.mjs";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { clampScale, fitScale, wheelZoom, type Fit } from "../../lib/pdfZoom";
+import { flipViewer, playFrom } from "./flipViewer";
 import { setScale } from "./pdfViewerSet";
 
 /** How long pdf.js waits after the last zoom step before drawing pages sharp again. */
 const REDRAW_MS = 300;
+/** After a glide: past its end, so pages are redrawn once, at rest. */
+const GLIDE_REDRAW_MS = 650;
 
 interface Parts {
   viewer: PDFViewer;
@@ -30,13 +33,31 @@ export function usePdfZoom(
     fitNow.current = fit;
   });
 
+  /** Changes the zoom by stretching the pages now and redrawing them later, and glides there. */
+  const glideTo = useCallback(
+    (target: number, glide: boolean) => {
+      if (!parts || !box) return;
+      const { viewer } = parts;
+      const factor = clampScale(target) / viewer.currentScale;
+      if (Math.abs(factor - 1) < 0.001) return;
+      const change = () =>
+        viewer.updateScale({ drawingDelay: GLIDE_REDRAW_MS, scaleFactor: factor });
+      if (glide) flipViewer(box, viewer.currentPageNumber, change);
+      else change();
+    },
+    [parts, box],
+  );
+
   const applyFit = useCallback(
-    (mode: Fit) => {
+    /** now: draw at once. glide: animate there. stretch: stretch now and draw sharp later. */
+    (mode: Fit, how: "now" | "glide" | "stretch" = "now") => {
       if (!parts || !box || !pageSize) return;
       const room = { width: box.clientWidth, height: box.clientHeight - 20 };
-      setScale(parts.viewer, fitScale(mode, room, pageSize, { across: start.across, gap: 10 }));
+      const target = fitScale(mode, room, pageSize, { across: start.across, gap: 10 });
+      if (how === "now") setScale(parts.viewer, target);
+      else glideTo(target, how === "glide");
     },
-    [parts, box, pageSize, start.across],
+    [parts, box, pageSize, start.across, glideTo],
   );
 
   // The first page's size sets every fit, as it does in other readers.
@@ -91,6 +112,22 @@ export function usePdfZoom(
       });
     },
     [parts],
+  );
+
+  /** The buttons and keys: one step, gliding. A pinch follows the fingers instead. */
+  const step = useCallback(
+    (steps: number) => {
+      if (!parts) return;
+      setFit(null);
+      const now = parts.viewer.currentScale;
+      // pdf.js's own steps of 10%, rounded as it rounds them.
+      let next = now;
+      for (let i = 0; i < Math.abs(steps); i++) {
+        next = steps > 0 ? Math.ceil(next * 1.1 * 10) / 10 : Math.floor((next / 1.1) * 10) / 10;
+      }
+      glideTo(next, true);
+    },
+    [parts, glideTo],
   );
 
   // Ctrl + wheel is what Windows sends for a touchpad pinch. It has to be caught before the page
@@ -150,26 +187,35 @@ export function usePdfZoom(
     if (!parts) return;
     const onKey = (e: KeyboardEvent) => {
       if (!e.ctrlKey || e.altKey) return;
-      if (e.key === "=" || e.key === "+") zoomAt({ steps: 1 });
-      else if (e.key === "-") zoomAt({ steps: -1 });
+      if (e.key === "=" || e.key === "+") step(1);
+      else if (e.key === "-") step(-1);
       else if (e.key === "0") {
         setFit("width");
-        applyFit("width");
+        applyFit("width", "glide");
       } else return;
       e.preventDefault();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [parts, zoomAt, applyFit]);
+  }, [parts, step, applyFit]);
 
   const chooseFit = (mode: Fit) => {
     setFit(mode);
-    applyFit(mode);
+    applyFit(mode, "glide");
   };
   const chooseScale = (value: number) => {
     setFit(null);
-    if (parts) setScale(parts.viewer, clampScale(value));
+    glideTo(value, true);
   };
 
-  return { fit, scale, chooseFit, chooseScale, zoomAt };
+  /** The fit again after the space changed, gliding from `before`. For the side panel. */
+  const refit = (before: DOMRect | null) => {
+    if (!box || !parts) return;
+    const page = parts.viewer.currentPageNumber;
+    // Stretched for now: drawing every page again during the slide is what made it stutter.
+    if (fitNow.current) applyFit(fitNow.current, "stretch");
+    playFrom(box, page, before, "effects-slow");
+  };
+
+  return { fit, scale, chooseFit, chooseScale, zoomAt, step, refit };
 }

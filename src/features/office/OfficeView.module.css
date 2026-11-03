@@ -106,6 +106,21 @@
   font-variant-numeric: tabular-nums;
   text-align: center;
 }
+.pageField {
+  position: relative;
+  display: inline-grid;
+}
+/* The number rolls in its own layer. The box underneath takes the click and the typing. */
+.pageShown {
+  position: absolute;
+  inset: 0;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+}
+.pageInput[data-rolling] {
+  color: transparent;
+}
 .pageInput:focus-visible {
   outline: 2px solid var(--md-sys-color-primary);
 }

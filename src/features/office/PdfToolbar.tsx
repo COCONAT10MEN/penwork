@@ -3,7 +3,7 @@ import { useState } from "react";
 import { createPortal } from "react-dom";
 import { zoomLabel, type Fit } from "../../lib/pdfZoom";
 import { useSpring } from "../../theme/motion";
-import { ColorSwatches, IconButton, Menu, Surface } from "../../ui";
+import { ColorSwatches, IconButton, Menu, RollingNumber, Surface } from "../../ui";
 import { cx } from "../../ui/cx";
 import styles from "./OfficeView.module.css";
 
@@ -44,25 +44,29 @@ function PageBox({
   };
   return (
     <span className={styles.pdfPage}>
-      <input
-        className={styles.pageInput}
-        inputMode="numeric"
-        aria-label={`Page, of ${pages}`}
-        value={draft ?? String(page)}
-        onFocus={(e) => {
-          setDraft(String(page));
-          e.target.select();
-        }}
-        onChange={(e) => setDraft(e.target.value.replace(/\D/g, ""))}
-        onBlur={go}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") e.currentTarget.blur();
-          if (e.key === "Escape") {
-            setDraft(null);
-            e.currentTarget.blur();
-          }
-        }}
-      />
+      <span className={styles.pageField}>
+        {draft === null && <RollingNumber value={String(page)} className={styles.pageShown} />}
+        <input
+          className={styles.pageInput}
+          inputMode="numeric"
+          aria-label={`Page, of ${pages}`}
+          value={draft ?? String(page)}
+          data-rolling={draft === null || undefined}
+          onFocus={(e) => {
+            setDraft(String(page));
+            e.target.select();
+          }}
+          onChange={(e) => setDraft(e.target.value.replace(/\D/g, ""))}
+          onBlur={go}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") e.currentTarget.blur();
+            if (e.key === "Escape") {
+              setDraft(null);
+              e.currentTarget.blur();
+            }
+          }}
+        />
+      </span>
       <span className={styles.pageCount}>/ {pages}</span>
     </span>
   );
@@ -95,7 +99,7 @@ function ZoomControl({
         aria-label={`Zoom, ${zoomLabel(scale)}`}
         onClick={() => setOpen((o) => !o)}
       >
-        {zoomLabel(scale)}
+        <RollingNumber value={zoomLabel(scale)} />
       </button>
       <IconButton size="compact" icon="add" label="Zoom in" onClick={() => onStep(1)} />
       <Menu
@@ -250,7 +254,14 @@ export function PdfToolbar({
           />
           {query && (
             <span className={styles.pdfPage} aria-live="polite">
-              {matches && matches.total > 0 ? `${matches.current} of ${matches.total}` : "None"}
+              {matches && matches.total > 0 ? (
+                <>
+                  <RollingNumber value={String(matches.current)} /> of{" "}
+                  <RollingNumber value={String(matches.total)} />
+                </>
+              ) : (
+                "None"
+              )}
             </span>
           )}
         </div>,

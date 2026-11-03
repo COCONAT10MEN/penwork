@@ -4,6 +4,7 @@ import { fileExtension, fileStem, nameProblem } from "../../lib/office";
 import { useReduceMotion, useSpring } from "../../theme/motion";
 import { IconButton, SplitButton, Surface } from "../../ui";
 import { showError } from "../notices/notices";
+import { useFullScreen } from "./useFullScreen";
 import styles from "./OfficeBar.module.css";
 
 /** Looks like a title, and is a text box the moment it's clicked, as in Google Docs. */
@@ -87,6 +88,7 @@ export function OfficeBar({
   onSave: () => void;
   onSaveAs: () => void;
 }) {
+  const fullScreen = useFullScreen();
   const reduce = useReduceMotion();
   const glide = useSpring("spatialDefault");
   const fade = useSpring("effectsDefault");
@@ -117,6 +119,12 @@ export function OfficeBar({
           </p>
         </div>
         <div ref={slotRef} className={styles.slot} />
+        <IconButton
+          size="compact"
+          icon={fullScreen.on ? "fullscreen_exit" : "fullscreen"}
+          label={fullScreen.on ? "Leave full screen" : "Full screen"}
+          onClick={fullScreen.toggle}
+        />
         {hasMenus && (
           <IconButton
             size="compact"

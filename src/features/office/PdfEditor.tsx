@@ -1,6 +1,7 @@
 import type { PDFDocumentProxy } from "pdfjs-dist";
 import type { EventBus, PDFFindController, PDFViewer } from "pdfjs-dist/web/pdf_viewer.mjs";
-import { useEffect, useRef, useState } from "react";
+import { AnimatePresence } from "motion/react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { Fit } from "../../lib/pdfZoom";
 import { LoadingIndicator } from "../../ui";
 import { useSettings } from "../settings/settingsStore";
@@ -10,6 +11,7 @@ import { PdfSidebar } from "./PdfSidebar";
 import { PdfToolbar, type PdfTool } from "./PdfToolbar";
 import { loadPdf, PDF_ASSETS } from "./pdfLoader";
 import { useBarHiding } from "./useBarHiding";
+import { measurePage } from "./flipViewer";
 import { setEditorMode, setPage as showPage } from "./pdfViewerSet";
 import { usePdfZoom } from "./usePdfZoom";
 import styles from "./OfficeView.module.css";
@@ -165,6 +167,18 @@ export default function PdfEditor({
     parts?.bus.dispatch("switchannotationeditorparams", { source: null, type, value });
   };
 
+  // The pages shrink to make room as the panel slides in, instead of jumping once it's there.
+  const before = useRef<DOMRect | null>(null);
+  const toggleSidebar = () => {
+    if (box && parts) before.current = measurePage(box, parts.viewer.currentPageNumber);
+    setSidebar((open) => !open);
+  };
+  useLayoutEffect(() => {
+    if (!before.current) return;
+    zoom.refit(before.current);
+    before.current = null;
+  });
+
   const goTo = (number: number) => {
     if (parts) showPage(parts.viewer, number);
   };
@@ -179,16 +193,19 @@ export default function PdfEditor({
       <div ref={setBox} className={styles.pdfScroll} tabIndex={0}>
         <div className="pdfViewer" />
       </div>
-      {sidebar && parts && (
-        <PdfSidebar
-          document={parts.document}
-          page={page}
-          onPage={goTo}
-          onDestination={(dest) => {
-            if (dest) void parts.viewer.linkService.goToDestination(dest);
-          }}
-        />
-      )}
+      <AnimatePresence>
+        {sidebar && parts && (
+          <PdfSidebar
+            key="pages"
+            document={parts.document}
+            page={page}
+            onPage={goTo}
+            onDestination={(dest) => {
+              if (dest) void parts.viewer.linkService.goToDestination(dest);
+            }}
+          />
+        )}
+      </AnimatePresence>
       {!parts && (
         <div className={styles.loading}>
           <LoadingIndicator label="Opening" size={48} />
@@ -209,8 +226,8 @@ export default function PdfEditor({
           onPage={goTo}
           onFit={zoom.chooseFit}
           onScale={zoom.chooseScale}
-          onStep={(steps) => zoom.zoomAt({ steps })}
-          onSidebar={() => setSidebar((open) => !open)}
+          onStep={zoom.step}
+          onSidebar={toggleSidebar}
           onTool={choose}
           onColour={colour}
           onSearch={search}

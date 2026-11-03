@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import { useSpring } from "../../theme/motion";
-import { IconButton, Surface } from "../../ui";
+import { IconButton, Surface, RollingNumber } from "../../ui";
 import styles from "./DeckView.module.css";
 
 /**
@@ -71,9 +71,16 @@ export function EditToolbar({
       </AnimatePresence>
       <span className={styles.statusText} role="status">
         <span>
-          <b>Slide {slide + 1}</b> of {total}
+          <b>
+            Slide <RollingNumber value={String(slide + 1)} />
+          </b>{" "}
+          of <RollingNumber value={String(total)} />
         </span>
-        {steps > 0 && <span>{steps === 1 ? "1 step" : `${steps} steps`}</span>}
+        {steps > 0 && (
+          <span>
+            <RollingNumber value={String(steps)} /> {steps === 1 ? "step" : "steps"}
+          </span>
+        )}
         {hint && <span>{hint}</span>}
       </span>
       <AnimatePresence initial={false}>

@@ -405,7 +405,6 @@
 .word :global(.docx-editor) {
   background: transparent !important;
 }
-/* The reading tools in the middle, and at the end the place where the slide toolbar's logo sits. */
 .pdfBarTools {
   position: relative;
   display: flex;
@@ -415,16 +414,58 @@
   gap: 2px;
   min-width: 0;
   height: 100%;
-  padding-right: 56px;
-  box-sizing: border-box;
+  container-type: inline-size;
 }
+/* In a narrow window the reading tools that have other ways in step aside, one kind at a time, so
+   nothing overlaps: the page arrows (scrolling, the page box), then zoom's − and + (the zoom menu,
+   Ctrl + wheel), then Find gets narrower. They come back as the window widens. */
+.pdfBarTools .toolSlot,
+.pdfBarTools button[aria-label="Zoom out"],
+.pdfBarTools button[aria-label="Zoom in"],
+.pdfBarTools .pdfDivider {
+  transition:
+    max-width var(--md-sys-motion-spatial-default-duration)
+      var(--md-sys-motion-spatial-default-easing),
+    width var(--md-sys-motion-spatial-default-duration) var(--md-sys-motion-spatial-default-easing),
+    margin var(--md-sys-motion-spatial-default-duration) var(--md-sys-motion-spatial-default-easing),
+    opacity var(--md-sys-motion-effects-fast-duration) var(--md-sys-motion-effects-fast-easing);
+}
+.pdfBarTools .toolSlot {
+  max-width: 260px;
+}
+.pdfBarTools .toolSlot:has([data-dock-seat]) {
+  max-width: none;
+}
+@container (max-width: 930px) {
+  .pdfBarTools .toolSlot:has([aria-label="Previous page"]),
+  .pdfBarTools .toolSlot:has([aria-label="Next page"]) {
+    max-width: 0;
+    margin-inline: -1px;
+    overflow: hidden;
+    opacity: 0;
+  }
+}
+@container (max-width: 840px) {
+  .pdfBarTools button[aria-label="Zoom out"],
+  .pdfBarTools button[aria-label="Zoom in"] {
+    width: 0;
+    overflow: hidden;
+    opacity: 0;
+  }
+}
+@container (max-width: 760px) {
+  .pdfBarTools .pdfFind {
+    width: 72px;
+  }
+  .pdfBarTools .pdfDivider {
+    margin-inline: 2px;
+  }
+}
+/* Empty, and as wide as the annotation tools drawn in it. */
 .dockSeat {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 56px;
-  height: 100%;
-  pointer-events: none;
+  display: block;
+  width: 0;
+  height: 44px;
 }
 .toolSlot {
   display: inline-flex;

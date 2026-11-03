@@ -158,7 +158,10 @@ export function useReader(onInk: (ink: PageInk) => void) {
     setBox(scroller);
   };
 
-  return { frame, box, failed, ready, onLoad, setInk, ink, docState };
+  const api = () =>
+    (loaded.current?.contentWindow as (Window & { __pwDoc?: DocApi }) | null)?.__pwDoc;
+
+  return { frame, box, failed, ready, onLoad, setInk, ink, docState, api };
 }
 
 /**

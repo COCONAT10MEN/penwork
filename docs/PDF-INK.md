@@ -33,18 +33,21 @@ drives pdf.js inside that page directly.
 
 ## The toolbar is part of the top bar
 
-The owner's decision (2026-11-03): no copies of the tools in the app's bar. The presentation's own toolbar sits in the
-bar, at its right beside Full screen and Save, and the logo opens it along the bar exactly as in a show.
+The owner's decisions (2026-11-03): no copies of the tools in the app's bar, no logo and no Annotate button. The
+presentation's own tools are always out, as part of the bar: first in its row of tools, before Pages and contents.
 
-- The page fills the whole window, under the bar too. It draws the bar's glass itself (`#pwband`), so the toolbar sits
-  in that glass instead of floating over it. The app's bar above it turns see-through: only its buttons are drawn and
-  take the pointer, and everywhere else reaches the toolbar.
-- The app keeps a seat for the logo at the end of the bar's tools and tells the page where it is
-  (`--pw-dock-right`), so the toolbar follows Save and Full screen wherever they are.
-- While the toolbar is open the reading tools step aside: they leave one after another, nearest first, as its edge
-  sweeps toward them, and come back behind that edge as it closes. The engine reports only open, tool and pen-on.
-- In the bar the toolbar is always horizontal and never moves, sinks, dims or fades while drawing; the settings for
-  that are left out. Its other settings are the presentation's, saved to the same file.
+- The page fills the whole window, under the bar too. It draws the bar's glass itself (`#pwband`), so the tools sit in
+  that glass instead of floating over it. The app's bar above it turns see-through: only its buttons are drawn and
+  take the pointer, and everywhere else reaches the tools.
+- The tools are styled as the bar's own buttons (no pill, frame or logo), with the presentation's icons, pen colours,
+  tool settings and gestures. The tool in use is a solid circle in the primary colour.
+- The app keeps a seat for them in its row of tools, as wide as they are, and tells the page where it is
+  (`--pw-dock-left`) in the same frame whenever anything in the bar moves (`useDockSeat`).
+- When the PDF opens the tools arrive one after another, and the bar's reading tools carry the same wave on.
+- Left out on a PDF: All slides, the whiteboard, End show, and Show / hide ink (the ink is always shown). The
+  toolbar settings open with a right-click (long-press on touch) on the Pointer, without the layout settings.
+- In a narrow window the name gives up room first, then the page arrows, zoom's − and + and Find's width step aside,
+  and the tools get a little smaller, so nothing overlaps down to 1024 px.
 - Hiding the bar while reading takes the glass and the toolbar up with it, on the same spring.
 - With the page under the bar, the pointer's position in the page is the window's, so ink lands under the pointer
   (inside an offset frame, WebView2's raw pointer updates reported window positions; document mode doesn't use them).

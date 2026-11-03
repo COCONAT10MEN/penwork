@@ -109,19 +109,78 @@ body {
     content: none;
   }
 }
-/* The slide toolbar, exactly as in a show, seated at the right of the bar beside Save. Its logo opens
-   it, and it grows to the left along the bar. It never moves, sinks or dims there. */
+/* The slide toolbar's tools, as part of the bar: they roll out of the bar's Annotate button, which
+   the app draws, into the seat it opens beside it (--pw-dock-left). No pill, frame or logo here:
+   the tools are the bar's own buttons, with the presentation's icons, pen colours and motion. */
 :root[data-pw-doc] #dock {
   top: 0 !important;
-  right: var(--pw-dock-right, 190px) !important;
+  right: auto !important;
   bottom: auto !important;
-  left: auto !important;
+  left: var(--pw-dock-left, -999px) !important;
   height: 64px;
   margin: 0 !important;
 }
 :root[data-pw-doc],
 :root[data-pw-doc].tab {
-  --bmax: 38px;
+  --bmax: 44px;
+}
+:root[data-pw-doc] #dock:not(.vert) {
+  --bs: clamp(34px, calc((100vw - 680px) / 12), var(--bmax));
+}
+:root[data-pw-doc] #dock.open #shell,
+:root[data-pw-doc] #dock #shell {
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+/* Kept, unseen, over the app's Annotate button: the settings open from there, as from the logo. */
+:root[data-pw-doc] #dock #logo {
+  position: absolute;
+  top: 50%;
+  left: -46px;
+  width: 44px;
+  height: 44px;
+  opacity: 0;
+  translate: 0 -50%;
+  pointer-events: none;
+}
+:root[data-pw-doc] #dock #main,
+:root[data-pw-doc] #dock.open #main {
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--md-sys-color-on-surface-variant);
+  backdrop-filter: none;
+}
+:root[data-pw-doc] #dock #main::before {
+  content: none;
+}
+:root[data-pw-doc] .dk button:hover {
+  background: color-mix(in srgb, var(--md-sys-color-on-surface) 8%, transparent);
+}
+:root[data-pw-doc] .dk button:focus-visible {
+  outline: 2px solid var(--md-sys-color-primary);
+  outline-offset: -2px;
+}
+/* The tool in use: a solid circle in the bar's primary colour, as the app's own tools show it. */
+:root[data-pw-doc] .dk button::before {
+  background: var(--md-sys-color-primary);
+  box-shadow: none;
+}
+:root[data-pw-doc] .dk button.act {
+  color: var(--md-sys-color-on-primary);
+}
+:root[data-pw-doc] .dk .tl::after {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--md-sys-color-surface) 70%, transparent);
+}
+:root[data-pw-doc] .dk .sep {
+  width: 1px;
+  height: 24px;
+  margin: 0 6px;
+  background: var(--md-sys-color-outline-variant);
 }
 #pwband,
 #dock {

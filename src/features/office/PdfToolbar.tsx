@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from "motion/react";
+import { motion } from "motion/react";
 import { Children, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { zoomLabel, type Fit } from "../../lib/pdfZoom";
@@ -115,8 +115,8 @@ function ZoomControl({
 }
 
 /**
- * The reading tools. They leave as the slide toolbar opens along the bar, the one nearest it first,
- * as if swept aside by its edge, and come back one after another behind that edge as it closes.
+ * The bar's tools, rising in one after another when the PDF opens. The annotation tools at the
+ * start arrive first, so these wait for them and carry the same wave on.
  */
 function Group({ children, label }: { children: ReactNode; label: string }) {
   const reduce = useReduceMotion();
@@ -128,11 +128,11 @@ function Group({ children, label }: { children: ReactNode; label: string }) {
       aria-label={label}
       initial="out"
       animate="in"
-      exit="gone"
       variants={{
         out: {},
-        in: { transition: { delayChildren: reduce ? 0 : 0.1, staggerChildren: reduce ? 0 : 0.03 } },
-        gone: { transition: { staggerChildren: reduce ? 0 : 0.028, staggerDirection: -1 } },
+        in: {
+          transition: { delayChildren: reduce ? 0 : 0.34, staggerChildren: reduce ? 0 : 0.03 },
+        },
       }}
     >
       {Children.toArray(children).map((child, i) => (
@@ -153,7 +153,6 @@ export function PdfToolbar({
   sidebar,
   query,
   matches,
-  dockOpen,
   onPage,
   onFit,
   onScale,
@@ -169,8 +168,6 @@ export function PdfToolbar({
   sidebar: boolean;
   query: string;
   matches: { current: number; total: number } | null;
-  /** The slide toolbar is open across the bar, where these tools were. */
-  dockOpen: boolean;
   onPage: (page: number) => void;
   onFit: (fit: Fit) => void;
   onScale: (scale: number) => void;
@@ -180,63 +177,61 @@ export function PdfToolbar({
 }) {
   return createPortal(
     <div className={styles.pdfBarTools} role="toolbar" aria-label="PDF tools">
-      <AnimatePresence initial={false}>
-        {!dockOpen && (
-          <Group key="reading" label="Reading tools">
-            <IconButton
-              size="compact"
-              icon="side_navigation"
-              label="Pages and contents"
-              selected={sidebar}
-              onClick={onSidebar}
-            />
-            <span className={styles.pdfDivider} />
-            <IconButton
-              size="compact"
-              icon="keyboard_arrow_up"
-              label="Previous page"
-              disabled={page <= 1}
-              onClick={() => onPage(page - 1)}
-            />
-            <PageBox page={page} pages={pages} onPage={onPage} />
-            <IconButton
-              size="compact"
-              icon="keyboard_arrow_down"
-              label="Next page"
-              disabled={page >= pages}
-              onClick={() => onPage(page + 1)}
-            />
-            <span className={styles.pdfDivider} />
-            <ZoomControl scale={scale} fit={fit} onFit={onFit} onScale={onScale} onStep={onStep} />
-            <span className={styles.pdfDivider} />
-            <input
-              className={styles.pdfFind}
-              type="search"
-              value={query}
-              placeholder="Find"
-              aria-label="Find in this PDF"
-              onChange={(e) => onSearch(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") onSearch(query, e.shiftKey, true);
-              }}
-            />
-            {query ? (
-              <span className={styles.pdfPage} aria-live="polite">
-                {matches && matches.total > 0 ? (
-                  <>
-                    <RollingNumber value={String(matches.current)} /> of{" "}
-                    <RollingNumber value={String(matches.total)} />
-                  </>
-                ) : (
-                  "None"
-                )}
-              </span>
-            ) : null}
-          </Group>
-        )}
-      </AnimatePresence>
-      {/* The slide toolbar's logo sits here, drawn by the reader page under the bar. */}
-      <span className={styles.dockSeat} data-dock-seat />
+      <Group label="Reading tools">
+        {/* The presentation's annotation tools sit here, always out. The reader page under the bar
+            draws them, and this keeps room for them as wide as they are. */}
+        <span className={styles.dockSeat} data-dock-seat />
+        <span className={styles.pdfDivider} />
+        <IconButton
+          size="compact"
+          icon="side_navigation"
+          label="Pages and contents"
+          selected={sidebar}
+          onClick={onSidebar}
+        />
+        <span className={styles.pdfDivider} />
+        <IconButton
+          size="compact"
+          icon="keyboard_arrow_up"
+          label="Previous page"
+          disabled={page <= 1}
+          onClick={() => onPage(page - 1)}
+        />
+        <PageBox page={page} pages={pages} onPage={onPage} />
+        <IconButton
+          size="compact"
+          icon="keyboard_arrow_down"
+          label="Next page"
+          disabled={page >= pages}
+          onClick={() => onPage(page + 1)}
+        />
+        <span className={styles.pdfDivider} />
+        <ZoomControl scale={scale} fit={fit} onFit={onFit} onScale={onScale} onStep={onStep} />
+        <span className={styles.pdfDivider} />
+        <input
+          className={styles.pdfFind}
+          type="search"
+          value={query}
+          placeholder="Find"
+          aria-label="Find in this PDF"
+          onChange={(e) => onSearch(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") onSearch(query, e.shiftKey, true);
+          }}
+        />
+        {query ? (
+          <span className={styles.pdfPage} aria-live="polite">
+            {matches && matches.total > 0 ? (
+              <>
+                <RollingNumber value={String(matches.current)} /> of{" "}
+                <RollingNumber value={String(matches.total)} />
+              </>
+            ) : (
+              "None"
+            )}
+          </span>
+        ) : null}
+      </Group>
     </div>,
     slot,
   );

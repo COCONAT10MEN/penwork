@@ -334,7 +334,11 @@ var ITEMS={
  grid:{g:'v',i:'grid',l:'All slides',t:'All slides (G)'},
  full:{g:'v',i:'close',l:'End show',t:'End show (F)'}
 };
-if(DOC){ITEMS.clear.l='Clear this page';ITEMS.clear.t='Clear this page (C)';}
+if(DOC){ITEMS.clear.l='Clear this page';ITEMS.clear.t='Clear this page (C)';ITEMS.ptr.t='Pointer — select text, follow links (Esc) · Right-click: toolbar settings';}
+/* on a PDF there are no slides to see all of, no whiteboard, no show to end, and the ink is always shown */
+function here(id){return !DOC||(id!=='grid'&&id!=='wb'&&id!=='full'&&id!=='hide');}
+/* the toolbar settings open from the logo in a show; on a PDF, where the tools are always out, from the pointer */
+function setAnchor(){return (DOC&&document.getElementById('bptr'))||document.getElementById('logo');}
 var ORDER_DEF=['ptr','pen','hl','laser','eraser','undo','redo','clear','hide','wb','grid','full'];
 var POS=['br','bc','bl','tr','tc','tl'];
 function defUI(){return {order:ORDER_DEF.slice(),hidden:[],tool:'pen',open:false,sink:true,sinkDelay:4,tablet:'on',vert:false,pos:'bc',tapAgain:true,dbl:true,rclick:true};}
@@ -379,7 +383,7 @@ var tool=UIS.tool,annot=false,inkHidden=false;
 function colorOf(t){t=t||tool;return CFG[t]&&CFG[t].c||'#fff';}
 function sizeOf(t){t=t||tool;return CFG[t].w;}
 
-var vert=DOC?false:UIS.vert,sideR=DOC||UIS.pos.charAt(1)==='r',sideT=DOC||UIS.pos.charAt(0)==='t',dockOpen=UIS.open;
+var vert=DOC?false:UIS.vert,sideR=!DOC&&UIS.pos.charAt(1)==='r',sideT=DOC||UIS.pos.charAt(0)==='t',dockOpen=DOC||UIS.open;
 /* tablet mode: bigger touch targets. 'on' by default; 'auto' follows the primary pointer (coarse = touch) */
 var mqC=window.matchMedia?matchMedia('(pointer: coarse)'):null;
 function tabletOn(){return UIS.tablet==='on'||(UIS.tablet==='auto'&&!!(mqC&&mqC.matches));}
@@ -395,7 +399,7 @@ function btnHTML(id){
 var BGB='<button id="bbg" data-k="bbg" data-a="wbbg" title="Board background (B)" aria-label="Board background">';
 /* the toolbar as an ordered list of keyed parts (buttons, separators, board-background button) */
 function mainList(){
-  var L=[],pg=null,bg=false,n={},vis=UIS.order.filter(function(id){return UIS.hidden.indexOf(id)<0&&!(DOC&&(id==='grid'||id==='wb'||id==='full'));});
+  var L=[],pg=null,bg=false,n={},vis=UIS.order.filter(function(id){return UIS.hidden.indexOf(id)<0&&here(id);});
   vis.forEach(function(id){
     var g=ITEMS[id].g;
     if(pg&&g!==pg){n[g]=(n[g]||0)+1;L.push({k:'sep'+g+n[g],h:SEPk('sep'+g+n[g])});}
@@ -518,10 +522,21 @@ function armSink(){
   sinkT=setTimeout(function(){if(!dockOpen&&UIS.sink&&!anyPop()&&!lgG&&!grip&&!G)dock.classList.add('sink');else armSink();},UIS.sinkDelay*1000);
 }
 function toggleDock(on,ani){
-  on=!!on;if(on===dockOpen)return;dockOpen=on;
+  on=!!on||DOC;if(on===dockOpen)return;dockOpen=on;
   if(!on)closePops();
   renderDock(ani!==false);poke();armSink();
-  if(DOC)docReport();
+  if(DOC){docUnfold(on,ani!==false);docReport();}
+}
+/* On a PDF the tools arrive in the bar one after another when it does, the first of one wave that
+   carries on through the bar's own tools after them (the app says when). */
+function docUnfold(on,ani){
+  var kids=[].slice.call(document.querySelectorAll('#main > *')).filter(function(e){return !e._exit&&!e.classList.contains('gone');}),n=kids.length;
+  kids.forEach(function(el,i){
+    if(el._un){try{el._un.cancel();}catch(x){}el._un=null;}
+    if(!ani||REDUCED||!el.animate)return;
+    el._un=on?el.animate([{opacity:0,transform:'translateX(-12px) scale(.55)'},{opacity:1,transform:'none'}],{duration:420,delay:100+i*30,easing:'cubic-bezier(.2,.8,.2,1)',fill:'backwards'})
+      :el.animate([{opacity:1,transform:'none'},{opacity:0,transform:'translateX(-8px) scale(.7)'}],{duration:190,delay:(n-1-i)*16,easing:'cubic-bezier(.5,0,.2,1)',fill:'forwards'});
+  });
 }
 var busyT=0;
 function busy_(on){clearTimeout(busyT);if(on&&!DOC)dock.classList.add('busy');else busyT=setTimeout(function(){dock.classList.remove('busy');},450);}
@@ -592,7 +607,12 @@ function docReport(){
   var st={open:dockOpen,tool:tool,annot:annot};
   var j=JSON.stringify(st);if(j===docSent)return;docSent=j;send('docState',st);
 }
-function bootDoc(){mode='present';document.body.classList.remove('editing','still');document.body.classList.add('doc');poke();armSink();docReport();}
+function bootDoc(){
+  mode='present';document.body.classList.remove('editing','still');document.body.classList.add('doc');
+  inkHidden=false;document.body.classList.remove('inkhide');
+  if(!dockOpen)toggleDock(true,false);
+  poke();armSink();docReport();
+}
 function bbox(st){
   if(st.bb&&st.bbn===st.pts.length)return st.bb;
   var P=st.pts,x0=1e9,y0=1e9,x1=-1e9,y1=-1e9,i,m=st.w+2;
@@ -971,7 +991,7 @@ dock.addEventListener('contextmenu',function(e){
   e.preventDefault();e.stopPropagation();
   var b=e.target.closest('button[data-a]');if(!b)return;
   var a=b.getAttribute('data-a');
-  if(a==='logo'){if(setOpen&&performance.now()-setAt<1000)return;setPop(!setOpen);}   /* a long-press already opened it */
+  if(a==='logo'||(DOC&&a==='ptr')){if(setOpen&&performance.now()-setAt<1000)return;setPop(!setOpen);}   /* a long-press already opened it */
   else if(a==='tool'&&UIS.rclick&&!b.classList.contains('dis')){closeOther();openToolCfg(b.getAttribute('data-v'),b);poke();}
 });
 function closeOther(){if(setOpen)setPop(false);if(bgOpen)bgPop(false);}
@@ -1261,7 +1281,7 @@ function follow(el,btn,ms){var t0=performance.now();(function f(){if(!el._want)r
 function repopPlace(){
   if(cfgOpen&&cfgBtn)placePop(cfgEl,cfgBtn);
   if(cpOpen)cpPlace();
-  if(setOpen)placePop(setEl,document.getElementById('logo'));
+  if(setOpen)placePop(setEl,setAnchor());
   if(bgOpen)bgPlace();
 }
 function lmap(v,a,b,x,y){return x+(v-a)/(b-a)*(y-x);}
@@ -1460,7 +1480,7 @@ function pgrid(){var h='<div class="pg">';['tl','tc','tr','bl','bc','br'].forEac
 function setBuild(){
   var sb0=setEl.querySelector('.sbody'),st=sb0?sb0.scrollTop:0,h='<div class="ch"><span class="ci">'+ic('gear')+'</span><b>Toolbar settings</b><button class="rs" data-s="resetall">Reset all</button></div><div class="sbody">';
   h+='<div class="hd">Behaviour</div>';
-  h+=srow('Start with toolbar open',tgl('open',UIS.open));
+  if(!DOC)h+=srow('Start with toolbar open',tgl('open',UIS.open));
   if(!DOC){
     h+=srow('Auto-hide when closed',tgl('sink',UIS.sink),'Logo sinks into the screen edge');
     h+=srow('Hide after',seg('sinkDelay',[[2,'2 s'],[4,'4 s'],[8,'8 s']],UIS.sinkDelay));
@@ -1478,11 +1498,12 @@ function setBuild(){
   h+=srow('Double-tap a tool',tgl('dbl',UIS.dbl),'Selects it and opens its settings');
   h+=srow('Right-click a tool',tgl('rclick',UIS.rclick),'Long-press does the same on touch');
   h+='<div class="hd">Buttons <small>reorder · show / hide</small></div>';
-  UIS.order.forEach(function(id,k){
+  var shown=UIS.order.filter(here);
+  shown.forEach(function(id,k){
     var it=ITEMS[id];
     h+='<div class="ro"><span class="ri">'+ic(it.i)+'</span><span class="rn">'+it.l+'</span>'+
        '<button data-s="up" data-id="'+id+'" aria-label="Move up"'+(k?'':' disabled')+'>'+ic('up')+'</button>'+
-       '<button data-s="dn" data-id="'+id+'" aria-label="Move down"'+(k<UIS.order.length-1?'':' disabled')+'>'+ic('dn')+'</button>'+
+       '<button data-s="dn" data-id="'+id+'" aria-label="Move down"'+(k<shown.length-1?'':' disabled')+'>'+ic('dn')+'</button>'+
        tgl('vis',UIS.hidden.indexOf(id)<0,id)+'</div>';
   });
   h+='<div class="hd">Settings file</div><div class="sr two"><button class="bt" data-s="export">Export</button><button class="bt" data-s="import">Import</button></div>';
@@ -1494,7 +1515,7 @@ function setPop(on){
   if(on===setOpen)return;if(on)setAt=performance.now();
   if(on){if(cfgOpen)cfgPop(false);if(bgOpen)bgPop(false);}
   setOpen=on;
-  if(on){setBuild();setEl.classList.add('show');setEl._want=true;placePop(setEl,document.getElementById('logo'));popAnim(setEl,true);}
+  if(on){setBuild();setEl.classList.add('show');setEl._want=true;placePop(setEl,setAnchor());popAnim(setEl,true);}
   else popAnim(setEl,false);
   armSink();
 }
@@ -1502,7 +1523,7 @@ function applyAll(){
   fixAll();tool=UIS.tool;vert=DOC?false:UIS.vert;applyTablet();
   fillMain();setPos(UIS.pos);renderDock(true);saveSettings();
 }
-function moveItem(id,d){var o=UIS.order,i=o.indexOf(id),j=i+d;if(j<0||j>=o.length)return;o[i]=o[j];o[j]=id;fillMain();renderDock(false);}
+function moveItem(id,d){var o=UIS.order,i=o.indexOf(id),j=i+d;while(j>=0&&j<o.length&&!here(o[j]))j+=d;if(j<0||j>=o.length)return;o[i]=o[j];o[j]=id;fillMain();renderDock(false);}
 /* a sandboxed page can't download or pick files, so the app does both with its own dialogs */
 function exportSet(){send('exportToolbar',{text:JSON.stringify({v:1,ui:UIS,tools:CFG},null,2)});}
 function importSet(){send('importToolbar',{});}
@@ -1532,7 +1553,7 @@ setEl.addEventListener('click',function(e){
   else if(s==='resetall'){UIS=defUI();CFG=defCfg();applyAll();toast('Toolbar settings reset',1400);}
   else if(s==='export')exportSet();
   else if(s==='import')importSet();
-  saveSettings();setBuild();placePop(setEl,document.getElementById('logo'));b.blur();poke();
+  saveSettings();setBuild();placePop(setEl,setAnchor());b.blur();poke();
 });
 setEl.addEventListener('change',function(e){
   var i=e.target;if(!i.getAttribute||i.getAttribute('data-s')!=='tgl')return;
@@ -1587,7 +1608,7 @@ function setWB(on){
 
 /* ---------- movable dock: drag the logo anywhere, it snaps to a corner / the centre ---------- */
 function setPos(pos,from){
-  if(DOC)pos='tr';
+  if(DOC)pos='tl';
   closePops();
   POS.forEach(function(p){dock.classList.remove('p-'+p);});
   if(vert&&pos.charAt(1)==='c')pos=pos.charAt(0)+'r';
@@ -1634,7 +1655,7 @@ document.addEventListener('pointerup',endLg,true);document.addEventListener('poi
 applyTablet();
 if(!SORTER){buildDock();setPos(UIS.pos);UI=true;renderDock();onFit();poke();armSink();}
 var HINT='<b>Tap the logo</b> to open the toolbar &nbsp;·&nbsp; <b>Drag</b> it to move &nbsp;·&nbsp; <b>Right-click / long-press</b> for settings';
-if(DOC)window.__pwDoc={layout:docLayout,state:function(){return {tool:tool,annot:annot,open:dockOpen,key:ikey()};}};
+if(DOC)window.__pwDoc={layout:docLayout,arrive:function(){docUnfold(true,true);},state:function(){return {tool:tool,annot:annot,open:dockOpen,key:ikey()};}};
 window.__ui={setWB:setWB,ink:ink,setTool:setTool,setAnnot:setAnnot,openOv:openOv,closeOv:closeOv,toggleDock:toggleDock,cfg:function(){return CFG;},uis:function(){return UIS;},
   state:function(){return {tool:tool,annot:annot,wb:wbOn,wy:wy,ov:ovOpen,cur:cur,step:meta[cur].step,max:meta[cur].max,open:dockOpen,vert:vert};}};
 
@@ -2437,7 +2458,7 @@ addEventListener('message',function(e){
       if(p.tools)for(var t in CFG)assign(CFG[t],p.tools[t]);
       if(p.wb){if(p.wb.p)wbPat=p.wb.p;if(p.wb.c)wbCol=p.wb.c;}
       /* the template read these before it first drew the dock; here they arrive just after */
-      if(!SORTER){dockOpen=UIS.open;applyAll();}
+      if(!SORTER){dockOpen=DOC||UIS.open;applyAll();}
       break;
     case 'toolbarFile':importText(p.text);break;
     case 'logo':{

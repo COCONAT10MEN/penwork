@@ -16,6 +16,7 @@ import { useBarHiding } from "./useBarHiding";
 import { measurePage } from "./flipViewer";
 import { setPage as showPage } from "./pdfViewerSet";
 import { usePdfZoom } from "./usePdfZoom";
+import { useDockSeat } from "./useDockSeat";
 import { usePageLayout, useReader, type PageInk } from "./useReader";
 import styles from "./OfficeView.module.css";
 
@@ -84,22 +85,7 @@ export default function PdfEditor({
     frame?.contentDocument?.documentElement.toggleAttribute("data-bar-hidden", barHidden);
   }, [frame, barHidden]);
 
-  // The slide toolbar sits in its seat at the end of the bar's tools, beside Full screen and Save,
-  // wherever those end up as the window or the file's name changes.
-  useEffect(() => {
-    const seat = toolsSlot?.parentElement;
-    const root = frame?.contentDocument?.documentElement;
-    if (!seat || !root) return;
-    const place = () => {
-      const spot = seat.querySelector("[data-dock-seat]")?.getBoundingClientRect();
-      if (spot) root.style.setProperty("--pw-dock-right", `${innerWidth - spot.right + 4}px`);
-    };
-    const watcher = new ResizeObserver(place);
-    watcher.observe(seat);
-    for (const part of seat.children) watcher.observe(part);
-    place();
-    return () => watcher.disconnect();
-  }, [toolsSlot, frame, parts]);
+  useDockSeat(frame, toolsSlot, !!parts);
 
   useEffect(() => {
     if (reader.failed) showError("The PDF reader couldn't start. Try opening the file again.");
@@ -281,7 +267,6 @@ export default function PdfEditor({
           sidebar={sidebar}
           query={query}
           matches={matches}
-          dockOpen={reader.docState?.open ?? false}
           onPage={goTo}
           onFit={zoom.chooseFit}
           onScale={zoom.chooseScale}

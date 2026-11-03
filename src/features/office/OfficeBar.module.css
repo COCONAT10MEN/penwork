@@ -14,6 +14,10 @@
   transition: translate var(--md-sys-motion-spatial-default-duration)
     var(--md-sys-motion-spatial-default-easing);
 }
+/* A PDF's bar holds every tool at once, so the name gives up room as the window narrows. */
+.place[data-docked] .titles {
+  max-width: clamp(96px, calc(100vw - 900px), 240px);
+}
 .place[data-docked] .bar {
   min-height: 64px;
   border-width: 0 0 1px;
@@ -36,7 +40,7 @@
   pointer-events: none;
 }
 .place[data-see-through] .bar > :not(.slot),
-.place[data-see-through] .slot [role="group"] {
+.place[data-see-through] .slot [role="group"] > :not(:has([data-dock-seat])) {
   pointer-events: auto;
 }
 /* Past its own height too, or its shadow is left lying across the top of the page. */
@@ -54,7 +58,7 @@
   border-radius: var(--md-sys-shape-corner-full);
 }
 .titles {
-  flex: none;
+  flex: 0 1 auto;
   max-width: 240px;
   min-width: 96px;
 }

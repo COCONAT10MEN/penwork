@@ -420,7 +420,8 @@ export function layoutPage(
       const prev = current.segs[current.segs.length - 1] as Segment;
       const first = current.segs[0] as Segment;
       const gap = s.y - prev.y;
-      const sameSize = Math.abs(s.size - prev.size) < 0.6;
+      // Within about a tenth: OCR'd text and some PDFs vary a little line to line.
+      const sameSize = Math.abs(s.size - prev.size) < Math.max(0.6, prev.size * 0.12);
       const sameLeft =
         Math.abs(s.x0 - (current.segs.length > 1 ? prev.x0 : first.x0)) <= 3 ||
         (current.segs.length === 1 && s.x0 < first.x0 && first.x0 - s.x0 < 40);

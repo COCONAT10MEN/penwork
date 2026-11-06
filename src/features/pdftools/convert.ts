@@ -2,7 +2,7 @@ import type { PDFDocumentProxy } from "pdfjs-dist";
 import type { Block, PageLayout, Run } from "../../lib/pdftools/pageLayout";
 import { cellOf } from "../../lib/pdftools/textLayout";
 import { readPage } from "./pageRead";
-import { pageText, renderPage } from "./pdfRead";
+import { renderPage } from "./pdfRead";
 
 export { toWord } from "./wordExport";
 
@@ -237,6 +237,19 @@ export async function toPowerPoint(
   return [{ name: `${stem}.pptx`, bytes: data }];
 }
 
+/** Plain text from a page's layout, in reading order: paragraphs, and table rows with tabs. */
+export function layoutText(layout: PageLayout): string {
+  return layout.blocks
+    .flatMap((b) =>
+      b.kind === "paragraph"
+        ? [plain(b.runs)]
+        : b.kind === "table"
+          ? [b.rows.map((cells) => cells.map(plain).join("\t")).join("\r\n")]
+          : [],
+    )
+    .join("\r\n\r\n");
+}
+
 /** Markdown from a page's layout: headings, lists, bold and italic words, and tables. */
 export function layoutMarkdown(layout: PageLayout): string {
   const md = (runs: Run[]) =>
@@ -306,7 +319,7 @@ export async function toText(
   for (const n of pagesOf(doc)) {
     progress(n - 1, doc.numPages);
     if (kind === "md") parts.push(layoutMarkdown((await readPage(doc, n, 1)).layout));
-    else parts.push((await pageText(doc, n)).lines.map((l) => l.text).join("\r\n"));
+    else parts.push(layoutText((await readPage(doc, n, 1)).layout));
   }
   progress(doc.numPages, doc.numPages);
   const text = parts.join(kind === "md" ? "\n\n---\n\n" : "\r\n\f\r\n");

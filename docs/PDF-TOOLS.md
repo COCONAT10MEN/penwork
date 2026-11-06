@@ -111,7 +111,20 @@ A PDF that won't open offers Repair.
 - **OCR** writes invisible text over the page with a font-free ("glyphless") font, as OCRmyPDF does, so any
   language works without shipping its font.
 - **Text that the PDF's built-in font can't show** (Arabic, for one) goes in as a sharp picture of itself.
-- **PDF to PowerPoint** makes each page a slide picture, with the page's text in the notes.
+- **Converting** reads each page's layout back from where its words and pictures are (`pageLayout.ts`,
+  `pageRead.ts`): paragraphs with each run's own font, size, weight, slant and colour, alignment, indents,
+  spacing and line height; headings by size; tables where words line up row after row; text in two columns
+  read column by column; pictures cut out where they sit.
+  - **Word**: a Word page per PDF page at the same size and margins, real paragraphs that wrap, Word headings
+    and tables, the pictures in place, two columns as Word's own columns. A scanned page stays its picture.
+  - **PowerPoint**: the text is editable text boxes in its own font, size and colour, over the page's drawing
+    with the text painted out.
+  - **Excel**: tables as rows and columns with a bold header; money, percentages and separated numbers as
+    numbers with their format.
+  - **Markdown** and **text**: in reading order, with headings, bold and italic, lists and tables.
+  - Drawings made of lines and shapes (charts, diagrams) aren't carried over yet, except inside pictures.
+- **OCR** reads in Tesseract's "all the text" mode: its page layout mode takes ruled tables for pictures and
+  skips them. Each word sits on its line's own baseline, at the line's size, so lines read whole again.
 - **Word / Excel to PDF** prints a copy of the pages through WebView2's own print-to-PDF.
 
 ## Left out, and why

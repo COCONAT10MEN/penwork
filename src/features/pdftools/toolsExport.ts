@@ -1,3 +1,5 @@
+import { layoutText } from "./convert";
+import { readPage } from "./pageRead";
 import { invoke } from "@tauri-apps/api/core";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import { fileName, fileStem, siblingPath } from "../../lib/office";
@@ -5,7 +7,7 @@ import { runTool } from "./client";
 import { toPictures } from "./convert";
 import { announce, writeNew } from "./files";
 import { readText, type OcrLanguage } from "./ocr";
-import { pageText, renderPage } from "./pdfRead";
+import { renderPage } from "./pdfRead";
 import { ALL_PAGES, pagesOf } from "./toolsPages";
 import type { Tool, ToolHost } from "./types";
 
@@ -152,8 +154,9 @@ export const EXPORT_TOOLS: Tool[] = [
       const texts = new Map<number, string>();
       const scanned: number[] = [];
       for (const n of pages) {
-        const { lines } = await pageText(host.doc, n);
-        if (lines.length >= 2) texts.set(n, lines.map((l) => l.text).join("\r\n"));
+        const { layout, scanned: none } = await readPage(host.doc, n, 1);
+        const text = layoutText(layout);
+        if (!none && text.trim().length > 8) texts.set(n, text);
         else scanned.push(n);
       }
       if (scanned.length && !langs.length)

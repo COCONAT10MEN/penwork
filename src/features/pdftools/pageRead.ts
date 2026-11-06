@@ -33,7 +33,11 @@ interface TextItem {
 const hex = (r: number, g: number, b: number) =>
   `#${[r, g, b].map((v) => Math.round(v).toString(16).padStart(2, "0")).join("")}`;
 
-/** The family to write words in: the installed font's own name, or the PDF's, made readable. */
+/**
+ * The family to write words in: the installed font's own name, or the PDF's made readable; for a
+ * font that isn't named (the PDF built-ins), Arial, Times New Roman or Courier New, which are drawn
+ * the same size as Helvetica, Times and Courier.
+ */
 async function familyOf(name: string | null, generic: Generic, bold: boolean, italic: boolean) {
   const face = await faceFor(name, generic, { bold, italic });
   const first = /^'([^']+)'/.exec(face.css)?.[1];
@@ -41,7 +45,7 @@ async function familyOf(name: string | null, generic: Generic, bold: boolean, it
   const parsed = name ? parseFontName(name).family.replace(/([a-z])([A-Z])/g, "$1 $2") : "";
   return (
     parsed ||
-    (generic === "serif" ? "Times New Roman" : generic === "mono" ? "Courier New" : "Calibri")
+    (generic === "serif" ? "Times New Roman" : generic === "mono" ? "Courier New" : "Arial")
   );
 }
 

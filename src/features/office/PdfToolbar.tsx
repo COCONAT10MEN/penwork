@@ -159,6 +159,7 @@ export function PdfToolbar({
   onStep,
   onSidebar,
   onSearch,
+  inkOff,
   moreOpen,
   onMore,
 }: {
@@ -176,12 +177,19 @@ export function PdfToolbar({
   onStep: (steps: number) => void;
   onSidebar: () => void;
   onSearch: (query: string, backwards?: boolean, again?: boolean) => void;
+  /** The annotation tools are switched off: the divider beside their place folds away too. */
+  inkOff: boolean;
   /** The ⋮ sheet with every PDF tool. */
   moreOpen: boolean;
   onMore: () => void;
 }) {
   return createPortal(
-    <div className={styles.pdfBarTools} role="toolbar" aria-label="PDF tools">
+    <div
+      className={styles.pdfBarTools}
+      role="toolbar"
+      aria-label="PDF tools"
+      data-ink-off={inkOff || undefined}
+    >
       <Group label="Reading tools">
         {/* The presentation's annotation tools sit here, always out. The reader page under the bar
             draws them, and this keeps room for them as wide as they are. */}

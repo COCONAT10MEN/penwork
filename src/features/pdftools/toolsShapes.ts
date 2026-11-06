@@ -3,37 +3,16 @@ import { runTool } from "./client";
 import type { Tool } from "./types";
 
 /**
- * Annotate: shapes, and marks on selected text. The freehand pens and the area highlighter are
- * the toolbar's, in the bar; the highlighter's own settings switch it to areas.
+ * Shapes, from a box to a star. The Shapes tab shows each shape as a tile; picking one opens this
+ * tool with it chosen. Marks on text (underline, strike through, bold, italic) are on the bar that
+ * appears over selected text, and highlighting is the toolbar's highlighter.
  */
-
-function markTool(
-  id: "highlight" | "underline" | "strike",
-  title: string,
-  icon: string,
-  blurb: string,
-  keywords: string,
-): Tool {
-  return {
-    id: `mark-${id}`,
-    title,
-    icon,
-    group: "annotate",
-    blurb,
-    keywords,
-    instant: true,
-    async run(host) {
-      host.markText(id);
-    },
-  };
-}
-
-export const ANNOTATE_TOOLS: Tool[] = [
+export const SHAPE_TOOLS: Tool[] = [
   {
     id: "shapes",
     title: "Shapes",
     icon: "category",
-    group: "annotate",
+    group: "shapes",
     blurb: "Boxes, circles, arrows, stars and more",
     keywords:
       "rectangle square circle oval ellipse triangle arrow line star heart tick cross bubble diamond shape draw",
@@ -75,25 +54,4 @@ export const ANNOTATE_TOOLS: Tool[] = [
       );
     },
   },
-  markTool(
-    "highlight",
-    "Highlight text",
-    "format_ink_highlighter",
-    "Select text, and it's highlighted",
-    "highlight marker yellow text select",
-  ),
-  markTool(
-    "underline",
-    "Underline",
-    "format_underlined",
-    "Select text, and it's underlined",
-    "underline text select",
-  ),
-  markTool(
-    "strike",
-    "Strikethrough",
-    "format_strikethrough",
-    "Select text, and it's struck through",
-    "strikethrough strike out cross text select",
-  ),
 ];

@@ -57,7 +57,7 @@ export default function PdfEditor({
   // Where the reader was, to come back to after a tool changes the file.
   const keepPage = useRef(0);
   const settings = useSettings((s) => s.settings);
-  const { darkPages, pdfZoom, pdfTwoPages, pdfHideBar } = settings;
+  const { darkPages, pdfZoom, pdfTwoPages, pdfHideBar, pdfInk } = settings;
   const [parts, setParts] = useState<Loaded | null>(null);
   const [page, setPage] = useState(1);
   const [sidebar, setSidebar] = useState(false);
@@ -81,6 +81,19 @@ export default function PdfEditor({
   useEffect(() => {
     frame?.contentDocument?.documentElement.toggleAttribute("data-hide-bar", pdfHideBar);
   }, [frame, pdfHideBar]);
+
+  // The annotation tools fold away when switched off, and come back when switched on; when the
+  // PDF opens they're simply there or not.
+  const inkShown = useRef<boolean | null>(null);
+  useEffect(() => {
+    if (!reader.ready) return;
+    const first = inkShown.current === null;
+    inkShown.current = pdfInk;
+    frame?.contentWindow?.postMessage(
+      { v: 1, type: "inkOff", payload: { off: !pdfInk, ani: !first } },
+      location.origin,
+    );
+  }, [frame, reader.ready, pdfInk]);
 
   // The page draws the bar's glass, with the slide toolbar in it, once it's there to do so.
   useEffect(() => {
@@ -139,6 +152,9 @@ export default function PdfEditor({
         removePageBorders: true,
         maxCanvasPixels: MAX_CANVAS_PIXELS,
         annotationEditorMode: NO_EDITORS,
+        // pdf.js's own drawing of a selection needs its editors, which are off; the page's normal
+        // selection shows instead, in the app's colour (reader.css).
+        enableSelectionRendering: false,
         abortSignal: quit.signal,
         ...(darkPages ? { pageColors: DARK_PAGE } : {}),
       };
@@ -357,6 +373,7 @@ export default function PdfEditor({
           onStep={zoom.step}
           onSidebar={toggleSidebar}
           onSearch={search}
+          inkOff={!pdfInk}
           moreOpen={tools.open}
           onMore={() => tools.setOpen(!tools.open)}
         />

@@ -7,11 +7,14 @@ import { notify, showError } from "../notices/notices";
 import { runTool } from "./client";
 import { deliver } from "./files";
 import type { Addition } from "../../lib/pdftools/draw";
-import type { Mark, MarkKind } from "../../lib/pdftools/markup";
+import { plainText } from "../../lib/pdftools/draw";
+import type { Mark } from "../../lib/pdftools/markup";
 import { EditTextLayer, type TextEdit } from "./EditTextLayer";
 import { OrganizeView } from "./OrganizeView";
-import { SelectionMarks } from "./SelectionMarks";
-import { selectionMarks as selectionMarksOf } from "./selectionBoxes";
+import { sampleColors } from "./pageColors";
+import { textPicture } from "./pdfRead";
+import { SelectionMarks, type TextStyle } from "./SelectionMarks";
+import { pageBox, selectedPieces } from "./selectionBoxes";
 import { textThing } from "./toolsEdit";
 import { askPassword } from "./passwordAsk";
 import { PasswordPrompt } from "./PasswordPrompt";
@@ -45,7 +48,6 @@ export function usePdfTools(o: {
     done: (a: PlacedArea[] | null) => void;
   } | null>(null);
   const [organizing, setOrganizing] = useState(false);
-  const [armed, setArmed] = useState<MarkKind | null>(null);
   const [editing, setEditing] = useState(false);
   const last = useRef<Uint8Array | null>(null);
   const opts = useRef(o);
@@ -100,23 +102,16 @@ export function usePdfTools(o: {
             setOpen(false);
             setOrganizing(true);
           },
-          markText: (kind) => {
-            setOpen(false);
-            const doc = o.frame?.contentDocument;
-            const viewer = o.viewer;
-            // Text already selected is marked straight away; otherwise the next selection is.
-            if (doc && viewer && doc.getSelection()?.toString().trim())
-              void mark(selectionMarksOf(doc, viewer, kind));
-            else setArmed(kind);
-          },
           editText: () => {
             setOpen(false);
             setEditing(true);
           },
           // The same message the toolbar gets with its saved settings when the PDF opens.
+          // The same message the toolbar gets when the PDF opens, marked live so buttons turned
+          // on or off grow in or fold away instead of the toolbar being laid out again.
           toolbarChanged: (settings) =>
             o.frame?.contentWindow?.postMessage(
-              { v: 1, type: "toolbar", payload: settings },
+              { v: 1, type: "toolbar", payload: { ...settings, live: true } },
               location.origin,
             ),
         }
@@ -128,15 +123,91 @@ export function usePdfTools(o: {
     try {
       await replace(
         await runTool("addMarks", [await current(), marks]),
-        kind === "highlight"
-          ? "Highlighted."
-          : kind === "underline"
-            ? "Underlined."
-            : "Struck through.",
+        kind === "underline" ? "Underlined." : "Struck through.",
       );
     } catch (e) {
       showError(e instanceof Error ? e.message : String(e));
     }
+  };
+
+  /**
+   * Bold or italic for selected words: each run is painted over in the paper's colour and written
+   * again in the bold or italic face of its own kind of type, at its size, fitted to its old width
+   * so the rest of the line stays where it was.
+   */
+  const restyle = (style: TextStyle) => {
+    const doc = opts.current.frame?.contentDocument;
+    const viewer = opts.current.viewer;
+    if (!doc || !viewer) return;
+    // Read now: the selection is cleared as soon as the bar's button is pressed.
+    const runs = selectedPieces(doc).map((piece) => {
+      const family = getComputedStyle(piece.span).fontFamily.toLowerCase();
+      return {
+        ...piece,
+        at: pageBox(viewer, piece.page, piece.rect),
+        colors: sampleColors(piece.page, piece.rect),
+        font: (/mono|courier/.test(family)
+          ? "mono"
+          : /serif/.test(family) && !/sans/.test(family)
+            ? "serif"
+            : "sans") as "sans" | "serif" | "mono",
+      };
+    });
+    void (async () => {
+      const things: Addition[] = [];
+      for (const r of runs) {
+        if (!r.at) continue;
+        const [x0, y0, x1, y1] = r.at.box;
+        const size = r.rect.height / r.at.scale;
+        things.push({
+          kind: "cover",
+          area: {
+            page: r.at.n,
+            x: x0 - 0.4,
+            y: y0 - 0.4,
+            width: x1 - x0 + 0.8,
+            height: y1 - y0 + 0.8,
+          },
+          color: r.colors.paper,
+        });
+        const area = { page: r.at.n, x: x0, y: y0, width: x1 - x0, height: size };
+        if (plainText(r.text))
+          things.push({
+            kind: "text",
+            area,
+            text: r.text,
+            size,
+            color: r.colors.ink,
+            font: r.font,
+            bold: style === "bold",
+            italic: style === "italic",
+            fit: x1 - x0,
+          });
+        else {
+          const pic = await textPicture(r.text, {
+            size,
+            color: r.colors.ink,
+            bold: style === "bold",
+            italic: style === "italic",
+          });
+          things.push({
+            kind: "image",
+            area: { ...area, height: y1 - y0 },
+            bytes: pic.bytes,
+            type: "png",
+          });
+        }
+      }
+      if (!things.length) return;
+      try {
+        await replace(
+          await runTool("addThings", [await current(), things]),
+          style === "bold" ? "Made bold." : "Made italic.",
+        );
+      } catch (e) {
+        showError(e instanceof Error ? e.message : String(e));
+      }
+    })();
   };
 
   const applyEdits = async (edits: TextEdit[]) => {
@@ -185,9 +256,8 @@ export function usePdfTools(o: {
         <SelectionMarks
           frame={o.frame}
           viewer={o.viewer}
-          armed={armed}
-          onArmed={setArmed}
           onMark={(m) => void mark(m)}
+          onStyle={restyle}
         />
       )}
       {editing && o.frame && o.viewer && (

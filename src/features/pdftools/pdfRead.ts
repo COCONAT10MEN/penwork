@@ -92,10 +92,10 @@ export async function asPngOrJpg(
 /** Text in any script, drawn as a picture: for letters the PDF's built-in font doesn't have. */
 export async function textPicture(
   text: string,
-  o: { size: number; color: string; font?: string; bold?: boolean },
+  o: { size: number; color: string; font?: string; bold?: boolean; italic?: boolean },
 ): Promise<{ bytes: Uint8Array; width: number; height: number }> {
   const scale = 4;
-  const font = `${o.bold ? "700 " : ""}${o.size * scale}px ${o.font ?? "'Roboto Flex', 'Segoe UI', Arial, sans-serif"}`;
+  const font = `${o.italic ? "italic " : ""}${o.bold ? "700 " : ""}${o.size * scale}px ${o.font ?? "'Roboto Flex', 'Segoe UI', Arial, sans-serif"}`;
   const lines = text.split("\n");
   // The app's own fonts (Caveat for a typed signature) are only used once loaded; before that a
   // canvas quietly draws in a Windows font instead.

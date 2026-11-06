@@ -1,4 +1,11 @@
-import { degrees, PDFName, StandardFonts, type PDFDocument, type PDFFont } from "pdf-lib";
+import {
+  degrees,
+  PDFName,
+  setCharacterSqueeze,
+  StandardFonts,
+  type PDFDocument,
+  type PDFFont,
+} from "pdf-lib";
 import { arrowHeads, SHAPES } from "./shapes";
 import { isolate, hexColor, seen } from "./stamp";
 import { load, save } from "./pages";
@@ -26,6 +33,9 @@ export type Addition =
       /** Edit text matches the words it replaces; otherwise the plain sans. */
       font?: "sans" | "serif" | "mono";
       bold?: boolean;
+      italic?: boolean;
+      /** Squeezed or stretched to exactly this width: restyled words keep their place on the line. */
+      fit?: number;
     }
   | {
       kind: "shape";
@@ -45,19 +55,41 @@ export type Addition =
   | { kind: "line"; area: Area; stroke: string; width: number }
   | { kind: "field"; area: Area; field: "text" | "check"; name: string };
 
-const FACES: Record<string, [StandardFonts, StandardFonts]> = {
-  sans: [StandardFonts.Helvetica, StandardFonts.HelveticaBold],
-  serif: [StandardFonts.TimesRoman, StandardFonts.TimesRomanBold],
-  mono: [StandardFonts.Courier, StandardFonts.CourierBold],
+/** Plain, bold, italic, bold italic: the built-in PDF fonts of each kind. */
+const FACES: Record<string, [StandardFonts, StandardFonts, StandardFonts, StandardFonts]> = {
+  sans: [
+    StandardFonts.Helvetica,
+    StandardFonts.HelveticaBold,
+    StandardFonts.HelveticaOblique,
+    StandardFonts.HelveticaBoldOblique,
+  ],
+  serif: [
+    StandardFonts.TimesRoman,
+    StandardFonts.TimesRomanBold,
+    StandardFonts.TimesRomanItalic,
+    StandardFonts.TimesRomanBoldItalic,
+  ],
+  mono: [
+    StandardFonts.Courier,
+    StandardFonts.CourierBold,
+    StandardFonts.CourierOblique,
+    StandardFonts.CourierBoldOblique,
+  ],
 };
 
-async function fontOf(doc: PDFDocument, cache: Map<string, PDFFont>, face: string, bold: boolean) {
-  const key = `${face}${bold ? "-bold" : ""}`;
+async function fontOf(
+  doc: PDFDocument,
+  cache: Map<string, PDFFont>,
+  face: string,
+  bold: boolean,
+  italic: boolean,
+) {
+  const key = `${face}-${bold ? "b" : ""}${italic ? "i" : ""}`;
   let f = cache.get(key);
   if (!f) {
-    const [plain, heavy] = FACES[face] ??
-      FACES.sans ?? [StandardFonts.Helvetica, StandardFonts.HelveticaBold];
-    f = await doc.embedFont(bold ? heavy : plain);
+    const faces = FACES[face] ?? FACES.sans;
+    const pick = faces?.[(bold ? 1 : 0) + (italic ? 2 : 0)] ?? StandardFonts.Helvetica;
+    f = await doc.embedFont(pick);
     cache.set(key, f);
   }
   return f;
@@ -85,8 +117,8 @@ export async function addThings(bytes: Uint8Array, things: Addition[]): Promise<
   const doc = await load(bytes);
   const font = await doc.embedFont(StandardFonts.Helvetica);
   const fonts = new Map<string, PDFFont>();
-  const fontFor = (t: { font?: string; bold?: boolean }) =>
-    fontOf(doc, fonts, t.font ?? "sans", !!t.bold);
+  const fontFor = (t: { font?: string; bold?: boolean; italic?: boolean }) =>
+    fontOf(doc, fonts, t.font ?? "sans", !!t.bold, !!t.italic);
   const pages = doc.getPages();
   const isolated = new Set<number>();
   let fieldCount = 0;
@@ -113,14 +145,21 @@ export async function addThings(bytes: Uint8Array, things: Addition[]): Promise<
               : turn === 270
                 ? [x + width - down, y + height]
                 : [x, y + height - down];
+        const face = await fontFor(t);
+        // Tz stretches the letters' spacing; it stays set until put back, so it's put back after.
+        const squeeze = t.fit
+          ? (t.fit / Math.max(1, face.widthOfTextAtSize(line, t.size))) * 100
+          : 0;
+        if (squeeze) page.pushOperators(setCharacterSqueeze(+squeeze.toFixed(2)));
         page.drawText(line, {
           x: px,
           y: py,
           size: t.size,
-          font: await fontFor(t),
+          font: face,
           color: hexColor(t.color),
           rotate: degrees(turn),
         });
+        if (squeeze) page.pushOperators(setCharacterSqueeze(100));
       }
     } else if (t.kind === "cover") {
       page.drawRectangle({ x, y, width, height, color: hexColor(t.color) });

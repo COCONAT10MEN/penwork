@@ -507,3 +507,11 @@
   display: inline-flex;
   align-items: center;
 }
+
+/* The annotation tools switched off: they fold away in the page, and the divider after them here. */
+.pdfBarTools[data-ink-off] .toolSlot:has([data-dock-seat]) + .toolSlot {
+  max-width: 0;
+  margin-inline: -1px;
+  overflow: hidden;
+  opacity: 0;
+}

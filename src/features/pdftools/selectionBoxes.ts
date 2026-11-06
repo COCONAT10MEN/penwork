@@ -8,40 +8,86 @@ export const MARK_COLORS: Record<MarkKind, string> = {
   strike: "#e53935",
 };
 
+/** One run of selected text on one line: where it is on screen, and its words. */
+export interface Piece {
+  span: HTMLElement;
+  page: HTMLElement;
+  rect: DOMRect;
+  text: string;
+}
+
+/**
+ * The selected text, run by run. Measured from the text itself: the range's own boxes also take
+ * in pdf.js's invisible end-of-page block, which made the whole page look selected.
+ */
+export function selectedPieces(doc: Document): Piece[] {
+  const sel = doc.getSelection();
+  const range = sel?.rangeCount ? sel.getRangeAt(0) : null;
+  if (!range || range.collapsed) return [];
+  const root = range.commonAncestorContainer;
+  const walker = doc.createTreeWalker(
+    root.nodeType === 3 ? (root.parentNode ?? root) : root,
+    NodeFilter.SHOW_TEXT,
+  );
+  const out: Piece[] = [];
+  for (let node = walker.nextNode() as Text | null; node; node = walker.nextNode() as Text | null) {
+    if (!range.intersectsNode(node)) continue;
+    const span = node.parentElement;
+    const page = span?.closest<HTMLElement>(".page[data-page-number]");
+    if (!span || !page || !span.closest(".textLayer")) continue;
+    const from = node === range.startContainer ? range.startOffset : 0;
+    const to = node === range.endContainer ? range.endOffset : node.data.length;
+    const text = node.data.slice(from, to);
+    if (!text.trim()) continue;
+    const part = doc.createRange();
+    part.setStart(node, from);
+    part.setEnd(node, to);
+    const rect = part.getBoundingClientRect();
+    if (rect.width < 1 || rect.height < 2) continue;
+    out.push({ span, page, rect, text });
+  }
+  return out;
+}
+
+/** Where the selection is on screen: its first line's top, its last line's bottom, its middle. */
+export function selectionBounds(pieces: Piece[]) {
+  if (!pieces.length) return null;
+  const top = Math.min(...pieces.map((p) => p.rect.top));
+  const bottom = Math.max(...pieces.map((p) => p.rect.bottom));
+  const left = Math.min(...pieces.map((p) => p.rect.left));
+  const right = Math.max(...pieces.map((p) => p.rect.right));
+  return { top, bottom, middle: (left + right) / 2 };
+}
+
+/** A box on screen, in a page's own coordinates. */
+export function pageBox(viewer: PDFViewer, page: HTMLElement, r: DOMRect) {
+  const n = Number(page.dataset.pageNumber);
+  const view = viewer.getPageView(n - 1)?.viewport;
+  if (!view) return null;
+  const p = page.getBoundingClientRect();
+  const [ax, ay] = view.convertToPdfPoint(r.left - p.left, r.bottom - p.top) as [number, number];
+  const [bx, by] = view.convertToPdfPoint(r.right - p.left, r.top - p.top) as [number, number];
+  return {
+    n,
+    scale: view.scale,
+    box: [Math.min(ax, bx), Math.min(ay, by), Math.max(ax, bx), Math.max(ay, by)] as [
+      number,
+      number,
+      number,
+      number,
+    ],
+  };
+}
+
 /** The selection's lines as boxes in each page's own coordinates, one per line. */
 export function selectionMarks(doc: Document, viewer: PDFViewer, kind: MarkKind): Mark[] {
-  const range = doc.getSelection()?.rangeCount ? doc.getSelection()?.getRangeAt(0) : null;
-  if (!range || range.collapsed) return [];
-  const pages = [...doc.querySelectorAll<HTMLElement>(".page[data-page-number]")].map((el) => ({
-    n: Number(el.dataset.pageNumber),
-    rect: el.getBoundingClientRect(),
-  }));
   const byPage = new Map<number, [number, number, number, number][]>();
-  for (const r of range.getClientRects()) {
-    if (r.width < 1 || r.height < 2) continue;
-    const cx = r.left + r.width / 2;
-    const cy = r.top + r.height / 2;
-    const page = pages.find(
-      (p) => cx >= p.rect.left && cx <= p.rect.right && cy >= p.rect.top && cy <= p.rect.bottom,
-    );
-    const view = page && viewer.getPageView(page.n - 1)?.viewport;
-    if (!page || !view) continue;
-    const [ax, ay] = view.convertToPdfPoint(r.left - page.rect.left, r.bottom - page.rect.top) as [
-      number,
-      number,
-    ];
-    const [bx, by] = view.convertToPdfPoint(r.right - page.rect.left, r.top - page.rect.top) as [
-      number,
-      number,
-    ];
-    const box: [number, number, number, number] = [
-      Math.min(ax, bx),
-      Math.min(ay, by),
-      Math.max(ax, bx),
-      Math.max(ay, by),
-    ];
-    // Pieces of one line join into one box.
-    const list = byPage.get(page.n) ?? [];
+  for (const piece of selectedPieces(doc)) {
+    const at = pageBox(viewer, piece.page, piece.rect);
+    if (!at) continue;
+    const box = at.box;
+    // Runs of one line join into one box.
+    const list = byPage.get(at.n) ?? [];
     const same = list.find(
       (b) =>
         Math.min(b[3], box[3]) - Math.max(b[1], box[1]) > 0.5 * (box[3] - box[1]) &&
@@ -54,7 +100,7 @@ export function selectionMarks(doc: Document, viewer: PDFViewer, kind: MarkKind)
       same[2] = Math.max(same[2], box[2]);
       same[3] = Math.max(same[3], box[3]);
     } else list.push(box);
-    byPage.set(page.n, list);
+    byPage.set(at.n, list);
   }
   return [...byPage].map(([page, boxes]) => ({ page, kind, color: MARK_COLORS[kind], boxes }));
 }

@@ -1,6 +1,5 @@
 import type { PDFDocumentProxy } from "pdfjs-dist";
 import type { Area } from "../../lib/pdftools/draw";
-import type { MarkKind } from "../../lib/pdftools/markup";
 import type { Change } from "./compare";
 
 /** What a tool can do with the open PDF, given by the PDF screen. */
@@ -20,8 +19,6 @@ export interface ToolHost {
   /** Lets the person mark places on the pages; resolves when they're done, or null if cancelled. */
   place(spec: PlaceSpec): Promise<PlacedArea[] | null>;
   organize(): void;
-  /** Highlight, underline or strike the selected text, or the next text selected. */
-  markText(kind: MarkKind): void;
   /** Click words on the pages to change them. */
   editText(): void;
   /** The annotation toolbar's settings changed in the sheet: this PDF's toolbar takes them now. */
@@ -91,12 +88,12 @@ export type Field =
 
 /** The ⋮ menu's tabs, in order. */
 export type GroupId =
-  "pages" | "edit" | "annotate" | "convert" | "ocr" | "optimize" | "security" | "more";
+  "pages" | "edit" | "shapes" | "convert" | "ocr" | "optimize" | "security" | "more";
 
 export const GROUPS: { id: GroupId; title: string; icon: string }[] = [
   { id: "pages", title: "Pages", icon: "auto_stories" },
   { id: "edit", title: "Edit", icon: "edit" },
-  { id: "annotate", title: "Annotate", icon: "ink_highlighter" },
+  { id: "shapes", title: "Shapes", icon: "category" },
   { id: "convert", title: "Convert", icon: "swap_horiz" },
   { id: "ocr", title: "OCR", icon: "document_scanner" },
   { id: "optimize", title: "Optimize", icon: "speed" },

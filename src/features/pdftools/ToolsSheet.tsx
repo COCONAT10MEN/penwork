@@ -13,7 +13,7 @@ import { notify } from "../notices/notices";
 import type { Change } from "./compare";
 import { ToolFields } from "./ToolFields";
 import { PdfSettingsPane } from "./PdfSettingsPane";
-import { ToolGrid } from "./ToolGrid";
+import { ShapeGrid, ToolGrid } from "./ToolGrid";
 import { ALL_TOOLS } from "./registry";
 import { GROUPS, type GroupId, type Tool, type ToolHost, type Values } from "./types";
 
@@ -92,12 +92,16 @@ export function ToolsSheet({
     }
   };
 
-  const choose = async (t: Tool) => {
+  /** `preset` starts some options chosen already: the shape picked on the Shapes tab. */
+  const choose = async (t: Tool, preset: Values = {}) => {
     if (!host) return;
     setTool(t);
     setChanges(null);
     setError(null);
-    const defaults = typeof t.defaults === "function" ? await t.defaults(host) : (t.defaults ?? {});
+    const defaults = {
+      ...(typeof t.defaults === "function" ? await t.defaults(host) : (t.defaults ?? {})),
+      ...preset,
+    };
     setValues(defaults);
     if (t.instant) void run(t, defaults);
   };
@@ -146,24 +150,34 @@ export function ToolsSheet({
                   onChange={setQuery}
                   material="tonal"
                 />
-                {query.trim() ? (
-                  found.length ? (
-                    <ToolGrid tools={found} onPick={(t) => void choose(t)} />
-                  ) : (
-                    <p className={styles.note}>No tool by that name.</p>
-                  )
-                ) : (
-                  <FadeThrough id={tab}>
-                    {tab === "settings" ? (
-                      host && <PdfSettingsPane toToolbar={host.toolbarChanged} />
+                {/* Each side scrolls on its own: the rail, and what's beside it. */}
+                <div className={styles.browseScroll}>
+                  {query.trim() ? (
+                    found.length ? (
+                      <ToolGrid tools={found} onPick={(t) => void choose(t)} />
                     ) : (
-                      <ToolGrid
-                        tools={found.filter((t) => t.group === tab)}
-                        onPick={(t) => void choose(t)}
-                      />
-                    )}
-                  </FadeThrough>
-                )}
+                      <p className={styles.note}>No tool by that name.</p>
+                    )
+                  ) : (
+                    <FadeThrough id={tab}>
+                      {tab === "settings" ? (
+                        host && <PdfSettingsPane toToolbar={host.toolbarChanged} />
+                      ) : tab === "shapes" ? (
+                        <ShapeGrid
+                          onPick={(shape) => {
+                            const t = ALL_TOOLS.find((x) => x.id === "shapes");
+                            if (t) void choose(t, { shape });
+                          }}
+                        />
+                      ) : (
+                        <ToolGrid
+                          tools={found.filter((t) => t.group === tab)}
+                          onPick={(t) => void choose(t)}
+                        />
+                      )}
+                    </FadeThrough>
+                  )}
+                </div>
               </div>
             </div>
           ) : (

@@ -522,7 +522,7 @@ function armSink(){
   sinkT=setTimeout(function(){if(!dockOpen&&UIS.sink&&!anyPop()&&!lgG&&!grip&&!G)dock.classList.add('sink');else armSink();},UIS.sinkDelay*1000);
 }
 function toggleDock(on,ani){
-  on=!!on||DOC;if(on===dockOpen)return;dockOpen=on;
+  on=!!on||(DOC&&!inkOff);if(on===dockOpen)return;dockOpen=on;
   if(!on)closePops();
   renderDock(ani!==false);poke();armSink();
   if(DOC){docUnfold(on,ani!==false);docReport();}
@@ -545,7 +545,9 @@ function setTool(t,quiet){
   tool=t;trail=[];headOn=false;renderDock();updRing();if(DOC)docReport();
   if(!quiet)toast('<b>'+TOOLS.filter(function(x){return x[0]===t;})[0][1].replace(/ \(.\)/,'')+'</b>',1100);
 }
+var inkOff=false;
 function setAnnot(on){
+  if(on&&inkOff)return;
   if(!on&&wbOn)on=true;
   annot=!!on;if(!annot){trail=[];headOn=false;hideRing();closePops();}
   renderDock(true);poke();if(DOC)docReport();
@@ -2522,7 +2524,15 @@ addEventListener('message',function(e){
       if(p.tools)for(var t in CFG)assign(CFG[t],p.tools[t]);
       if(p.wb){if(p.wb.p)wbPat=p.wb.p;if(p.wb.c)wbCol=p.wb.c;}
       /* the template read these before it first drew the dock; here they arrive just after */
-      if(!SORTER){dockOpen=DOC||UIS.open;applyAll();}
+      if(SORTER)break;
+      if(p.live){fixAll();tool=UIS.tool;applyTablet();fillMain(true);renderDock(false);saveSettings();break;}
+      dockOpen=(DOC&&!inkOff)||UIS.open;applyAll();
+      break;
+    case 'inkOff':
+      /* the app's "Annotation tools" setting: off, the tools fold away and nothing can be drawn;
+         ink already on the pages stays */
+      inkOff=!!p.off;if(inkOff&&annot)setAnnot(false);
+      toggleDock(!inkOff,p.ani!==false);
       break;
     case 'toolbarFile':importText(p.text);break;
     case 'logo':{

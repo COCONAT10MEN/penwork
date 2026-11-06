@@ -194,3 +194,8 @@ body {
 :root[data-bar-hidden] #dock {
   translate: 0 calc(-100% - 48px);
 }
+
+/* Selected text glows in the app's own colour, so it's plain what's selected. */
+:root .textLayer ::selection {
+  background: color-mix(in srgb, var(--md-sys-color-primary) 38%, transparent);
+}

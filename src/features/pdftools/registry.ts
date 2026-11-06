@@ -1,4 +1,4 @@
-import { ANNOTATE_TOOLS } from "./toolsAnnotate";
+import { SHAPE_TOOLS } from "./toolsShapes";
 import { CONVERT_TOOLS } from "./toolsConvert";
 import { EDIT_TOOLS } from "./toolsEdit";
 import { EXPORT_TOOLS } from "./toolsExport";
@@ -9,7 +9,7 @@ import type { Tool } from "./types";
 export const ALL_TOOLS: Tool[] = [
   ...PAGE_TOOLS,
   ...EDIT_TOOLS,
-  ...ANNOTATE_TOOLS,
+  ...SHAPE_TOOLS,
   ...CONVERT_TOOLS,
   ...EXPORT_TOOLS,
 ];

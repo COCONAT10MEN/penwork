@@ -17,18 +17,18 @@
 .list {
   display: flex;
   gap: 4px;
+  /* The sheet's height, less its header and bottom padding: its two sides scroll inside this. */
+  height: calc(100vh - var(--pw-pdf-top, 64px) - 22px - 64px - 24px);
   margin-left: -20px;
-  padding-bottom: 12px;
 }
-/* The rail keeps its own height and stays put while a long page (Settings) scrolls beside it,
-   so its last item is always in sight. */
+/* The rail scrolls by itself when the window is too short for it, by wheel, touchpad or touch,
+   with no bar of its own taking width from its labels. */
 .list > nav[class] {
-  position: sticky;
-  top: 0;
   flex: none;
-  align-self: flex-start;
-  height: auto;
+  height: 100%;
   padding-top: 0;
+  overflow: hidden auto;
+  scrollbar-width: none;
   background: transparent;
 }
 .browseMain {
@@ -37,6 +37,15 @@
   flex-direction: column;
   gap: 8px;
   min-width: 0;
+  min-height: 0;
+}
+/* What's beside the rail scrolls by itself, under the search box. */
+.browseScroll {
+  flex: 1;
+  min-height: 0;
+  padding-bottom: 12px;
+  overflow: hidden auto;
+  scrollbar-width: thin;
 }
 .group {
   display: flex;
@@ -468,15 +477,24 @@
   height: 100%;
 }
 
-/* Over selected text: what can be done with it. */
-.selectionBar {
+/* Over selected text: what can be done with it. Its middle sits over the selection's middle. */
+.selectionPlace {
   position: fixed;
   z-index: 7;
+  translate: -50% 0;
+}
+.selectionBar {
   display: flex;
+  align-items: center;
   gap: 2px;
   padding: 4px;
   border-radius: var(--md-sys-shape-corner-full);
-  translate: -50% 0;
+}
+.selectionDivider {
+  width: 1px;
+  height: 24px;
+  margin-inline: 4px;
+  background: var(--md-sys-color-outline-variant);
 }
 
 /* Edit text: the run under the pointer, and the edits made so far. */

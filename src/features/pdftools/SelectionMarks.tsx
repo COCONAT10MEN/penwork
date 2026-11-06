@@ -1,66 +1,57 @@
+import { AnimatePresence, motion } from "motion/react";
 import type { PDFViewer } from "pdfjs-dist/web/pdf_viewer.mjs";
-import { useEffect, useReducer, useState } from "react";
-import type { Mark, MarkKind } from "../../lib/pdftools/markup";
-import { selectionMarks } from "./selectionBoxes";
-
-const WORDS: Record<MarkKind, string> = {
-  highlight: "highlight",
-  underline: "underline",
-  strike: "strike through",
-};
-
-import { Button, IconButton, Surface } from "../../ui";
+import { useEffect, useState } from "react";
+import type { Mark } from "../../lib/pdftools/markup";
+import { useReduceMotion, useSpring } from "../../theme/motion";
+import { IconButton, Surface } from "../../ui";
+import { selectedPieces, selectionBounds, selectionMarks } from "./selectionBoxes";
 import styles from "./PdfTools.module.css";
 
 /**
- * Text selected on a page gets a small bar over it: highlight, underline, strike through, copy.
- * When one of those was picked in the ⋮ menu first ("armed"), the next selection is marked at once.
+ * Text selected on a page gets a small bar just above it: bold, italic, underline, strike
+ * through, copy. It rises in from the text and settles without a bounce, as Material's popovers do.
  */
+
+export type TextStyle = "bold" | "italic";
+
+const BAR_HEIGHT = 52;
+const GAP = 10;
 
 export function SelectionMarks({
   frame,
   viewer,
-  armed,
-  onArmed,
   onMark,
+  onStyle,
 }: {
   frame: HTMLIFrameElement;
   viewer: PDFViewer;
-  /** Picked in the ⋮ menu: the next selection gets this. */
-  armed: MarkKind | null;
-  onArmed: (kind: MarkKind | null) => void;
   onMark: (marks: Mark[]) => void;
+  onStyle: (style: TextStyle) => void;
 }) {
   const doc = frame.contentDocument;
-  const [box, setBox] = useState<DOMRect | null>(null);
-  const [, redraw] = useReducer((n: number) => n + 1, 0);
+  const [at, setAt] = useState<{ x: number; y: number; below: boolean } | null>(null);
+  const reduce = useReduceMotion();
+  const fade = useSpring("effectsFast");
+  const rise = useSpring("spatialFast");
 
   useEffect(() => {
     if (!doc) return;
     let down = false;
     const look = () => {
-      const sel = doc.getSelection();
-      const inText =
-        sel && !sel.isCollapsed && sel.anchorNode?.parentElement?.closest(".textLayer");
-      setBox(inText && !down ? sel.getRangeAt(0).getBoundingClientRect() : null);
+      const bounds = down ? null : selectionBounds(selectedPieces(doc));
+      if (!bounds) return setAt(null);
+      // Above the first line; below the last when there's no room above, under the bar.
+      const below = bounds.top - BAR_HEIGHT - GAP < 72;
+      const x = Math.max(120, Math.min(innerWidth - 120, bounds.middle));
+      setAt({ x, y: below ? bounds.bottom + GAP : bounds.top - BAR_HEIGHT - GAP, below });
     };
     const onDown = () => {
       down = true;
-      setBox(null);
+      setAt(null);
     };
     const onUp = () => {
       down = false;
-      // A moment for the selection to settle after the button comes up.
-      setTimeout(() => {
-        look();
-        if (armed) {
-          const marks = selectionMarks(doc, viewer, armed);
-          if (marks.length) {
-            onMark(marks);
-            doc.getSelection()?.removeAllRanges();
-          }
-        }
-      }, 0);
+      setTimeout(look, 0);
     };
     const scroller = doc.getElementById("scroller");
     doc.addEventListener("selectionchange", look);
@@ -73,70 +64,74 @@ export function SelectionMarks({
       doc.removeEventListener("pointerup", onUp, true);
       scroller?.removeEventListener("scroll", look);
     };
-  }, [doc, viewer, armed, onMark]);
-
-  useEffect(() => {
-    if (!armed) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onArmed(null);
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [armed, onArmed]);
+  }, [doc]);
 
   if (!doc) return null;
-  const mark = (kind: MarkKind) => {
-    const marks = selectionMarks(doc, viewer, kind);
-    if (!marks.length) return;
-    onMark(marks);
+  const done = () => {
     doc.getSelection()?.removeAllRanges();
-    setBox(null);
-    redraw();
+    setAt(null);
   };
+  const mark = (kind: "underline" | "strike") => {
+    const marks = selectionMarks(doc, viewer, kind);
+    if (marks.length) onMark(marks);
+    done();
+  };
+  // Settles without overshoot: a popover never bounces.
+  const settle =
+    "stiffness" in rise && rise.stiffness
+      ? { ...rise, damping: 2 * Math.sqrt(rise.stiffness) }
+      : rise;
 
   return (
-    <>
-      {box && !armed && (
-        <Surface
-          material="glass"
-          strength="thick"
-          floating
-          className={styles.selectionBar}
-          style={{ left: box.left + box.width / 2, top: Math.max(72, box.top - 56) }}
+    <AnimatePresence>
+      {at && (
+        <motion.div
+          key="bar"
+          className={styles.selectionPlace}
+          style={{ left: at.x, top: at.y, transformOrigin: at.below ? "50% 0%" : "50% 100%" }}
+          initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.86, y: at.below ? -8 : 8 }}
+          animate={{ opacity: 1, scale: 1, y: 0, transition: { default: settle, opacity: fade } }}
+          exit={{ opacity: 0, scale: reduce ? 1 : 0.92, transition: fade }}
         >
-          <IconButton
-            icon="format_ink_highlighter"
-            label="Highlight"
-            onClick={() => mark("highlight")}
-          />
-          <IconButton
-            icon="format_underlined"
-            label="Underline"
-            onClick={() => mark("underline")}
-          />
-          <IconButton
-            icon="format_strikethrough"
-            label="Strikethrough"
-            onClick={() => mark("strike")}
-          />
-          <IconButton
-            icon="content_copy"
-            label="Copy"
-            onClick={() => {
-              void navigator.clipboard.writeText(doc.getSelection()?.toString() ?? "");
-              setBox(null);
-            }}
-          />
-        </Surface>
+          <Surface material="glass" strength="thick" floating className={styles.selectionBar}>
+            <IconButton
+              icon="format_bold"
+              label="Bold"
+              onClick={() => {
+                onStyle("bold");
+                done();
+              }}
+            />
+            <IconButton
+              icon="format_italic"
+              label="Italic"
+              onClick={() => {
+                onStyle("italic");
+                done();
+              }}
+            />
+            <IconButton
+              icon="format_underlined"
+              label="Underline"
+              onClick={() => mark("underline")}
+            />
+            <IconButton
+              icon="format_strikethrough"
+              label="Strikethrough"
+              onClick={() => mark("strike")}
+            />
+            <span className={styles.selectionDivider} />
+            <IconButton
+              icon="content_copy"
+              label="Copy"
+              onClick={() => {
+                void navigator.clipboard.writeText(doc.getSelection()?.toString() ?? "");
+                setAt(null);
+              }}
+            />
+          </Surface>
+        </motion.div>
       )}
-      {armed && (
-        <Surface material="glass" strength="thick" floating className={styles.placeBar}>
-          <span className={styles.placeHint}>
-            Select the text to {WORDS[armed]}. Each selection is marked as you let go.
-          </span>
-          <Button size="small" onClick={() => onArmed(null)}>
-            Done
-          </Button>
-        </Surface>
-      )}
-    </>
+    </AnimatePresence>
   );
 }

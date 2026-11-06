@@ -1,3 +1,4 @@
+import { SHAPES, shapeSvg } from "../../lib/pdftools/shapes";
 import { Icon, Tooltip } from "../../ui";
 import type { Tool } from "./types";
 import styles from "./PdfTools.module.css";
@@ -19,6 +20,29 @@ export function ToolGrid({ tools, onPick }: { tools: Tool[]; onPick: (tool: Tool
             <span className={styles.tileName}>{t.title}</span>
           </button>
         </Tooltip>
+      ))}
+    </div>
+  );
+}
+
+/** The Shapes tab: each shape as a tile; picking one opens Shapes with it chosen. */
+export function ShapeGrid({ onPick }: { onPick: (shape: string) => void }) {
+  return (
+    <div className={styles.grid3}>
+      {SHAPES.map((s) => (
+        <button
+          key={s.id}
+          type="button"
+          className={`pw-state pw-press ${styles.tile}`}
+          onClick={() => onPick(s.id)}
+        >
+          <span
+            className={styles.tileIcon}
+            // Our own drawing of the shape, from the shapes list.
+            dangerouslySetInnerHTML={{ __html: shapeSvg(s.id, 28, 28) }}
+          />
+          <span className={styles.tileName}>{s.label}</span>
+        </button>
       ))}
     </div>
   );

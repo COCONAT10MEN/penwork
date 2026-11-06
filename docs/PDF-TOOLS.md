@@ -6,11 +6,17 @@ downloading it and opening it.
 
 ## Where they are
 
-- The ⋮ at the end of the PDF's bar opens a glass sheet: the kinds of tools down its side (Pages, Edit, Annotate,
-  Convert, OCR, Optimize, Security, More), each kind's tools as tiles, and search across all of them.
-- Text selected on a page gets a small bar over it: Highlight, Underline, Strikethrough, Copy.
-- The highlighter's own settings (tap it again, double-tap or right-click) have "Highlight an area": a drag then
-  makes a box instead of a stroke, saved into PDFs as a filled box like any highlight.
+- The ⋮ at the end of the PDF's bar opens a glass sheet: the kinds of tools down its side (Pages, Edit, Shapes,
+  Convert, OCR, Optimize, Security, More, and Settings at its foot), each kind's tools as tiles, and search across
+  all of them. The rail and what's beside it scroll each on their own.
+- Settings there are the PDF's own (Dark pages, view, Annotation tools, the annotation toolbar), taking effect at
+  once; a toolbar button switched off folds away as it does in a show.
+- Text selected on a page glows in the app's colour and gets a small bar just above it: Bold, Italic, Underline,
+  Strikethrough, Copy. Bold and italic redraw the words in the bold or italic face of their own kind of type,
+  fitted to their old width.
+- The highlighter's own settings choose Freehand, Text (snaps to words, a rounded box per line) or Area (a rounded
+  box with its own pointer).
+- "Annotation tools" off (Settings ▸ View) folds the pens out of the bar and stops drawing; ink stays.
 - `src/features/pdftools/registry.ts` lists the entries. One entry is one more item; it doesn't have to be a tool.
 - A tool's options show in the same sheet; tools with nothing to choose run as soon as they're picked.
 - Word and spreadsheets: Save ▸ Save as PDF in their bar.
@@ -35,7 +41,7 @@ downloading it and opening it.
 |---|---|
 | Pages | Organize (drag, turn, copy, delete, blank, extract), Merge, Split, Extract, Remove, Rotate, Add blank pages, Reverse, Remove blank pages |
 | Edit | Edit text, Add text (any language), Add picture, Sign (draw, type, picture), Watermark, Remove watermark, Page numbers, Crop, Form fields, Redact |
-| Annotate | Shapes (rectangle, rounded, oval, triangles, diamond, pentagon, hexagon, star, heart, speech bubble, tick, cross, line, arrow, double arrow), Highlight text, Underline, Strikethrough |
+| Shapes | Rectangle, rounded, oval, triangles, diamond, pentagon, hexagon, star, heart, speech bubble, tick, cross, line, arrow, double arrow |
 | Convert | PDF to Word, Excel, PowerPoint, text, Markdown; Export as images (one picture, a folder, a zip, or a picture-only PDF); Extract images; Pictures to PDF |
 | OCR | OCR (English, Arabic), Extract text (scanned pages read too; saved and copied) |
 | Optimize | Compress, Repair, Flatten |

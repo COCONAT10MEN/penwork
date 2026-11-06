@@ -16,7 +16,8 @@ import { textThing } from "./toolsEdit";
 import { askPassword } from "./passwordAsk";
 import { PasswordPrompt } from "./PasswordPrompt";
 import { PlaceLayer } from "./PlaceLayer";
-import { ToolsSheet } from "./ToolsSheet";
+import { ToolsSheet, type SheetTab } from "./ToolsSheet";
+import type { PdfSearch } from "./usePdfSearch";
 import { NO_STYLES, type Face, type Picked, type TextStyle, type TextStyles } from "./textStyles";
 import type { useEditHistory } from "./useEditHistory";
 import type { useTextStyles } from "./useTextStyles";
@@ -58,6 +59,7 @@ export function usePdfTools(o: {
   /** Settings ▸ Editing: off, the Edit and Shapes tools and styling selected text are put away. */
   editing: boolean;
   turnOnEditing: () => void;
+  search: PdfSearch;
   /** Dark pages are on: colours read off a page are turned back to the file's own. */
   dark: boolean;
   goTo: (page: number) => void;
@@ -65,6 +67,9 @@ export function usePdfTools(o: {
   setLock: (lock: Lock | null) => void;
 }) {
   const [open, setOpen] = useState(false);
+  // Kept between openings: the tab used last is where the next look starts.
+  const [tab, setTab] = useState<SheetTab>("pages");
+  const [focusSearch, setFocusSearch] = useState(0);
   const [placing, setPlacing] = useState<{
     spec: PlaceSpec;
     done: (a: PlacedArea[] | null) => void;
@@ -232,6 +237,10 @@ export function usePdfTools(o: {
         host={host}
         editing={o.editing}
         onEditing={o.turnOnEditing}
+        search={o.search}
+        tab={tab}
+        onTab={setTab}
+        focusSearch={focusSearch}
         onClose={() => setOpen(false)}
       />
       {o.frame && o.viewer && !editing && !placing && (
@@ -281,6 +290,37 @@ export function usePdfTools(o: {
       <PasswordPrompt />
     </>
   );
+
+  // Ctrl+F opens Search, on the page or anywhere in the app; F3 and Shift+F3 step through the
+  // results, as in Office.
+  useEffect(() => {
+    const openSearch = () => {
+      setTab("search");
+      setOpen(true);
+      setFocusSearch((n) => n + 1);
+    };
+    const press = (key: string, ctrl: boolean, shift: boolean) => {
+      if (ctrl && key.toLowerCase() === "f") openSearch();
+      else if (key === "F3") opts.current.search.step(shift);
+      else return false;
+      return true;
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (press(e.key, e.ctrlKey, e.shiftKey)) e.preventDefault();
+    };
+    const onMessage = (e: MessageEvent) => {
+      if (e.source !== opts.current.frame?.contentWindow || e.data?.v !== 1) return;
+      if (e.data.type !== "key") return;
+      const p = e.data.payload as { key: string; ctrl: boolean; shift: boolean };
+      press(p.key, p.ctrl, p.shift);
+    };
+    window.addEventListener("keydown", onKey);
+    window.addEventListener("message", onMessage);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("message", onMessage);
+    };
+  }, []);
 
   return { host, layers, open, setOpen };
 }

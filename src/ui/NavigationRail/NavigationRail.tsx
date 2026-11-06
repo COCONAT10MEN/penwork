@@ -34,6 +34,8 @@ export interface NavigationRailProps {
   footerItems?: RailItem[];
   /** "glass" for floating chrome; "tonal" (default) is the solid look. */
   material?: SurfaceMaterial;
+  /** Tighter rows, for a rail inside a panel with many destinations. Stacked only. */
+  dense?: boolean;
 }
 
 /** M3 Expressive navigation rail. The active destination gets a secondary-container pill. */
@@ -47,6 +49,7 @@ export function NavigationRail({
   footer,
   footerItems = [],
   material = "tonal",
+  dense = false,
 }: NavigationRailProps) {
   const grow = useSpring("spatialDefault");
   const entry = (item: RailItem) => {
@@ -107,6 +110,7 @@ export function NavigationRail({
       className={cx(
         styles.rail,
         styles[layout],
+        dense && styles.dense,
         material === "tonal" ? styles.tonal : styles.glassRail,
         surfaceClass({ material }),
       )}

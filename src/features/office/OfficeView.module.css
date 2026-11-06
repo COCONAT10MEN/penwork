@@ -146,41 +146,6 @@
   margin-inline: 6px;
   background: var(--md-sys-color-outline-variant);
 }
-/* Find, with its magnifier inside: in the tightest bar only the magnifier shows until it's used. */
-.findBox {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-}
-.findIcon {
-  position: absolute;
-  left: 12px;
-  color: var(--md-sys-color-on-surface-variant);
-  pointer-events: none;
-}
-.pdfFind {
-  width: 110px;
-  height: 40px;
-  padding: 0 12px 0 38px;
-  box-sizing: border-box;
-  border: 0;
-  border-radius: var(--md-sys-shape-corner-full);
-  background: var(--md-sys-color-surface-container-highest);
-  color: var(--md-sys-color-on-surface);
-  font: inherit;
-  font-size: var(--md-sys-typescale-body-medium-size);
-  user-select: text;
-  transition: width var(--md-sys-motion-spatial-default-duration)
-    var(--md-sys-motion-spatial-default-easing);
-}
-.pdfFind:focus {
-  width: 170px;
-}
-.pdfFind:focus-visible {
-  outline: 2px solid var(--md-sys-color-primary);
-  outline-offset: 1px;
-}
-
 /* Word. The library stacks a title, menus and tools above the page. Lifted out of the page's flow,
    the tools go over the bar's slot and the menus become a pill that the bar's Menus button opens.
    !important only where the library writes the value straight onto the element. */
@@ -470,27 +435,12 @@
   }
 }
 @container (max-width: 760px) {
-  .pdfBarTools .pdfFind {
-    width: 72px;
-  }
-  .pdfBarTools .pdfFind:focus {
-    width: 140px;
-  }
   .pdfBarTools .pdfDivider {
     margin-inline: 2px;
   }
 }
-/* The tightest bar: the dividers fold away and Find narrows again. It widens when used. */
+/* The tightest bar: the dividers fold away. */
 @container (max-width: 680px) {
-  .pdfBarTools .pdfFind {
-    width: 44px;
-  }
-  .pdfBarTools .pdfFind:not(:focus)::placeholder {
-    color: transparent;
-  }
-  .pdfBarTools .pdfFind:focus {
-    width: 110px;
-  }
   .pdfBarTools .pdfDivider {
     width: 0;
     margin-inline: 0;

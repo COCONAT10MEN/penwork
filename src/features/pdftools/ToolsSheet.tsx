@@ -4,7 +4,6 @@ import {
   Icon,
   IconButton,
   LinearProgress,
-  SearchBar,
   FadeThrough,
   NavigationRail,
   SharedAxis,
@@ -14,22 +13,43 @@ import { notify } from "../notices/notices";
 import type { Change } from "./compare";
 import { ToolFields } from "./ToolFields";
 import { PdfSettingsPane } from "./PdfSettingsPane";
+import { SearchHead, SearchResults } from "./SearchPane";
+import { SETTING_ROWS, type SettingRow } from "./searchSettings";
 import { ShapeGrid, ToolGrid } from "./ToolGrid";
+import type { PdfSearch } from "./usePdfSearch";
 import { ALL_TOOLS } from "./registry";
+import { SHAPE_TOOLS } from "./toolsShapes";
 import { GROUPS, type GroupId, type Tool, type ToolHost, type Values } from "./types";
 
 import styles from "./PdfTools.module.css";
 
-/** The ⋮ in the PDF's bar: every tool, by kind, with search, and each tool's options in place. */
+/** A tab of the sheet: Search, a kind of tools, or Settings. */
+export type SheetTab = "search" | GroupId | "settings";
+
+const SHAPE_TOOL = SHAPE_TOOLS[0] as Tool;
+
+/** The style new shapes are drawn in, kept while the app is open. */
+const SHAPE_FIELDS = SHAPE_TOOL.fields?.filter((f) => f.key !== "shape") ?? [];
+
+/** The ⋮ in the PDF's bar: search, every tool by kind, settings, and each tool's options in place. */
 export function ToolsSheet({
   open,
   hidden,
   host,
   editing,
   onEditing,
+  search,
+  tab,
+  onTab,
+  focusSearch,
   onClose,
 }: {
   open: boolean;
+  search: PdfSearch;
+  tab: SheetTab;
+  onTab: (tab: SheetTab) => void;
+  /** Changes when Ctrl+F asks for the search field. */
+  focusSearch: number;
   /** Settings ▸ Editing. Off, the Edit and Shapes tools are put away; the rest stay. */
   editing: boolean;
   onEditing: () => void;
@@ -38,15 +58,18 @@ export function ToolsSheet({
   host: ToolHost | null;
   onClose: () => void;
 }) {
-  const [query, setQuery] = useState("");
-  // Kept between openings: the tab used last is where the next look starts.
-  const [tab, setTab] = useState<GroupId | "settings">("pages");
   const [tool, setTool] = useState<Tool | null>(null);
   const [values, setValues] = useState<Values>({});
   const [running, setRunning] = useState<[number, number] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [changes, setChanges] = useState<Change[] | null>(null);
+  const [shapeStyle, setShapeStyle] = useState<Values>(() => {
+    const { shape: _shape, ...rest } = (SHAPE_TOOL.defaults ?? {}) as Values;
+    void _shape;
+    return rest;
+  });
   const live = useRef(true);
+  const scroll = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     live.current = true;
@@ -59,20 +82,41 @@ export function ToolsSheet({
   const [wasOpen, setWasOpen] = useState(open);
   if (open !== wasOpen) {
     setWasOpen(open);
-    if (!open) {
-      setTool(null);
-      setQuery("");
-    }
+    if (!open) setTool(null);
   }
 
-  const found = useMemo(() => {
-    const words = query.toLowerCase().split(/\s+/).filter(Boolean);
-    return ALL_TOOLS.filter(
-      (t) =>
-        (!t.when || (host && t.when(host))) &&
-        words.every((w) => `${t.title} ${t.blurb} ${t.keywords ?? ""}`.toLowerCase().includes(w)),
-    );
-  }, [query, host]);
+  // The highlights on the pages go with the sheet, and come back with it.
+  const { clear, resume } = search;
+  useEffect(() => {
+    if (!open) clear();
+    else if (tab === "search") resume();
+    // Only opening and closing; the tab is read as it is then.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, clear]);
+
+  const usable = useMemo(() => ALL_TOOLS.filter((t) => !t.when || (host && t.when(host))), [host]);
+  const words = search.query.toLowerCase().split(/\s+/).filter(Boolean);
+  const matching = (text: string) => words.length > 0 && words.every((w) => text.includes(w));
+  const foundTools = usable.filter((t) => matching(`${t.title} ${t.keywords ?? ""}`.toLowerCase()));
+  const foundSettings = SETTING_ROWS.filter((r) =>
+    matching(`${r.label} ${r.section} ${r.words}`.toLowerCase()),
+  );
+
+  /** Settings, at that row, which lights up briefly so it's seen. */
+  const showSetting = (row: SettingRow) => {
+    onTab("settings");
+    window.setTimeout(() => {
+      const box = scroll.current;
+      const label = [...(box?.querySelectorAll("label, span, h3, legend") ?? [])].find(
+        (e) => e.textContent?.trim() === row.label,
+      );
+      const place = label?.closest("section > *") ?? label;
+      if (!(place instanceof HTMLElement)) return;
+      place.scrollIntoView({ block: "center", behavior: "smooth" });
+      place.dataset.flash = "";
+      window.setTimeout(() => delete place.dataset.flash, 1600);
+    }, 380);
+  };
 
   const run = async (t: Tool, v: Values) => {
     if (!host || running) return;
@@ -103,8 +147,12 @@ export function ToolsSheet({
     if (!host) return;
     // Found by search while editing is off: its tab says so, with the way to turn it on.
     if (!editing && EDITS.includes(t.group)) {
-      setQuery("");
-      setTab(t.group);
+      onTab(t.group);
+      return;
+    }
+    // Shapes have no options page of their own: the Shapes tab is it.
+    if (t.id === SHAPE_TOOL.id && !preset.shape) {
+      onTab("shapes");
       return;
     }
     setTool(t);
@@ -146,57 +194,60 @@ export function ToolsSheet({
               <NavigationRail
                 label="Kinds of tools"
                 layout="stacked"
-                items={GROUPS.map((g) => ({ id: g.id, label: g.title, icon: g.icon }))}
-                value={query.trim() ? "" : tab}
-                onChange={(id) => {
-                  setQuery("");
-                  setTab(id as GroupId | "settings");
-                }}
+                dense
+                items={[
+                  { id: "search", label: "Search", icon: "search" },
+                  ...GROUPS.map((g) => ({ id: g.id, label: g.title, icon: g.icon })),
+                ]}
+                value={tab}
+                onChange={(id) => onTab(id as SheetTab)}
                 footerItems={[{ id: "settings", label: "Settings", icon: "settings" }]}
               />
               <div className={styles.browseMain}>
-                <SearchBar
-                  label="Find a tool"
-                  placeholder="Find a tool"
-                  value={query}
-                  onChange={setQuery}
-                  material="tonal"
-                />
+                {tab === "search" && <SearchHead search={search} focus={focusSearch} />}
                 {/* Each side scrolls on its own: the rail, and what's beside it. */}
-                <div className={styles.browseScroll} data-scroll>
-                  {query.trim() ? (
-                    found.length ? (
-                      <ToolGrid tools={found} onPick={(t) => void choose(t)} />
-                    ) : (
-                      <p className={styles.note}>No tool by that name.</p>
-                    )
-                  ) : (
-                    <FadeThrough id={tab}>
-                      {!editing && EDITS.includes(tab as GroupId) ? (
-                        <EditingOff onEditing={onEditing} />
-                      ) : tab === "settings" ? (
-                        host && <PdfSettingsPane toToolbar={host.toolbarChanged} />
-                      ) : tab === "shapes" ? (
+                <div className={styles.browseScroll} data-scroll ref={scroll}>
+                  <FadeThrough id={tab}>
+                    {tab === "search" ? (
+                      <SearchResults
+                        search={search}
+                        tools={foundTools}
+                        settings={foundSettings}
+                        onTool={(t) => void choose(t)}
+                        onSetting={showSetting}
+                      />
+                    ) : !editing && EDITS.includes(tab as GroupId) ? (
+                      <EditingOff onEditing={onEditing} />
+                    ) : tab === "settings" ? (
+                      host && <PdfSettingsPane toToolbar={host.toolbarChanged} />
+                    ) : tab === "shapes" ? (
+                      <div className={styles.shapesTab}>
+                        {host && (
+                          <div className={styles.shapeStyle}>
+                            <ToolFields
+                              fields={SHAPE_FIELDS}
+                              values={shapeStyle}
+                              host={host}
+                              onChange={setShapeStyle}
+                            />
+                          </div>
+                        )}
                         <ShapeGrid
-                          onPick={(shape) => {
-                            const t = ALL_TOOLS.find((x) => x.id === "shapes");
-                            if (t) void choose(t, { shape });
-                          }}
+                          onPick={(shape) => void run(SHAPE_TOOL, { ...shapeStyle, shape })}
                         />
-                      ) : (
-                        <ToolGrid
-                          tools={found.filter((t) => t.group === tab)}
-                          onPick={(t) => void choose(t)}
-                        />
-                      )}
-                    </FadeThrough>
-                  )}
+                      </div>
+                    ) : (
+                      <ToolGrid
+                        tools={usable.filter((t) => t.group === tab)}
+                        onPick={(t) => void choose(t)}
+                      />
+                    )}
+                  </FadeThrough>
                 </div>
               </div>
             </div>
           ) : (
             <div className={styles.panel}>
-              <p className={styles.blurb}>{tool.blurb}</p>
               {tool.fields && host && !changes && (
                 <fieldset className={styles.fieldset} disabled={running !== null}>
                   <ToolFields

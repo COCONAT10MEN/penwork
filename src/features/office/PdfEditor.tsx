@@ -13,6 +13,7 @@ import { DARK_PAGE } from "../pdftools/pageColors";
 import { unlockIfNeeded, usePdfTools } from "../pdftools/usePdfTools";
 import { useTextStyles } from "../pdftools/useTextStyles";
 import { useEditHistory } from "../pdftools/useEditHistory";
+import { usePdfSearch } from "../pdftools/usePdfSearch";
 import { NO_STYLES, type TextStyles } from "../pdftools/textStyles";
 import type { OfficeEditorProps } from "./officeFile";
 import { PdfSidebar } from "./PdfSidebar";
@@ -72,8 +73,6 @@ export default function PdfEditor({
     pageNow.current = page;
   }, [page]);
   const [sidebar, setSidebar] = useState(false);
-  const [query, setQuery] = useState("");
-  const [matches, setMatches] = useState<{ current: number; total: number } | null>(null);
   const changed = useRef(onChange);
   useEffect(() => {
     changed.current = onChange;
@@ -82,6 +81,7 @@ export default function PdfEditor({
   const reader = useReader(() => changed.current());
   const { box, frame } = reader;
   const history = useEditHistory(frame);
+  const search = usePdfSearch(parts?.find ?? null, parts?.bus ?? null);
   usePageLayout(frame, box, parts?.viewer ?? null);
 
   const [startFit] = useState<Fit | null>(() =>
@@ -196,12 +196,6 @@ export default function PdfEditor({
           setPage(wanted);
         }, 250);
       });
-      bus.on("updatefindmatchescount", (e: { matchesCount: { current: number; total: number } }) =>
-        setMatches(e.matchesCount),
-      );
-      bus.on("updatefindcontrolstate", (e: { matchesCount: { current: number; total: number } }) =>
-        setMatches(e.matchesCount),
-      );
 
       // pdf.js shows the file without Penwork's own ink: the engine draws that, and can change it.
       const task = pdfjs.getDocument({ ...PDF_ASSETS, data: taken.clean.slice() });
@@ -289,21 +283,6 @@ export default function PdfEditor({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [handleRef, parts, reader.ink, lock]);
 
-  const search = (text: string, findPrevious = false, again = false) => {
-    setQuery(text);
-    if (!text) setMatches(null);
-    parts?.bus.dispatch("find", {
-      source: null,
-      type: again ? "again" : "",
-      query: text,
-      caseSensitive: false,
-      entireWord: false,
-      highlightAll: true,
-      matchDiacritics: false,
-      findPrevious,
-    });
-  };
-
   // The pages shrink to make room as the panel slides in, instead of jumping once it's there.
   const before = useRef<DOMRect | null>(null);
   const toggleSidebar = () => {
@@ -352,6 +331,7 @@ export default function PdfEditor({
     history,
     editing: pdfInk,
     turnOnEditing: () => updateSettings({ pdfInk: true }),
+    search,
     dark: darkPages,
     goTo,
     lock,
@@ -397,14 +377,11 @@ export default function PdfEditor({
           scale={zoom.scale}
           fit={zoom.fit}
           sidebar={sidebar}
-          query={query}
-          matches={matches}
           onPage={goTo}
           onFit={zoom.chooseFit}
           onScale={zoom.chooseScale}
           onStep={zoom.step}
           onSidebar={toggleSidebar}
-          onSearch={search}
           inkOff={!pdfInk}
           moreOpen={tools.open}
           onMore={() => tools.setOpen(!tools.open)}

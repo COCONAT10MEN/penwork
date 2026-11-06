@@ -1233,6 +1233,8 @@ addEventListener('keydown',function(e){
   if(mode!=='present'){if(e.ctrlKey||e.altKey||(SORTER&&/^(Arrow|Page|Home|End)/.test(e.key)))e.preventDefault();keyUp(e);return;}
   if(e.ctrlKey&&(e.key==='z'||e.key==='Z')){e.preventDefault();if(!ovOpen){if(e.shiftKey)redo();else undo();}return;}
   if(e.ctrlKey&&(e.key==='y'||e.key==='Y')){e.preventDefault();if(!ovOpen)redo();return;}
+  /* Ctrl+F is the app's Search, not the browser's find bar */
+  if(DOC&&e.ctrlKey&&(e.key==='f'||e.key==='F')){e.preventDefault();keyUp(e);return;}
   if(e.ctrlKey||e.altKey||e.metaKey){keyUp(e);return;}
   if(ovOpen){ovKey(e);return;}
   var k=e.key,h=true;

@@ -217,3 +217,12 @@ body {
 #scroller .textLayer span {
   -webkit-user-drag: none;
 }
+
+/* Search results on the pages, in the app's colour like the selection; the current one stronger. */
+#scroller .textLayer .highlight {
+  --highlight-bg-color: color-mix(in srgb, var(--md-sys-color-primary) 26%, transparent);
+  --highlight-selected-bg-color: color-mix(in srgb, var(--md-sys-color-primary) 55%, transparent);
+}
+#scroller .textLayer .highlight.selected {
+  box-shadow: 0 0 0 1.5px var(--md-sys-color-primary);
+}

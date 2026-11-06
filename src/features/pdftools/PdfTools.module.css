@@ -77,11 +77,6 @@
 .panel > button {
   align-self: flex-start;
 }
-.blurb {
-  margin: 0;
-  color: var(--md-sys-color-on-surface-variant);
-  font-size: var(--md-sys-typescale-body-medium-size);
-}
 .fieldset {
   min-width: 0;
   margin: 0;
@@ -551,4 +546,129 @@
   font-size: var(--md-sys-typescale-title-medium-size);
   line-height: var(--md-sys-typescale-title-medium-line-height);
   font-weight: var(--md-sys-typescale-title-medium-weight-emphasized);
+}
+
+/* Search: the field and its options stay at the top; results scroll under them. */
+.searchHead {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.searchBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.searchCount {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: var(--md-sys-typescale-label-large-size);
+  text-align: end;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
+}
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 4px;
+}
+.resultGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.resultPage {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 0;
+  padding: 4px 12px;
+  color: var(--md-sys-color-primary);
+  font-size: var(--md-sys-typescale-label-large-size);
+  font-weight: var(--md-sys-typescale-label-large-weight-emphasized);
+}
+.resultPage > span {
+  color: var(--md-sys-color-on-surface-variant);
+  font-weight: normal;
+  font-variant-numeric: tabular-nums;
+}
+.hitRow,
+.resultRow {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-height: 40px;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: var(--md-sys-shape-corner-medium);
+  background: transparent;
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: var(--md-sys-typescale-body-medium-size);
+  line-height: var(--md-sys-typescale-body-medium-line-height);
+  text-align: start;
+  cursor: pointer;
+}
+.hitRow mark {
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--md-sys-color-primary) 28%, transparent);
+  color: var(--md-sys-color-on-surface);
+  font-weight: var(--md-sys-typescale-body-medium-weight-emphasized, 600);
+}
+.hitRow[aria-current] {
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+.resultRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--md-sys-color-on-surface);
+}
+.resultIcon {
+  color: var(--md-sys-color-on-surface-variant);
+}
+.resultName {
+  flex: 1;
+  min-width: 0;
+}
+.resultWhere {
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: var(--md-sys-typescale-label-medium-size);
+}
+/* A setting picked from Search lights up for a moment where it is. */
+[data-flash] {
+  animation: pw-flash 1.6s var(--md-sys-motion-effects-default-easing, ease);
+  border-radius: var(--md-sys-shape-corner-medium);
+}
+@keyframes pw-flash {
+  0%,
+  40% {
+    background: color-mix(in srgb, var(--md-sys-color-primary) 18%, transparent);
+  }
+  100% {
+    background: transparent;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-flash] {
+    animation-duration: 0.01s;
+  }
+}
+
+/* Shapes: how they're drawn, then the shapes; picking one starts drawing it. */
+.shapesTab {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.shapeStyle {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 4px 4px 16px;
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
 }

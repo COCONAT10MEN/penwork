@@ -6,9 +6,16 @@ downloading it and opening it.
 
 ## Where they are
 
-- The ⋮ at the end of the PDF's bar opens a glass sheet: the kinds of tools down its side (Pages, Edit, Shapes,
-  Convert, OCR, Optimize, Security, More, and Settings at its foot), each kind's tools as tiles, and search across
-  all of them. The rail and what's beside it scroll each on their own; only the side with the tools shows a bar,
+- The ⋮ at the end of the PDF's bar opens a glass sheet: Search, then the kinds of tools down its side (Pages,
+  Edit, Shapes, Convert, OCR, Optimize, Security, More, and Settings at its foot), each kind's tools as tiles
+  with their names only.
+- **Search** (Ctrl+F, on the page or anywhere in the app) is the PDF's only find: the bar has none. One field finds
+  text in the PDF (Match case, Whole words), tools and settings. Text results are listed by page with the words
+  around them; picking one goes to it, highlighted in the app's colour, and Enter / Shift+Enter or F3 step
+  through them. It's pdf.js's own find underneath (`usePdfSearch.ts`), read out for the list. Closing the sheet
+  clears the highlights. A setting found opens Settings at its row, lit up for a moment.
+- **Shapes** is one tab: colour, line width and fill at the top, the shapes under them. Picking a shape starts
+  drawing it. The rail and what's beside it scroll each on their own; only the side with the tools shows a bar,
   the app's own.
 - Settings there are the PDF's own (Dark pages, view, Editing, the annotation toolbar), taking effect at
   once; a toolbar button switched off folds away as it does in a show.

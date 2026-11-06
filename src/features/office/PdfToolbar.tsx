@@ -3,7 +3,7 @@ import { Children, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { zoomLabel, type Fit } from "../../lib/pdfZoom";
 import { useReduceMotion } from "../../theme/motion";
-import { Icon, IconButton, Menu, RollingNumber } from "../../ui";
+import { IconButton, Menu, RollingNumber } from "../../ui";
 import { useToolArrival } from "./toolMotion";
 import { cx } from "../../ui/cx";
 import styles from "./OfficeView.module.css";
@@ -151,14 +151,11 @@ export function PdfToolbar({
   scale,
   fit,
   sidebar,
-  query,
-  matches,
   onPage,
   onFit,
   onScale,
   onStep,
   onSidebar,
-  onSearch,
   inkOff,
   moreOpen,
   onMore,
@@ -169,14 +166,11 @@ export function PdfToolbar({
   scale: number;
   fit: Fit | null;
   sidebar: boolean;
-  query: string;
-  matches: { current: number; total: number } | null;
   onPage: (page: number) => void;
   onFit: (fit: Fit) => void;
   onScale: (scale: number) => void;
   onStep: (steps: number) => void;
   onSidebar: () => void;
-  onSearch: (query: string, backwards?: boolean, again?: boolean) => void;
   /** The annotation tools are switched off: the divider beside their place folds away too. */
   inkOff: boolean;
   /** The ⋮ sheet with every PDF tool. */
@@ -220,33 +214,6 @@ export function PdfToolbar({
         />
         <span className={styles.pdfDivider} />
         <ZoomControl scale={scale} fit={fit} onFit={onFit} onScale={onScale} onStep={onStep} />
-        <span className={styles.pdfDivider} />
-        <span className={styles.findBox}>
-          <Icon name="search" size={20} className={styles.findIcon} />
-          <input
-            className={styles.pdfFind}
-            type="search"
-            value={query}
-            placeholder="Find"
-            aria-label="Find in this PDF"
-            onChange={(e) => onSearch(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") onSearch(query, e.shiftKey, true);
-            }}
-          />
-        </span>
-        {query ? (
-          <span className={styles.pdfPage} aria-live="polite">
-            {matches && matches.total > 0 ? (
-              <>
-                <RollingNumber value={String(matches.current)} /> of{" "}
-                <RollingNumber value={String(matches.total)} />
-              </>
-            ) : (
-              "None"
-            )}
-          </span>
-        ) : null}
         <IconButton
           size="compact"
           icon="more_vert"

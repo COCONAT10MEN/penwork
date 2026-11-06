@@ -419,7 +419,7 @@ export const EDIT_TOOLS: Tool[] = [
       {
         key: "note",
         kind: "note",
-        text: "Marked pages become pictures of themselves, so what's under the black is really gone. Run OCR after to make them searchable again.",
+        text: "Pages with redactions are saved as images, so the covered text is removed for good.",
       },
     ],
     action: "Mark what to hide",

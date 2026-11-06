@@ -60,7 +60,7 @@ export const EXPORT_TOOLS: Tool[] = [
       {
         key: "note",
         kind: "note",
-        text: "One page saves as one picture. A picture-only PDF can't be selected, copied or edited: every page becomes a picture of itself.",
+        text: "In a picture-only PDF, text can't be selected or copied.",
       },
     ],
     defaults: { pages: ALL_PAGES, out: "folder", type: "png", dpi: "150" },

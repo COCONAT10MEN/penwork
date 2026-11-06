@@ -152,7 +152,7 @@ export const CONVERT_TOOLS: Tool[] = [
   },
   {
     id: "ocr",
-    title: "OCR: make text searchable",
+    title: "Recognize text (OCR)",
     icon: "document_scanner",
     group: "ocr",
     blurb: "Reads scanned pages, so their text can be found, selected and copied",
@@ -176,7 +176,6 @@ export const CONVERT_TOOLS: Tool[] = [
           { value: "all", label: "Every page" },
         ],
       },
-      { key: "note", kind: "note", text: "Runs on this computer, about a second or two a page." },
     ],
     defaults: { langs: ["eng"], which: "scanned" },
     action: "Read the pages",

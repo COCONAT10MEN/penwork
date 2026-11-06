@@ -182,3 +182,16 @@
   margin-top: auto;
   padding-top: 16px;
 }
+
+/* Dense: rows close together, for a rail in a panel. The pill and its label keep their size. */
+.dense.stacked {
+  padding-block: 4px;
+}
+.dense .items {
+  gap: 0;
+}
+.dense.stacked .item {
+  min-height: 52px;
+  padding-block: 2px;
+  gap: 2px;
+}

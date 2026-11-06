@@ -308,7 +308,7 @@ export const PAGE_TOOLS: Tool[] = [
       {
         key: "note",
         kind: "note",
-        text: "A lot makes pictures softer; text stays sharp at every level.",
+        text: "Stronger compression makes images softer. Text stays sharp.",
       },
     ],
     defaults: { level: "recommended" },

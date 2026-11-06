@@ -15,6 +15,8 @@ export interface UnitStroke {
   w: number;
   op?: number;
   np?: boolean;
+  /** An area highlight: two corners, filled as a box. */
+  box?: 1;
   pts: [number, number, number][];
 }
 
@@ -25,6 +27,8 @@ export interface PointStroke {
   w: number;
   op?: number;
   np?: boolean;
+  /** An area highlight: two corners, filled as a box. */
+  box?: 1;
   pts: [number, number, number][];
 }
 

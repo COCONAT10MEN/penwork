@@ -3,7 +3,7 @@ import { Children, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { zoomLabel, type Fit } from "../../lib/pdfZoom";
 import { useReduceMotion } from "../../theme/motion";
-import { IconButton, Menu, RollingNumber } from "../../ui";
+import { Icon, IconButton, Menu, RollingNumber } from "../../ui";
 import { useToolArrival } from "./toolMotion";
 import { cx } from "../../ui/cx";
 import styles from "./OfficeView.module.css";
@@ -213,17 +213,20 @@ export function PdfToolbar({
         <span className={styles.pdfDivider} />
         <ZoomControl scale={scale} fit={fit} onFit={onFit} onScale={onScale} onStep={onStep} />
         <span className={styles.pdfDivider} />
-        <input
-          className={styles.pdfFind}
-          type="search"
-          value={query}
-          placeholder="Find"
-          aria-label="Find in this PDF"
-          onChange={(e) => onSearch(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") onSearch(query, e.shiftKey, true);
-          }}
-        />
+        <span className={styles.findBox}>
+          <Icon name="search" size={20} className={styles.findIcon} />
+          <input
+            className={styles.pdfFind}
+            type="search"
+            value={query}
+            placeholder="Find"
+            aria-label="Find in this PDF"
+            onChange={(e) => onSearch(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") onSearch(query, e.shiftKey, true);
+            }}
+          />
+        </span>
         {query ? (
           <span className={styles.pdfPage} aria-live="polite">
             {matches && matches.total > 0 ? (

@@ -123,7 +123,7 @@ export function PresentationsTab() {
           onCheckedChange={(newKeepInk) => update({ newKeepInk })}
         />
       </Section>
-      <ToolbarSettings />
+      <ToolbarSettings kind="deck" />
       <ToolbarSection />
     </div>
   );

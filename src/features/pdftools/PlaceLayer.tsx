@@ -1,7 +1,32 @@
 import type { PDFViewer } from "pdfjs-dist/web/pdf_viewer.mjs";
 import { useEffect, useReducer, useRef, useState } from "react";
 import { Button, Surface } from "../../ui";
+import { shapeSvg } from "../../lib/pdftools/shapes";
 import type { PlacedArea, PlaceSpec } from "./types";
+
+/** A shape drawn to the box's own size, mirrored the way it was dragged. */
+function ShapePreview({
+  shape,
+  width,
+  height,
+  flipX,
+  flipY,
+}: {
+  shape: string;
+  width: number;
+  height: number;
+  flipX?: boolean;
+  flipY?: boolean;
+}) {
+  return (
+    <span
+      className={styles.shapePreview}
+      style={{ scale: `${flipX ? -1 : 1} ${flipY ? -1 : 1}` }}
+      // Our own drawing, from the shapes list.
+      dangerouslySetInnerHTML={{ __html: shapeSvg(shape, Math.max(8, width), Math.max(8, height)) }}
+    />
+  );
+}
 import styles from "./PdfTools.module.css";
 
 /**
@@ -97,8 +122,12 @@ export function PlaceLayer({
       Math.max(a.x0, a.x1) - rect.left,
       Math.max(a.y0, a.y1) - rect.top,
     );
+    const [sx, sy] = view.convertToPdfPoint(a.x0 - rect.left, a.y0 - rect.top);
+    const [ex, ey] = view.convertToPdfPoint(a.x1 - rect.left, a.y1 - rect.top);
     return {
       page: n,
+      flipX: ex < sx,
+      flipY: ey > sy,
       x: Math.min(px0, px1),
       y: Math.min(py0, py1),
       width: Math.abs(px1 - px0),
@@ -188,6 +217,15 @@ export function PlaceLayer({
             style={{ left: s.left, top: s.top, width: s.width, height: s.height }}
           >
             {spec.look === "picture" && spec.picture && <img src={spec.picture} alt="" />}
+            {spec.look === "shape" && spec.shape && (
+              <ShapePreview
+                shape={spec.shape}
+                width={s.width}
+                height={s.height}
+                flipX={a.flipX}
+                flipY={a.flipY}
+              />
+            )}
             {spec.typing &&
               (typing === i ? (
                 <textarea
@@ -235,7 +273,17 @@ export function PlaceLayer({
             width: Math.abs(draft.x1 - draft.x0),
             height: Math.abs(draft.y1 - draft.y0),
           }}
-        />
+        >
+          {spec.look === "shape" && spec.shape && (
+            <ShapePreview
+              shape={spec.shape}
+              width={Math.abs(draft.x1 - draft.x0)}
+              height={Math.abs(draft.y1 - draft.y0)}
+              flipX={draft.x1 < draft.x0}
+              flipY={draft.y1 < draft.y0}
+            />
+          )}
+        </div>
       )}
       <Surface material="glass" strength="thick" floating className={styles.placeBar}>
         <span className={styles.placeHint}>{spec.hint}</span>

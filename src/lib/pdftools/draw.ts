@@ -1,4 +1,5 @@
-import { degrees, PDFName, StandardFonts } from "pdf-lib";
+import { degrees, PDFName, StandardFonts, type PDFDocument, type PDFFont } from "pdf-lib";
+import { arrowHeads, SHAPES } from "./shapes";
 import { isolate, hexColor, seen } from "./stamp";
 import { load, save } from "./pages";
 
@@ -16,11 +17,64 @@ export interface Area {
 }
 
 export type Addition =
-  | { kind: "text"; area: Area; text: string; size: number; color: string }
+  | {
+      kind: "text";
+      area: Area;
+      text: string;
+      size: number;
+      color: string;
+      /** Edit text matches the words it replaces; otherwise the plain sans. */
+      font?: "sans" | "serif" | "mono";
+      bold?: boolean;
+    }
+  | {
+      kind: "shape";
+      area: Area;
+      shape: string;
+      stroke: string;
+      fill: string | null;
+      width: number;
+      /** Which way it was dragged, for lines and arrows. */
+      flipX?: boolean;
+      flipY?: boolean;
+    }
+  /** A plain box with no edge: what Edit text paints over the words it replaces. */
+  | { kind: "cover"; area: Area; color: string }
   | { kind: "image"; area: Area; bytes: Uint8Array; type: "png" | "jpg"; opacity?: number }
   | { kind: "rect" | "ellipse"; area: Area; stroke: string; fill: string | null; width: number }
   | { kind: "line"; area: Area; stroke: string; width: number }
   | { kind: "field"; area: Area; field: "text" | "check"; name: string };
+
+const FACES: Record<string, [StandardFonts, StandardFonts]> = {
+  sans: [StandardFonts.Helvetica, StandardFonts.HelveticaBold],
+  serif: [StandardFonts.TimesRoman, StandardFonts.TimesRomanBold],
+  mono: [StandardFonts.Courier, StandardFonts.CourierBold],
+};
+
+async function fontOf(doc: PDFDocument, cache: Map<string, PDFFont>, face: string, bold: boolean) {
+  const key = `${face}${bold ? "-bold" : ""}`;
+  let f = cache.get(key);
+  if (!f) {
+    const [plain, heavy] = FACES[face] ??
+      FACES.sans ?? [StandardFonts.Helvetica, StandardFonts.HelveticaBold];
+    f = await doc.embedFont(bold ? heavy : plain);
+    cache.set(key, f);
+  }
+  return f;
+}
+
+/** Mirrors an SVG path's numbers: x and y alternate after each command (no arcs are used). */
+function mirror(d: string, sx: number, sy: number): string {
+  let i = 0;
+  return d.replace(/[A-Za-z]|-?\d*\.?\d+(?:e-?\d+)?/g, (tok) => {
+    if (/[A-Za-z]/.test(tok)) {
+      i = 0;
+      return tok;
+    }
+    const v = Number(tok) * (i++ % 2 === 0 ? sx : sy);
+    return String(+v.toFixed(2));
+  });
+}
 
 /** Only letters the built-in PDF font has can be typed as text; anything else goes in as a picture. */
 export function plainText(text: string): boolean {
@@ -30,6 +84,9 @@ export function plainText(text: string): boolean {
 export async function addThings(bytes: Uint8Array, things: Addition[]): Promise<Uint8Array> {
   const doc = await load(bytes);
   const font = await doc.embedFont(StandardFonts.Helvetica);
+  const fonts = new Map<string, PDFFont>();
+  const fontFor = (t: { font?: string; bold?: boolean }) =>
+    fontOf(doc, fonts, t.font ?? "sans", !!t.bold);
   const pages = doc.getPages();
   const isolated = new Set<number>();
   let fieldCount = 0;
@@ -46,7 +103,7 @@ export async function addThings(bytes: Uint8Array, things: Addition[]): Promise<
       const lines = t.text.split("\n");
       const lineH = t.size * 1.2;
       // The first line's baseline, at the top of the box as the page is seen.
-      lines.forEach((line, i) => {
+      for (const [i, line] of lines.entries()) {
         const down = t.size * 0.8 + i * lineH;
         const [px, py] =
           turn === 90
@@ -60,11 +117,36 @@ export async function addThings(bytes: Uint8Array, things: Addition[]): Promise<
           x: px,
           y: py,
           size: t.size,
-          font,
+          font: await fontFor(t),
           color: hexColor(t.color),
           rotate: degrees(turn),
         });
+      }
+    } else if (t.kind === "cover") {
+      page.drawRectangle({ x, y, width, height, color: hexColor(t.color) });
+    } else if (t.kind === "shape") {
+      const def = SHAPES.find((d) => d.id === t.shape);
+      if (!def) continue;
+      // Drawn in a box y-down from its top-left; a flip mirrors it inside that box.
+      const sx = t.flipX ? -1 : 1;
+      const sy = t.flipY ? -1 : 1;
+      const at = { x: t.flipX ? x + width : x, y: t.flipY ? y : y + height, scale: 1 };
+      const stroke = hexColor(t.stroke);
+      const flip = (d: string) => (sx === 1 && sy === 1 ? d : mirror(d, sx, sy));
+      page.drawSvgPath(flip(def.path(width, height)), {
+        ...at,
+        borderColor: stroke,
+        borderWidth: t.width,
+        borderLineCap: 1,
+        ...(t.fill && !def.open ? { color: hexColor(t.fill) } : {}),
       });
+      for (const d of arrowHeads(def.id, width, height, t.width))
+        page.drawSvgPath(flip(d), {
+          ...at,
+          color: stroke,
+          borderColor: stroke,
+          borderWidth: t.width / 2,
+        });
     } else if (t.kind === "image") {
       const image = t.type === "png" ? await doc.embedPng(t.bytes) : await doc.embedJpg(t.bytes);
       const sideways = turn === 90 || turn === 270;

@@ -28,14 +28,17 @@ const BUTTONS: Record<string, string> = {
   undo: "Undo",
   redo: "Redo",
   clear: "Clear",
-  hide: "Show / hide ink (presentations)",
-  wb: "Whiteboard (presentations)",
-  grid: "All slides (presentations)",
-  full: "End show (presentations)",
+  hide: "Show / hide ink",
+  wb: "Whiteboard",
+  grid: "All slides",
+  full: "End show",
 };
+/** A PDF has no slides, whiteboard or show, and always shows its ink. */
+const SLIDES_ONLY = new Set(["hide", "wb", "grid", "full"]);
 const DEFAULT_ORDER = Object.keys(BUTTONS);
 
-export function ToolbarSettings() {
+/** On the PDF tab only what a PDF's toolbar has; on the Presentations tab every button. */
+export function ToolbarSettings({ kind }: { kind: "pdf" | "deck" }) {
   const [file, setFile] = useState<Record<string, unknown> | null>(null);
   useEffect(() => {
     void loadToolbar().then((t) => setFile(t ?? {}));
@@ -50,20 +53,27 @@ export function ToolbarSettings() {
   const order = [...(ui.order ?? []), ...DEFAULT_ORDER].filter(
     (id, i, all) => BUTTONS[id] && all.indexOf(id) === i,
   );
+  const shown = kind === "pdf" ? order.filter((id) => !SLIDES_ONLY.has(id)) : order;
   const hidden = ui.hidden ?? [];
+  // Moves past the next button on this list, stepping over any this tab doesn't show.
   const move = (id: string, by: number) => {
-    const at = order.indexOf(id);
+    const neighbour = shown[shown.indexOf(id) + by];
+    if (!neighbour) return;
     const next = [...order];
-    const to = at + by;
-    if (to < 0 || to >= next.length) return;
-    [next[at], next[to]] = [next[to] as string, id];
+    const at = next.indexOf(id);
+    const to = next.indexOf(neighbour);
+    [next[at], next[to]] = [neighbour, id];
     update({ order: next });
   };
 
   return (
     <Section
       title="Annotation toolbar"
-      hint="For presentations and PDFs. Pen colours and sizes are set on the pens themselves."
+      hint={
+        kind === "pdf"
+          ? "Shared with presentations. Pen colours and sizes are set on the pens themselves."
+          : "Shared with PDFs. Pen colours and sizes are set on the pens themselves."
+      }
     >
       <Choice
         label="Starting tool"
@@ -104,7 +114,7 @@ export function ToolbarSettings() {
       />
       <span className={styles.subtitle}>Buttons</span>
       <ul className={styles.buttonList}>
-        {order.map((id, i) => (
+        {shown.map((id, i) => (
           <li key={id} className={styles.buttonRow}>
             <Switch
               label={BUTTONS[id] ?? id}
@@ -122,7 +132,7 @@ export function ToolbarSettings() {
             <IconButton
               icon="keyboard_arrow_down"
               label={`Move ${BUTTONS[id]} down`}
-              disabled={i === order.length - 1}
+              disabled={i === shown.length - 1}
               onClick={() => move(id, 1)}
             />
           </li>

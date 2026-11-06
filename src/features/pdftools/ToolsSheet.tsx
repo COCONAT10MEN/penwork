@@ -3,18 +3,19 @@ import {
   Button,
   IconButton,
   LinearProgress,
-  List,
-  ListIcon,
-  ListItem,
   SearchBar,
+  FadeThrough,
+  NavigationRail,
   SharedAxis,
   SideSheet,
 } from "../../ui";
 import { notify } from "../notices/notices";
 import type { Change } from "./compare";
 import { ToolFields } from "./ToolFields";
+import { ToolGrid } from "./ToolGrid";
 import { ALL_TOOLS } from "./registry";
-import { GROUPS, type Tool, type ToolHost, type Values } from "./types";
+import { GROUPS, type GroupId, type Tool, type ToolHost, type Values } from "./types";
+
 import styles from "./PdfTools.module.css";
 
 /** The ⋮ in the PDF's bar: every tool, by kind, with search, and each tool's options in place. */
@@ -31,6 +32,8 @@ export function ToolsSheet({
   onClose: () => void;
 }) {
   const [query, setQuery] = useState("");
+  // Kept between openings: the tab used last is where the next look starts.
+  const [tab, setTab] = useState<GroupId>("pages");
   const [tool, setTool] = useState<Tool | null>(null);
   const [values, setValues] = useState<Values>({});
   const [running, setRunning] = useState<[number, number] | null>(null);
@@ -106,7 +109,7 @@ export function ToolsSheet({
         open={open}
         onClose={onClose}
         title={tool ? tool.title : "PDF tools"}
-        width={380}
+        width={540}
         material="glass"
         strength="thick"
         actions={
@@ -122,34 +125,40 @@ export function ToolsSheet({
         >
           {!tool ? (
             <div className={styles.list}>
-              <SearchBar
-                label="Find a tool"
-                placeholder="Find a tool"
-                value={query}
-                onChange={setQuery}
-                material="tonal"
+              {/* Every kind down the side, all in sight, with room for more. */}
+              <NavigationRail
+                label="Kinds of tools"
+                layout="stacked"
+                items={GROUPS.map((g) => ({ id: g.id, label: g.title, icon: g.icon }))}
+                value={query.trim() ? "" : tab}
+                onChange={(id) => {
+                  setQuery("");
+                  setTab(id as GroupId);
+                }}
               />
-              {GROUPS.map((g) => {
-                const tools = found.filter((t) => t.group === g.id);
-                if (!tools.length) return null;
-                return (
-                  <section key={g.id} className={styles.group}>
-                    <h3 className={styles.groupTitle}>{g.title}</h3>
-                    <List label={g.title}>
-                      {tools.map((t) => (
-                        <ListItem
-                          key={t.id}
-                          headline={t.title}
-                          supporting={t.blurb}
-                          leading={<ListIcon icon={t.icon} />}
-                          onClick={() => void choose(t)}
-                        />
-                      ))}
-                    </List>
-                  </section>
-                );
-              })}
-              {found.length === 0 && <p className={styles.note}>No tool by that name.</p>}
+              <div className={styles.browseMain}>
+                <SearchBar
+                  label="Find a tool"
+                  placeholder="Find a tool"
+                  value={query}
+                  onChange={setQuery}
+                  material="tonal"
+                />
+                {query.trim() ? (
+                  found.length ? (
+                    <ToolGrid tools={found} onPick={(t) => void choose(t)} />
+                  ) : (
+                    <p className={styles.note}>No tool by that name.</p>
+                  )
+                ) : (
+                  <FadeThrough id={tab}>
+                    <ToolGrid
+                      tools={found.filter((t) => t.group === tab)}
+                      onPick={(t) => void choose(t)}
+                    />
+                  </FadeThrough>
+                )}
+              </div>
             </div>
           ) : (
             <div className={styles.panel}>

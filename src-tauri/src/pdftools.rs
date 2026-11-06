@@ -8,7 +8,7 @@ use tauri::ipc::{InvokeBody, Request, Response};
 use tauri::WebviewWindow;
 
 /// What a tool may write: the formats it makes, nothing that could run.
-const OUTPUTS: [&str; 9] = ["pdf", "docx", "xlsx", "pptx", "png", "jpg", "txt", "md", "csv"];
+const OUTPUTS: [&str; 10] = ["pdf", "docx", "xlsx", "pptx", "png", "jpg", "txt", "md", "csv", "zip"];
 /// What a tool may be given to read.
 const INPUTS: [&str; 8] = ["pdf", "png", "jpg", "jpeg", "webp", "gif", "bmp", "docx"];
 const MAX_BYTES: u64 = 512 * 1024 * 1024;

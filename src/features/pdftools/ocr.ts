@@ -30,14 +30,7 @@ export async function recognize(
   languages: OcrLanguage[],
   progress: (done: number, total: number) => void,
 ): Promise<{ page: number; words: OcrWord[]; turn: number }[]> {
-  const { createWorker, OEM } = await import("tesseract.js");
-  const worker = await createWorker(languages, OEM.LSTM_ONLY, {
-    workerPath: "/ocr/worker.min.js",
-    corePath: "/ocr/tesseract-core-simd-lstm.wasm.js",
-    langPath: "/ocr/lang",
-    cacheMethod: "none",
-    gzip: true,
-  });
+  const worker = await startOcr(languages);
   const out: { page: number; words: OcrWord[]; turn: number }[] = [];
   try {
     for (let i = 0; i < pages.length; i++) {
@@ -69,5 +62,47 @@ export async function recognize(
     await worker.terminate();
   }
   progress(pages.length, pages.length);
+  return out;
+}
+
+async function startOcr(languages: OcrLanguage[]) {
+  const { createWorker, OEM } = await import("tesseract.js");
+  return createWorker(languages, OEM.LSTM_ONLY, {
+    workerPath: "/ocr/worker.min.js",
+    corePath: "/ocr/tesseract-core-simd-lstm.wasm.js",
+    langPath: "/ocr/lang",
+    cacheMethod: "none",
+    gzip: true,
+  });
+}
+
+/** The text of these pages as Tesseract reads it, line by line, for Extract text. */
+export async function readText(
+  doc: PDFDocumentProxy,
+  pages: number[],
+  languages: OcrLanguage[],
+  progress: (done: number, total: number) => void,
+): Promise<Map<number, string>> {
+  const out = new Map<number, string>();
+  if (!pages.length) return out;
+  const worker = await startOcr(languages);
+  try {
+    for (let i = 0; i < pages.length; i++) {
+      progress(i, pages.length);
+      const n = pages[i] ?? 1;
+      const base = (await doc.getPage(n)).getViewport({ scale: 1 });
+      const pic = await renderPage(
+        doc,
+        n,
+        Math.min(300 / 72, 5000 / Math.max(base.width, base.height)),
+        "png",
+      );
+      const { data } = await worker.recognize(pic.canvas);
+      out.set(n, data.text.trim());
+      pic.canvas.width = 0;
+    }
+  } finally {
+    await worker.terminate();
+  }
   return out;
 }

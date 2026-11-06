@@ -10,6 +10,7 @@ import {
   type Encoder,
   type FoundImage,
 } from "../../lib/pdftools/images";
+import { addMarks } from "../../lib/pdftools/markup";
 import { addOcrText } from "../../lib/pdftools/ocrText";
 import * as pages from "../../lib/pdftools/pages";
 import { addPageNumbers, addWatermark } from "../../lib/pdftools/stamp";
@@ -126,6 +127,7 @@ const OPS = {
   writeDetails,
   addThings: (bytes: Uint8Array, things: Addition[]) => addThings(bytes, things),
   redactPages,
+  addMarks,
   addOcrText,
   imagesToPdf,
   async compress(bytes: Uint8Array, level: "light" | "recommended" | "strong", progress: Progress) {

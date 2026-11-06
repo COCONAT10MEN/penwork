@@ -72,10 +72,13 @@ function addStroke(doc: PDFDocument, stroke: PointStroke) {
   const highlight = stroke.k === "h";
   const strength = highlight ? (stroke.op ?? 0.42) : 1;
   const first = stroke.pts[0];
+  const last = stroke.pts[stroke.pts.length - 1];
   const shape =
-    stroke.pts.length === 1 && first
-      ? dotPath(first[0], first[1], dotWidth(stroke, first[2]) / 2)
-      : outlinePath(strokeOutline(stroke));
+    stroke.box && first && last
+      ? `${Math.min(first[0], last[0])} ${Math.min(first[1], last[1])} ${Math.abs(last[0] - first[0])} ${Math.abs(last[1] - first[1])} re f`
+      : stroke.pts.length === 1 && first
+        ? dotPath(first[0], first[1], dotWidth(stroke, first[2]) / 2)
+        : outlinePath(strokeOutline(stroke));
   const state = doc.context.obj({
     Type: "ExtGState",
     CA: strength,

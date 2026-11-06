@@ -1,5 +1,6 @@
 import { Button, Chip, ColorSwatches, SegmentedButton, Slider, Switch, TextField } from "../../ui";
 import { pickFiles, type Picked } from "./files";
+import { SHAPES, shapeSvg } from "../../lib/pdftools/shapes";
 import { SignaturePad } from "./SignaturePad";
 import type { PagesValue } from "./toolsPages";
 import type { Field, ToolHost, Values } from "./types";
@@ -186,6 +187,28 @@ export function ToolFields({
             }
             case "signature":
               return <SignaturePad key={f.key} onChange={(s) => set(f.key, s)} />;
+            case "shape":
+              return (
+                <div key={f.key} className={styles.field}>
+                  <span className={styles.label}>{f.label}</span>
+                  <div className={styles.shapes} role="radiogroup" aria-label={f.label}>
+                    {SHAPES.map((shape) => (
+                      <button
+                        key={shape.id}
+                        type="button"
+                        role="radio"
+                        aria-checked={value === shape.id}
+                        aria-label={shape.label}
+                        title={shape.label}
+                        className={`pw-state ${styles.shapeChoice}`}
+                        onClick={() => set(f.key, shape.id)}
+                        // Our own drawing of the shape, made from the list above.
+                        dangerouslySetInnerHTML={{ __html: shapeSvg(shape.id) }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              );
             case "pages": {
               const p = (value as PagesValue) ?? { which: "all", ranges: "" };
               return (

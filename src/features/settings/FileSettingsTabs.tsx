@@ -231,7 +231,7 @@ export function PdfTab() {
           onCheckedChange={(pdfTwoPages) => update({ pdfTwoPages })}
         />
       </Section>
-      <ToolbarSettings />
+      <ToolbarSettings kind="pdf" />
     </div>
   );
 }

@@ -2,7 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import { useApp } from "../../appStore";
 import { fileName, fileStem, officeKind, saveBody, siblingPath } from "../../lib/office";
-import { notify } from "../notices/notices";
+import { notify, type NoticeAction } from "../notices/notices";
 
 /** Files in and out of the tools: what they're given, and what they make. */
 
@@ -64,17 +64,25 @@ export async function deliver(
     written = [];
     for (const f of files) written.push(await writeNew(`${folder}\\${f.name}`, f.bytes));
   }
-  const first = written[0] ?? source;
-  const opens = files.length === 1 && officeKind(first) !== null;
+  announce(written);
+  return written;
+}
+
+/** The notice for files a tool made: open it (when Penwork opens that kind) or show it in Explorer. */
+export function announce(written: string[], message?: string, actions: NoticeAction[] = []): void {
+  const first = written[0];
+  if (!first) return;
+  const opens = written.length === 1 && officeKind(first) !== null;
   notify(
-    files.length === 1
-      ? `Saved as "${fileName(first)}".`
-      : `${files.length} files saved in a new folder.`,
+    message ??
+      (written.length === 1
+        ? `Saved as "${fileName(first)}".`
+        : `${written.length} files saved in a new folder.`),
     "check_circle",
     [
+      ...actions,
       ...(opens ? [{ label: "Open", run: () => void useApp.getState().openPath(first) }] : []),
       { label: "Show in folder", run: () => void invoke("show_in_folder", { path: first }) },
     ],
   );
-  return written;
 }

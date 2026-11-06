@@ -38,6 +38,7 @@ Licenses below were checked against the installed packages (`package.json` / `LI
 | docx (`docx`) | Dolan Miu and contributors | MIT | PDF to Word |
 | PptxGenJS (`pptxgenjs`) | Brent Ely and contributors | MIT | PDF to PowerPoint |
 | jsdiff (`diff`) | Kevin Decker and contributors | BSD-3-Clause | Compare PDFs |
+| fflate (`fflate`) | Arjun Barrett | MIT | Zipping pictures exported from a PDF |
 
 The packages those six bring in (ProseMirror, HarfBuzz, lodash, dayjs and others), and the
 full licence text of every one, are in [`LICENSES/office-libraries.txt`](LICENSES/office-libraries.txt).

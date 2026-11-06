@@ -318,7 +318,7 @@ var COL={pen:['#e5352b','#1f6fe5','#10222b','#35aac5'],hl:['#ffe14a','#7df09a','
 var SZ={pen:[4,8,15],hl:[26,38,54],laser:[12,18,28],eraser:[30,50,80]};
 var RNG={pen:[1,40,1],hl:[10,90,1],laser:[6,50,1],eraser:[10,160,2]};
 /* every tool owns its own settings object — nothing is shared between tools */
-function defCfg(){return {pen:{c:COL.pen[0],w:8,press:true,cust:[]},hl:{c:COL.hl[0],w:38,op:.42,cust:[]},laser:{c:COL.laser[0],w:18,life:1500,cust:[]},eraser:{w:50}};}
+function defCfg(){return {pen:{c:COL.pen[0],w:8,press:true,cust:[]},hl:{c:COL.hl[0],w:38,op:.42,area:false,cust:[]},laser:{c:COL.laser[0],w:18,life:1500,cust:[]},eraser:{w:50}};}
 /* toolbar items: g = group (a separator is drawn between groups), i = icon, l = label, t = tooltip */
 var ITEMS={
  ptr:{g:'t',i:'ptr',l:'Pointer',t:'Pointer — click to navigate (Esc)'},
@@ -614,7 +614,8 @@ function bootDoc(){
   poke();armSink();docReport();
 }
 function bbox(st){
-  if(st.bb&&st.bbn===st.pts.length)return st.bb;
+  /* a box keeps two points while its corners move, so it is never cached */
+  if(st.bb&&st.bbn===st.pts.length&&!st.box)return st.bb;
   var P=st.pts,x0=1e9,y0=1e9,x1=-1e9,y1=-1e9,i,m=st.w+2;
   for(i=0;i<P.length;i++){if(P[i][0]<x0)x0=P[i][0];if(P[i][0]>x1)x1=P[i][0];if(P[i][1]<y0)y0=P[i][1];if(P[i][1]>y1)y1=P[i][1];}
   st.bb=[x0-m,y0-m,x1+m,y1+m];st.bbn=P.length;return st.bb;
@@ -623,6 +624,10 @@ function onFit(){if(bgOpen)setTimeout(bgPlace,0);if(DOC){ox=0;oy=0;}else{ox=(inn
 function pw(st,p){return (st.k==='h'||st.np)?st.w:Math.max(.9,st.w*(.4+1.2*p));}
 /* the template's width rule, pw(), is the same curve: thinning .6 gives .4 to 1.6 times the size */
 function outline(st,done){
+  if(st.box){
+    var a=st.pts[0],z=st.pts[st.pts.length-1],R=new Path2D();
+    R.rect(Math.min(a[0],z[0]),Math.min(a[1],z[1]),Math.abs(z[0]-a[0]),Math.abs(z[1]-a[1]));return R;
+  }
   var flat=st.k==='h'||st.np;
   var o=window.__pf.getStroke(flat?st.pts.map(function(p){return [p[0],p[1],.5];}):st.pts,{size:st.w,thinning:flat?0:.6,smoothing:.5,streamline:.4,simulatePressure:false,last:done!==false});
   var P=new Path2D();if(!o.length)return P;
@@ -632,6 +637,7 @@ function outline(st,done){
 }
 function strokeTo(c,st,live){
   var P=st.pts;c.fillStyle=st.c;
+  if(st.box&&P.length<2)return;
   if(P.length===1){c.beginPath();c.arc(P[0][0],P[0][1],pw(st,P[0][2])/2,0,6.2832);c.fill();return;}
   c.fill(outline(st,!live));
 }
@@ -727,6 +733,7 @@ function clearInk(){var k=ikey();if(hasInk()){pushHist(k,ink[k].slice());swapInk
 function segDist(px,py,ax,ay,bx,by){var dx=bx-ax,dy=by-ay,l=dx*dx+dy*dy,t=l?((px-ax)*dx+(py-ay)*dy)/l:0;t=t<0?0:t>1?1:t;var qx=ax+t*dx-px,qy=ay+t*dy-py;return Math.sqrt(qx*qx+qy*qy);}
 function strokeHit(st,x,y,r){
   var P=st.pts,rr=r+(st.k==='h'?st.w*.45:st.w*.5);
+  if(st.box&&P.length>1){var a=P[0],z=P[P.length-1];return x>Math.min(a[0],z[0])-r&&x<Math.max(a[0],z[0])+r&&y>Math.min(a[1],z[1])-r&&y<Math.max(a[1],z[1])+r;}
   if(P.length===1)return Math.hypot(P[0][0]-x,P[0][1]-y)<rr;
   for(var n=1;n<P.length;n++)if(segDist(x,y,P[n-1][0],P[n-1][1],P[n][0],P[n][1])<rr)return true;
   return false;
@@ -814,6 +821,7 @@ function startGesture(e,er){
   if(mode==='draw'){
     var a=ink[G.slide]=ink[G.slide]||[];G.snap=a.slice();
     G.st={k:tool==='hl'?'h':'p',c:colorOf(),w:sizeOf(),op:CFG.hl.op,np:tool==='pen'&&!CFG.pen.press,pts:[p]};G.all=[p];a.push(G.st);
+    if(tool==='hl'&&CFG.hl.area)G.st.box=1;
     if(G.st.k==='h')cv.cHLv.style.opacity=G.st.op;
     liveDraw(G.st);
     updActs();
@@ -822,6 +830,9 @@ function startGesture(e,er){
 }
 function endGesture(){
   var g=G;G=null;if(!g)return;
+  if(g.mode==='draw'&&g.st&&g.st.box&&g.st.pts.length<2){
+    var A=ink[g.slide];if(A&&A[A.length-1]===g.st)A.pop();g.st=null;clearLive(cx.cHLv,cv.cHLv);
+  }
   if(g.mode==='draw'&&g.st){
     var P=g.st.pts;
     if(g.st.k==='h'){
@@ -846,6 +857,7 @@ function moveGesture(e){
     var p=stPt(evs[i]);
     if(g.mode==='draw'){
       var st=g.st;
+      if(st.box){st.pts=[g.all[0],p];g.moved=true;continue;}
       if(e.shiftKey){st.pts=[g.all[0],p];g.committed=true;clearLive(cx.cPenL,cv.cPenL);clearLive(cx.cHLv,cv.cHLv);inkRedraw();continue;}
       var L=g.all[g.all.length-1];if(Math.abs(p[0]-L[0])+Math.abs(p[1]-L[1])<.6&&Math.abs(p[2]-L[2])<.02)continue;
       g.all.push(p);if(st.pts.length<2||st.pts[st.pts.length-1]===g.all[g.all.length-2])st.pts.push(p);else st.pts=g.all.slice();
@@ -1359,6 +1371,7 @@ function cfgBuild(t){
   if(t==='hl')h+='<div class="lr"><span class="lb">Strength</span><output data-o="op"></output></div>'+slHTML('op',15,85,1,Math.round(c.op*100),'Strength');
   if(t==='laser')h+='<div class="lr"><span class="lb">Trail length</span><output data-o="life"></output></div>'+slHTML('life',300,4000,100,c.life,'Trail length');
   if(t==='pen')h+='<label class="tg"><input type="checkbox" data-p="press"'+(c.press?' checked':'')+'><span class="tk"></span><span>Pressure sensitive <small>(stylus)</small></span></label>';
+  if(t==='hl')h+='<label class="tg"><input type="checkbox" data-p="area"'+(c.area?' checked':'')+'><span class="tk"></span><span>Highlight an area <small>(drag a box)</small></span></label>';
   cfgEl.innerHTML=h;
 }
 function cfgSync(){
@@ -1411,7 +1424,8 @@ cfgEl.addEventListener('click',function(e){
 });
 cfgEl.addEventListener('input',function(e){
   var el=e.target,c=CFG[cfgTool];
-  if(el.type==='checkbox')c.press=el.checked;else return;
+  if(el.type!=='checkbox')return;
+  if(el.getAttribute('data-p')==='area')c.area=el.checked;else c.press=el.checked;
   cfgSync();poke();
 });
 

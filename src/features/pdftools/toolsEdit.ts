@@ -29,13 +29,14 @@ async function addAll(host: ToolHost, things: Addition[], message: string) {
 }
 
 /** Text the built-in font can't show goes in as a picture of itself. */
-async function textThing(
+export async function textThing(
   area: PlacedArea,
   text: string,
   size: number,
   color: string,
+  font?: "sans" | "serif" | "mono",
 ): Promise<Addition> {
-  if (plainText(text)) return { kind: "text", area, text, size, color };
+  if (plainText(text)) return { kind: "text", area, text, size, color, font };
   const pic = await textPicture(text, { size, color });
   const scale = Math.min(area.width / pic.width, area.height / pic.height, 1);
   return {
@@ -52,6 +53,18 @@ async function textThing(
 }
 
 export const EDIT_TOOLS: Tool[] = [
+  {
+    id: "editText",
+    title: "Edit text",
+    icon: "edit_note",
+    group: "edit",
+    blurb: "Click words on a page to change them",
+    keywords: "change text fix typo replace words edit",
+    instant: true,
+    async run(host) {
+      host.editText();
+    },
+  },
   {
     id: "addText",
     title: "Add text",
@@ -106,55 +119,6 @@ export const EDIT_TOOLS: Tool[] = [
         host,
         (areas ?? []).map((area) => ({ kind: "image", area, bytes: pic.bytes, type: pic.type })),
         "Picture added.",
-      );
-    },
-  },
-  {
-    id: "addShape",
-    title: "Add shapes",
-    icon: "interests",
-    group: "edit",
-    blurb: "Boxes, circles and lines",
-    keywords: "rectangle circle ellipse line draw shape",
-    fields: [
-      {
-        key: "shape",
-        kind: "choice",
-        label: "Shape",
-        options: [
-          { value: "rect", label: "Box" },
-          { value: "ellipse", label: "Circle" },
-          { value: "line", label: "Line" },
-        ],
-      },
-      { key: "color", kind: "color", label: "Colour" },
-      { key: "width", kind: "slider", label: "Line width", min: 0.5, max: 12, step: 0.5 },
-      { key: "fill", kind: "switch", label: "Filled in" },
-    ],
-    defaults: { shape: "rect", color: "#d32f2f", width: 2, fill: false },
-    action: "Place on the page",
-    async run(host, v) {
-      const areas = await host.place({
-        hint: "Drag to draw each one.",
-        multiple: true,
-        look: "box",
-      });
-      const stroke = String(v.color);
-      const things: Addition[] = (areas ?? []).map((area) =>
-        v.shape === "line"
-          ? { kind: "line", area, stroke, width: Number(v.width) }
-          : {
-              kind: v.shape as "rect" | "ellipse",
-              area,
-              stroke,
-              fill: v.fill ? stroke : null,
-              width: Number(v.width),
-            },
-      );
-      await addAll(
-        host,
-        things,
-        things.length === 1 ? "Shape added." : `${things.length} shapes added.`,
       );
     },
   },
@@ -413,7 +377,7 @@ export const EDIT_TOOLS: Tool[] = [
   {
     id: "fields",
     title: "Form fields",
-    icon: "edit_note",
+    icon: "list_alt",
     group: "edit",
     blurb: "Boxes others can type in or tick",
     keywords: "form fillable field checkbox create",

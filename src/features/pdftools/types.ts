@@ -1,5 +1,6 @@
 import type { PDFDocumentProxy } from "pdfjs-dist";
 import type { Area } from "../../lib/pdftools/draw";
+import type { MarkKind } from "../../lib/pdftools/markup";
 import type { Change } from "./compare";
 
 /** What a tool can do with the open PDF, given by the PDF screen. */
@@ -19,6 +20,10 @@ export interface ToolHost {
   /** Lets the person mark places on the pages; resolves when they're done, or null if cancelled. */
   place(spec: PlaceSpec): Promise<PlacedArea[] | null>;
   organize(): void;
+  /** Highlight, underline or strike the selected text, or the next text selected. */
+  markText(kind: MarkKind): void;
+  /** Click words on the pages to change them. */
+  editText(): void;
 }
 
 export interface Lock {
@@ -29,6 +34,9 @@ export interface Lock {
 export interface PlacedArea extends Area {
   /** Typed into the box, for text. */
   text?: string;
+  /** Dragged leftward or upward on the page, for lines and arrows. */
+  flipX?: boolean;
+  flipY?: boolean;
 }
 
 export interface PlaceSpec {
@@ -41,8 +49,10 @@ export interface PlaceSpec {
   /** A box typed into after it's drawn. */
   typing?: { size: number; color: string };
   /** How a placed box looks while placing. */
-  look: "box" | "dark" | "picture";
+  look: "box" | "dark" | "picture" | "shape";
   picture?: string;
+  /** For look "shape": which one, to draw it while placing. */
+  shape?: string;
   done?: string;
 }
 
@@ -74,18 +84,22 @@ export type Field =
   | { key: string; kind: "color"; label: string }
   | { key: string; kind: "files"; label: string; accept: "pdf" | "image"; multiple: boolean }
   | { key: string; kind: "signature"; label: string }
+  | { key: string; kind: "shape"; label: string }
   | { key: string; kind: "note"; text: string };
 
-export type GroupId = "organize" | "optimize" | "convert" | "edit" | "security" | "review" | "file";
+/** The ⋮ menu's tabs, in order. */
+export type GroupId =
+  "pages" | "edit" | "annotate" | "convert" | "ocr" | "optimize" | "security" | "more";
 
-export const GROUPS: { id: GroupId; title: string }[] = [
-  { id: "organize", title: "Organize pages" },
-  { id: "edit", title: "Edit and sign" },
-  { id: "optimize", title: "Optimize" },
-  { id: "convert", title: "Convert" },
-  { id: "review", title: "Scan and compare" },
-  { id: "security", title: "Security" },
-  { id: "file", title: "This file" },
+export const GROUPS: { id: GroupId; title: string; icon: string }[] = [
+  { id: "pages", title: "Pages", icon: "auto_stories" },
+  { id: "edit", title: "Edit", icon: "edit" },
+  { id: "annotate", title: "Annotate", icon: "ink_highlighter" },
+  { id: "convert", title: "Convert", icon: "swap_horiz" },
+  { id: "ocr", title: "OCR", icon: "document_scanner" },
+  { id: "optimize", title: "Optimize", icon: "speed" },
+  { id: "security", title: "Security", icon: "shield" },
+  { id: "more", title: "More", icon: "more_horiz" },
 ];
 
 export interface Tool {

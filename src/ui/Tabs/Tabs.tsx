@@ -1,4 +1,5 @@
-import { motion } from "motion/react";
+import { animate, motion, useMotionValue, useTransform } from "motion/react";
+import type { Transition } from "motion/react";
 import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from "react";
 import { useSpring } from "../../theme/motion";
 import { cx } from "../cx";
@@ -24,10 +25,23 @@ export interface TabsProps {
  * so it passes behind the labels on its way. One Tab stop: the arrow keys, Home and End move
  * between them. Too many for the width scrolls.
  */
+/** The same spring with its bounce taken out (critically damped), as the speed setting has it. */
+function settle(t: Transition): Transition {
+  if (!("stiffness" in t) || !t.stiffness) return t;
+  return { ...t, damping: 2 * Math.sqrt(t.stiffness * ((t.mass as number | undefined) ?? 1)) };
+}
+
 export function Tabs({ label, tabs, value, onChange }: TabsProps) {
   const row = useRef<HTMLDivElement>(null);
   const [place, setPlace] = useState<{ x: number; width: number } | null>(null);
-  const glide = useSpring("spatialDefault");
+  const lead = useSpring("spatialFast");
+  const trail = useSpring("spatialDefault");
+  // The jewel's two edges, moved apart: the leading one goes first and the other catches up, so on
+  // a long jump it stretches toward the tab and lands there, as Material's tab indicator does.
+  const left = useMotionValue(0);
+  const right = useMotionValue(0);
+  const width = useTransform(() => right.get() - left.get());
+  const placed = useRef(false);
 
   useLayoutEffect(() => {
     const box = row.current;
@@ -42,6 +56,25 @@ export function Tabs({ label, tabs, value, onChange }: TabsProps) {
     watcher.observe(box);
     return () => watcher.disconnect();
   }, [value]);
+
+  useEffect(() => {
+    if (!place) return;
+    const to = { l: place.x, r: place.x + place.width };
+    if (!placed.current) {
+      placed.current = true;
+      left.set(to.l);
+      right.set(to.r);
+      return;
+    }
+    const goingRight = to.l > left.get();
+    // No bounce at either edge: a bounce over a long jump would carry it past the end tab.
+    const a = animate(left, to.l, settle(goingRight ? trail : lead));
+    const b = animate(right, to.r, settle(goingRight ? lead : trail));
+    return () => {
+      a.stop();
+      b.stop();
+    };
+  }, [place, left, right, lead, trail]);
 
   useEffect(() => {
     row.current
@@ -67,9 +100,7 @@ export function Tabs({ label, tabs, value, onChange }: TabsProps) {
 
   return (
     <div ref={row} role="tablist" aria-label={label} className={styles.tabs} onKeyDown={onKeyDown}>
-      {place && (
-        <motion.span className={styles.jewel} initial={false} animate={place} transition={glide} />
-      )}
+      {place && <motion.span className={styles.jewel} style={{ x: left, width }} />}
       {tabs.map(({ id, label: name, icon }) => {
         const selected = id === value;
         return (

@@ -6,7 +6,13 @@ import { describePages } from "../../lib/pdftools/ranges";
 import { notify, showError } from "../notices/notices";
 import { runTool } from "./client";
 import { deliver } from "./files";
+import type { Addition } from "../../lib/pdftools/draw";
+import type { Mark, MarkKind } from "../../lib/pdftools/markup";
+import { EditTextLayer, type TextEdit } from "./EditTextLayer";
 import { OrganizeView } from "./OrganizeView";
+import { SelectionMarks } from "./SelectionMarks";
+import { selectionMarks as selectionMarksOf } from "./selectionBoxes";
+import { textThing } from "./toolsEdit";
 import { askPassword } from "./passwordAsk";
 import { PasswordPrompt } from "./PasswordPrompt";
 import { PlaceLayer } from "./PlaceLayer";
@@ -39,6 +45,8 @@ export function usePdfTools(o: {
     done: (a: PlacedArea[] | null) => void;
   } | null>(null);
   const [organizing, setOrganizing] = useState(false);
+  const [armed, setArmed] = useState<MarkKind | null>(null);
+  const [editing, setEditing] = useState(false);
   const last = useRef<Uint8Array | null>(null);
   const opts = useRef(o);
   useEffect(() => {
@@ -92,8 +100,72 @@ export function usePdfTools(o: {
             setOpen(false);
             setOrganizing(true);
           },
+          markText: (kind) => {
+            setOpen(false);
+            const doc = o.frame?.contentDocument;
+            const viewer = o.viewer;
+            // Text already selected is marked straight away; otherwise the next selection is.
+            if (doc && viewer && doc.getSelection()?.toString().trim())
+              void mark(selectionMarksOf(doc, viewer, kind));
+            else setArmed(kind);
+          },
+          editText: () => {
+            setOpen(false);
+            setEditing(true);
+          },
         }
       : null;
+
+  const mark = async (marks: Mark[]) => {
+    if (!marks.length) return;
+    const kind = marks[0]?.kind;
+    try {
+      await replace(
+        await runTool("addMarks", [await current(), marks]),
+        kind === "highlight"
+          ? "Highlighted."
+          : kind === "underline"
+            ? "Underlined."
+            : "Struck through.",
+      );
+    } catch (e) {
+      showError(e instanceof Error ? e.message : String(e));
+    }
+  };
+
+  const applyEdits = async (edits: TextEdit[]) => {
+    const things: Addition[] = [];
+    for (const e of edits) {
+      // The old words go under the paper's colour; the new ones sit on the same baseline.
+      things.push({
+        kind: "cover",
+        area: {
+          page: e.page,
+          x: e.x - 0.6,
+          y: e.y - 0.6,
+          width: e.width + 1.2,
+          height: e.height + 1.2,
+        },
+        color: e.paper,
+      });
+      const area = {
+        page: e.page,
+        x: e.x,
+        y: e.y,
+        width: Math.max(e.width, e.text.length * e.size * 0.6),
+        height: e.size,
+      };
+      things.push(await textThing(area, e.text, e.size, e.ink, e.font));
+    }
+    try {
+      await replace(
+        await runTool("addThings", [await current(), things]),
+        edits.length === 1 ? "Text changed." : `${edits.length} changes made.`,
+      );
+    } catch (e) {
+      showError(e instanceof Error ? e.message : String(e));
+    }
+  };
 
   const layers = (
     <>
@@ -103,6 +175,25 @@ export function usePdfTools(o: {
         host={host}
         onClose={() => setOpen(false)}
       />
+      {o.frame && o.viewer && !editing && !placing && (
+        <SelectionMarks
+          frame={o.frame}
+          viewer={o.viewer}
+          armed={armed}
+          onArmed={setArmed}
+          onMark={(m) => void mark(m)}
+        />
+      )}
+      {editing && o.frame && o.viewer && (
+        <EditTextLayer
+          frame={o.frame}
+          viewer={o.viewer}
+          onDone={(edits) => {
+            setEditing(false);
+            if (edits) void applyEdits(edits);
+          }}
+        />
+      )}
       {placing && o.frame && o.viewer && (
         <PlaceLayer frame={o.frame} viewer={o.viewer} spec={placing.spec} onDone={placing.done} />
       )}

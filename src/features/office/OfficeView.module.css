@@ -133,6 +133,7 @@
 }
 .pdfPage {
   flex: none;
+  white-space: nowrap;
   min-width: 52px;
   font-size: var(--md-sys-typescale-label-large-size);
   font-variant-numeric: tabular-nums;
@@ -145,10 +146,22 @@
   margin-inline: 6px;
   background: var(--md-sys-color-outline-variant);
 }
+/* Find, with its magnifier inside: in the tightest bar only the magnifier shows until it's used. */
+.findBox {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.findIcon {
+  position: absolute;
+  left: 12px;
+  color: var(--md-sys-color-on-surface-variant);
+  pointer-events: none;
+}
 .pdfFind {
   width: 110px;
   height: 40px;
-  padding: 0 14px;
+  padding: 0 12px 0 38px;
   box-sizing: border-box;
   border: 0;
   border-radius: var(--md-sys-shape-corner-full);
@@ -430,7 +443,10 @@
     margin var(--md-sys-motion-spatial-default-duration) var(--md-sys-motion-spatial-default-easing),
     opacity var(--md-sys-motion-effects-fast-duration) var(--md-sys-motion-effects-fast-easing);
 }
+/* Tools never squash: squashed, the page box's "/ 12" ran under the next divider. Room is made by
+   the steps below instead. */
 .pdfBarTools .toolSlot {
+  flex-shrink: 0;
   max-width: 260px;
 }
 .pdfBarTools .toolSlot:has([data-dock-seat]) {
@@ -457,8 +473,28 @@
   .pdfBarTools .pdfFind {
     width: 72px;
   }
+  .pdfBarTools .pdfFind:focus {
+    width: 140px;
+  }
   .pdfBarTools .pdfDivider {
     margin-inline: 2px;
+  }
+}
+/* The tightest bar: the dividers fold away and Find narrows again. It widens when used. */
+@container (max-width: 680px) {
+  .pdfBarTools .pdfFind {
+    width: 44px;
+  }
+  .pdfBarTools .pdfFind:not(:focus)::placeholder {
+    color: transparent;
+  }
+  .pdfBarTools .pdfFind:focus {
+    width: 110px;
+  }
+  .pdfBarTools .pdfDivider {
+    width: 0;
+    margin-inline: 0;
+    opacity: 0;
   }
 }
 /* Empty, and as wide as the annotation tools drawn in it. */

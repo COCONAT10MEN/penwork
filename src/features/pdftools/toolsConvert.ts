@@ -2,7 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { fileStem } from "../../lib/office";
 import { runTool } from "./client";
 import { compare } from "./compare";
-import { toExcel, toPictures, toPowerPoint, toText, toWord } from "./convert";
+import { toExcel, toPowerPoint, toText, toWord } from "./convert";
 import { deliver } from "./files";
 import { loadPdf, PDF_ASSETS } from "../office/pdfLoader";
 import { pagesWithoutText, recognize, type OcrLanguage } from "./ocr";
@@ -66,47 +66,6 @@ export const CONVERT_TOOLS: Tool[] = [
     "pptx slides presentation convert export",
     toPowerPoint,
   ),
-  {
-    id: "toPictures",
-    title: "PDF to pictures",
-    icon: "image",
-    group: "convert",
-    blurb: "Pages as JPG or PNG pictures",
-    keywords: "jpg jpeg png image export convert",
-    fields: [
-      {
-        key: "type",
-        kind: "choice",
-        label: "Type",
-        options: [
-          { value: "jpg", label: "JPG" },
-          { value: "png", label: "PNG" },
-        ],
-      },
-      {
-        key: "dpi",
-        kind: "choice",
-        label: "Sharpness",
-        options: [
-          { value: "96", label: "Screen" },
-          { value: "150", label: "Good" },
-          { value: "300", label: "Print" },
-        ],
-      },
-      { key: "pages", kind: "pages" },
-    ],
-    defaults: { type: "jpg", dpi: "150", pages: ALL_PAGES },
-    action: "Make pictures",
-    async run(host, v, progress) {
-      const files = await toPictures(
-        host.doc,
-        stemOf(host),
-        { type: v.type as "jpg" | "png", dpi: Number(v.dpi), pages: pagesOf(host, v.pages) },
-        progress,
-      );
-      await deliver(sourceOf(host), files, "pictures");
-    },
-  },
   {
     id: "extractImages",
     title: "Extract images",
@@ -195,7 +154,7 @@ export const CONVERT_TOOLS: Tool[] = [
     id: "ocr",
     title: "OCR: make text searchable",
     icon: "document_scanner",
-    group: "review",
+    group: "ocr",
     blurb: "Reads scanned pages, so their text can be found, selected and copied",
     keywords: "ocr scan recognize text searchable arabic english",
     fields: [
@@ -239,7 +198,7 @@ export const CONVERT_TOOLS: Tool[] = [
     id: "compare",
     title: "Compare PDFs",
     icon: "difference",
-    group: "review",
+    group: "more",
     blurb: "What changed between this PDF and another version",
     keywords: "diff differences versions changes",
     fields: [
@@ -264,7 +223,7 @@ export const CONVERT_TOOLS: Tool[] = [
     id: "showInFolder",
     title: "Show in folder",
     icon: "folder_open",
-    group: "file",
+    group: "more",
     blurb: "Where this PDF is, in File Explorer",
     keywords: "explorer location path",
     instant: true,

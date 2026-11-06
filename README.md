@@ -28,5 +28,6 @@ Penwork's Word, Excel and PDF screens are built on these free, open-source proje
 - [docx](https://github.com/dolanmiu/docx) by Dolan Miu, MIT
 - [PptxGenJS](https://github.com/gitbrent/PptxGenJS) by Brent Ely, MIT
 - [jsdiff](https://github.com/kpdecker/jsdiff) by Kevin Decker, BSD-3-Clause
+- [fflate](https://github.com/101arrowz/fflate) by Arjun Barrett, MIT
 
 Everything else Penwork uses is listed in [`THIRD_PARTY.md`](THIRD_PARTY.md). The full licence texts are in [`LICENSES/`](LICENSES/).

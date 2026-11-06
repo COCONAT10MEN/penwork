@@ -1,4 +1,4 @@
-import { PDFDocument, PDFName, StandardFonts, degrees } from "pdf-lib";
+import { PDFDict, PDFDocument, PDFName, StandardFonts, degrees } from "pdf-lib";
 import { describe, expect, it } from "vitest";
 import { latin1, markedSections, cutSections, pageContent, streamBytes } from "./content";
 import { readDetails, writeDetails, crop } from "./details";
@@ -223,5 +223,59 @@ describe("pictures", () => {
     expect(doc.getPageCount()).toBe(2);
     expect(Math.round(doc.getPage(0).getWidth())).toBe(595);
     expect((await findImages(doc)).length).toBeGreaterThanOrEqual(0);
+  });
+});
+
+describe("shapes, text marks and covers", () => {
+  it("draws every shape, flipped arrows too, and covers words", async () => {
+    const { SHAPES } = await import("./shapes");
+    const area = { page: 1, x: 50, y: 50, width: 120, height: 80 };
+    const things = SHAPES.map((s) => ({
+      kind: "shape" as const,
+      area,
+      shape: s.id,
+      stroke: "#d32f2f",
+      fill: "#ffeb3b",
+      width: 2,
+      flipX: s.id === "arrow",
+    }));
+    const out = await addThings(await sample(1), [
+      ...things,
+      { kind: "cover", area, color: "#ffffff" },
+      { kind: "text", area, text: "Edited", size: 12, color: "#000000", font: "serif", bold: true },
+    ]);
+    const doc = await PDFDocument.load(out);
+    const text = (await pageContent(doc, doc.getPage(0))) ?? "";
+    expect(SHAPES.length).toBeGreaterThanOrEqual(16);
+    // Straight sides (l) and curves (c) for the shapes, filled and stroked.
+    expect((text.match(/ l\n/g) ?? []).length).toBeGreaterThan(40);
+    expect((text.match(/ c\n/g) ?? []).length).toBeGreaterThan(8);
+  });
+  it("marks text as real highlight, underline and strike-out annotations", async () => {
+    const { addMarks } = await import("./markup");
+    const out = await addMarks(await sample(1), [
+      { page: 1, kind: "highlight", color: "#ffeb3b", boxes: [[50, 490, 150, 512]] },
+      { page: 1, kind: "underline", color: "#1565c0", boxes: [[50, 490, 150, 512]] },
+      {
+        page: 1,
+        kind: "strike",
+        color: "#d32f2f",
+        boxes: [
+          [50, 490, 150, 512],
+          [50, 470, 120, 488],
+        ],
+      },
+    ]);
+    const doc = await PDFDocument.load(out);
+    const kinds = doc
+      .getPage(0)
+      .node.Annots()
+      ?.asArray()
+      .map((a) =>
+        String(
+          doc.context.lookup(a, PDFDict).get(PDFName.of("Subtype")),
+        ),
+      );
+    expect(kinds).toEqual(["/Highlight", "/Underline", "/StrikeOut"]);
   });
 });

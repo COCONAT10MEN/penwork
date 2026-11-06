@@ -16,9 +16,22 @@
 }
 .list {
   display: flex;
+  gap: 4px;
+  margin-left: -20px;
+  padding-bottom: 12px;
+}
+.list > nav[class] {
+  flex: none;
+  height: auto;
+  padding-top: 0;
+  background: transparent;
+}
+.browseMain {
+  display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 8px;
-  padding-bottom: 12px;
+  min-width: 0;
 }
 .group {
   display: flex;
@@ -358,4 +371,131 @@
 .cardNumber {
   font-size: var(--md-sys-typescale-label-medium-size);
   font-variant-numeric: tabular-nums;
+}
+
+/* The ⋮ sheet's tools as tiles, three to a row. */
+.grid3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  padding-top: 8px;
+}
+.tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-height: 104px;
+  padding: 14px 6px 10px;
+  border: 0;
+  border-radius: var(--md-sys-shape-corner-large);
+  background: transparent;
+  color: var(--md-sys-color-on-surface);
+  font: inherit;
+  text-align: center;
+  cursor: default;
+}
+.tileIcon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--md-sys-shape-corner-large);
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+  transition: border-radius var(--md-sys-motion-spatial-fast-duration)
+    var(--md-sys-motion-spatial-fast-easing);
+}
+/* Expressive: the square softens into a circle under the pointer. */
+.tile:hover .tileIcon,
+.tile:focus-visible .tileIcon {
+  border-radius: 50%;
+}
+.tileName {
+  font-size: var(--md-sys-typescale-label-large-size);
+  font-weight: var(--md-sys-typescale-label-large-weight);
+  line-height: 1.25;
+}
+.tile:focus-visible {
+  outline: 2px solid var(--md-sys-color-primary);
+  outline-offset: -2px;
+}
+
+/* The Shapes tool's choices: each shape drawn as itself. */
+.shapes {
+  display: grid;
+  grid-template-columns: repeat(6, 48px);
+  gap: 4px;
+}
+.shapeChoice {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  padding: 6px;
+  border: 0;
+  border-radius: var(--md-sys-shape-corner-medium);
+  background: transparent;
+  color: var(--md-sys-color-on-surface-variant);
+  transition: border-radius var(--md-sys-motion-spatial-fast-duration)
+    var(--md-sys-motion-spatial-fast-easing);
+}
+.shapeChoice[aria-checked="true"] {
+  border-radius: 50%;
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+.shapeChoice svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* A shape being placed: drawn as itself, in the colour of the box around it. */
+.placed[data-look="shape"] {
+  border-color: transparent;
+  background: transparent;
+  color: var(--md-sys-color-primary);
+}
+.shapePreview,
+.shapePreview svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Over selected text: what can be done with it. */
+.selectionBar {
+  position: fixed;
+  z-index: 7;
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  border-radius: var(--md-sys-shape-corner-full);
+  translate: -50% 0;
+}
+
+/* Edit text: the run under the pointer, and the edits made so far. */
+.editHover {
+  position: fixed;
+  border: 2px solid var(--md-sys-color-primary);
+  border-radius: var(--md-sys-shape-corner-extra-small);
+  pointer-events: none;
+}
+.editBox {
+  position: fixed;
+  display: flex;
+  align-items: center;
+  overflow: visible;
+  box-shadow: 0 0 0 2px var(--md-sys-color-primary);
+  white-space: pre;
+  pointer-events: none;
+}
+.editInput {
+  position: fixed;
+  box-sizing: border-box;
+  padding: 0 2px;
+  border: 0;
+  outline: 2px solid var(--md-sys-color-primary);
+  font-family: Helvetica, Arial, sans-serif;
+  line-height: 1;
 }

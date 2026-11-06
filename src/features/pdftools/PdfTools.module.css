@@ -17,8 +17,9 @@
 .list {
   display: flex;
   gap: 4px;
-  /* The sheet's height, less its header and bottom padding: its two sides scroll inside this. */
-  height: calc(100vh - var(--pw-pdf-top, 64px) - 22px - 64px - 24px);
+  /* The sheet's height, less its header, bottom padding and edge: its two sides scroll inside
+     this, and the sheet itself never does. */
+  height: calc(100vh - var(--pw-pdf-top, 64px) - 22px - 64px - 26px);
   margin-left: -20px;
 }
 /* The rail scrolls by itself when the window is too short for it, by wheel, touchpad or touch,
@@ -39,13 +40,12 @@
   min-width: 0;
   min-height: 0;
 }
-/* What's beside the rail scrolls by itself, under the search box. */
+/* What's beside the rail scrolls by itself, under the search box, with the app's own bar. */
 .browseScroll {
   flex: 1;
   min-height: 0;
   padding-bottom: 12px;
   overflow: hidden auto;
-  scrollbar-width: thin;
 }
 .group {
   display: flex;

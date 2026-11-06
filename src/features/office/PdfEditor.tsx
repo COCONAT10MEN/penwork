@@ -9,7 +9,9 @@ import { useSettings } from "../settings/settingsStore";
 import { askGoAhead, showError } from "../notices/notices";
 import { runTool } from "../pdftools/client";
 import type { Lock } from "../pdftools/types";
+import { DARK_PAGE } from "../pdftools/pageColors";
 import { unlockIfNeeded, usePdfTools } from "../pdftools/usePdfTools";
+import { useTextStyles } from "../pdftools/useTextStyles";
 import type { OfficeEditorProps } from "./officeFile";
 import { PdfSidebar } from "./PdfSidebar";
 import { PdfToolbar } from "./PdfToolbar";
@@ -23,8 +25,6 @@ import { useDockSeat } from "./useDockSeat";
 import { usePageLayout, useReader, type PageInk } from "./useReader";
 import styles from "./OfficeView.module.css";
 
-// What pdf.js paints a page with, so these are data for it and not app colours.
-const DARK_PAGE = { background: "#1b1b1f", foreground: "#e4e2e6" };
 // Each page's picture tops out here and zooming further draws only what's on screen. Lower than
 // pdf.js's own, because the laptop this is for has 8 GB shared with the graphics.
 const MAX_CANVAS_PIXELS = 2 ** 24;
@@ -59,6 +59,8 @@ export default function PdfEditor({
   const settings = useSettings((s) => s.settings);
   const { darkPages, pdfZoom, pdfTwoPages, pdfHideBar, pdfInk } = settings;
   const [parts, setParts] = useState<Loaded | null>(null);
+  // Bold, underline and the rest, shown over the pages until the file is written.
+  const textStyles = useTextStyles(parts?.viewer ?? null, darkPages, source);
   const [page, setPage] = useState(1);
   const [sidebar, setSidebar] = useState(false);
   const [query, setQuery] = useState("");
@@ -238,7 +240,7 @@ export default function PdfEditor({
   // The file as shown (with any form filled in), and then the ink on top as PDF ink.
   const asSaved = async () => {
     if (!parts) return null;
-    const shown = await parts.document.saveDocument();
+    const shown = await textStyles.bake(await parts.document.saveDocument());
     const pages: Record<number, PointStroke[]> = {};
     for (const [key, strokes] of Object.entries(reader.ink.current)) {
       const number = Number(key.slice(1));
@@ -321,6 +323,8 @@ export default function PdfEditor({
       setSource(next);
     },
     changed: () => changed.current(),
+    textStyles,
+    dark: darkPages,
     goTo,
     lock,
     setLock,

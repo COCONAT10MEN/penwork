@@ -199,3 +199,21 @@ body {
 :root .textLayer ::selection {
   background: color-mix(in srgb, var(--md-sys-color-primary) 38%, transparent);
 }
+
+/* Text styles not yet saved, over the page's picture and under its text (textStyleLayer.ts). */
+.pwTextStyles {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.pwTextStyles text {
+  white-space: pre;
+}
+/* Dragging selected words starts a new selection, as in other readers, instead of dragging the
+   words out of the page; a drag also never ended the selection bar's wait for the pointer. */
+#scroller .textLayer span {
+  -webkit-user-drag: none;
+}

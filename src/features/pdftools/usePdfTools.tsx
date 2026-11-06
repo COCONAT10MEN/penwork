@@ -7,20 +7,34 @@ import { notify, showError } from "../notices/notices";
 import { runTool } from "./client";
 import { deliver } from "./files";
 import type { Addition } from "../../lib/pdftools/draw";
-import { plainText } from "../../lib/pdftools/draw";
-import type { Mark } from "../../lib/pdftools/markup";
 import { EditTextLayer, type TextEdit } from "./EditTextLayer";
 import { OrganizeView } from "./OrganizeView";
-import { sampleColors } from "./pageColors";
-import { textPicture } from "./pdfRead";
-import { SelectionMarks, type TextStyle } from "./SelectionMarks";
+import { asPrinted, sampleColors } from "./pageColors";
+import { SelectionMarks } from "./SelectionMarks";
 import { pageBox, selectedPieces } from "./selectionBoxes";
 import { textThing } from "./toolsEdit";
 import { askPassword } from "./passwordAsk";
 import { PasswordPrompt } from "./PasswordPrompt";
 import { PlaceLayer } from "./PlaceLayer";
 import { ToolsSheet } from "./ToolsSheet";
+import type { Face, Picked, TextStyle } from "./textStyles";
+import type { useTextStyles } from "./useTextStyles";
 import type { Lock, PlacedArea, PlaceSpec, ToolHost } from "./types";
+
+const STYLE_ON: Record<TextStyle, string> = {
+  bold: "Made bold.",
+  italic: "Made italic.",
+  mono: "Made monospace.",
+  underline: "Underlined.",
+  strike: "Struck through.",
+};
+const STYLE_OFF: Record<TextStyle, string> = {
+  bold: "Bold taken off.",
+  italic: "Italic taken off.",
+  mono: "Monospace taken off.",
+  underline: "Underline taken off.",
+  strike: "Strikethrough taken off.",
+};
 
 /**
  * The PDF tools on the PDF screen: the ⋮ sheet, placing things on pages, organizing, and passwords.
@@ -38,6 +52,9 @@ export function usePdfTools(o: {
   /** Show these bytes instead (unsaved). */
   show: (bytes: Uint8Array) => void;
   changed: () => void;
+  textStyles: ReturnType<typeof useTextStyles>;
+  /** Dark pages are on: colours read off a page are turned back to the file's own. */
+  dark: boolean;
   goTo: (page: number) => void;
   lock: Lock | null;
   setLock: (lock: Lock | null) => void;
@@ -117,97 +134,38 @@ export function usePdfTools(o: {
         }
       : null;
 
-  const mark = async (marks: Mark[]) => {
-    if (!marks.length) return;
-    const kind = marks[0]?.kind;
-    try {
-      await replace(
-        await runTool("addMarks", [await current(), marks]),
-        kind === "underline" ? "Underlined." : "Struck through.",
-      );
-    } catch (e) {
-      showError(e instanceof Error ? e.message : String(e));
-    }
-  };
-
   /**
-   * Bold or italic for selected words: each run is painted over in the paper's colour and written
-   * again in the bold or italic face of its own kind of type, at its size, fitted to its old width
-   * so the rest of the line stays where it was.
+   * Bold, italic, monospace, underline or strike through for the selected words, shown at once
+   * over the page and written into the file on Save. Pressed again on the same words, it comes off.
    */
-  const restyle = (style: TextStyle) => {
+  const style = (kind: TextStyle) => {
     const doc = opts.current.frame?.contentDocument;
     const viewer = opts.current.viewer;
     if (!doc || !viewer) return;
     // Read now: the selection is cleared as soon as the bar's button is pressed.
-    const runs = selectedPieces(doc).map((piece) => {
+    const picked: Picked[] = [];
+    for (const piece of selectedPieces(doc)) {
+      const at = pageBox(viewer, piece.page, piece.rect);
+      if (!at) continue;
       const family = getComputedStyle(piece.span).fontFamily.toLowerCase();
-      return {
-        ...piece,
-        at: pageBox(viewer, piece.page, piece.rect),
-        colors: sampleColors(piece.page, piece.rect),
+      const colors = sampleColors(piece.page, piece.rect);
+      picked.push({
+        page: at.n,
+        box: at.box,
+        text: piece.text,
         font: (/mono|courier/.test(family)
           ? "mono"
           : /serif/.test(family) && !/sans/.test(family)
             ? "serif"
-            : "sans") as "sans" | "serif" | "mono",
-      };
-    });
-    void (async () => {
-      const things: Addition[] = [];
-      for (const r of runs) {
-        if (!r.at) continue;
-        const [x0, y0, x1, y1] = r.at.box;
-        const size = r.rect.height / r.at.scale;
-        things.push({
-          kind: "cover",
-          area: {
-            page: r.at.n,
-            x: x0 - 0.4,
-            y: y0 - 0.4,
-            width: x1 - x0 + 0.8,
-            height: y1 - y0 + 0.8,
-          },
-          color: r.colors.paper,
-        });
-        const area = { page: r.at.n, x: x0, y: y0, width: x1 - x0, height: size };
-        if (plainText(r.text))
-          things.push({
-            kind: "text",
-            area,
-            text: r.text,
-            size,
-            color: r.colors.ink,
-            font: r.font,
-            bold: style === "bold",
-            italic: style === "italic",
-            fit: x1 - x0,
-          });
-        else {
-          const pic = await textPicture(r.text, {
-            size,
-            color: r.colors.ink,
-            bold: style === "bold",
-            italic: style === "italic",
-          });
-          things.push({
-            kind: "image",
-            area: { ...area, height: y1 - y0 },
-            bytes: pic.bytes,
-            type: "png",
-          });
-        }
-      }
-      if (!things.length) return;
-      try {
-        await replace(
-          await runTool("addThings", [await current(), things]),
-          style === "bold" ? "Made bold." : "Made italic.",
-        );
-      } catch (e) {
-        showError(e instanceof Error ? e.message : String(e));
-      }
-    })();
+            : "sans") as Face,
+        paper: asPrinted(colors.paper, opts.current.dark),
+        ink: asPrinted(colors.ink, opts.current.dark),
+      });
+    }
+    if (!picked.length) return;
+    const { on, undo } = opts.current.textStyles.apply(picked, kind);
+    opts.current.changed();
+    notify(on ? STYLE_ON[kind] : STYLE_OFF[kind], "check_circle", [{ label: "Undo", run: undo }]);
   };
 
   const applyEdits = async (edits: TextEdit[]) => {
@@ -255,9 +213,7 @@ export function usePdfTools(o: {
       {o.frame && o.viewer && !editing && !placing && (
         <SelectionMarks
           frame={o.frame}
-          viewer={o.viewer}
-          onMark={(m) => void mark(m)}
-          onStyle={restyle}
+          onStyle={style}
         />
       )}
       {editing && o.frame && o.viewer && (

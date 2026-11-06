@@ -1,5 +1,5 @@
 import type { PDFViewer } from "pdfjs-dist/web/pdf_viewer.mjs";
-import type { Mark, MarkKind } from "../../lib/pdftools/markup";
+import type { MarkKind } from "../../lib/pdftools/markup";
 
 /** Paper colours for the marks, not the app's: they're printed on the page. */
 export const MARK_COLORS: Record<MarkKind, string> = {
@@ -79,15 +79,12 @@ export function pageBox(viewer: PDFViewer, page: HTMLElement, r: DOMRect) {
   };
 }
 
-/** The selection's lines as boxes in each page's own coordinates, one per line. */
-export function selectionMarks(doc: Document, viewer: PDFViewer, kind: MarkKind): Mark[] {
-  const byPage = new Map<number, [number, number, number, number][]>();
-  for (const piece of selectedPieces(doc)) {
-    const at = pageBox(viewer, piece.page, piece.rect);
-    if (!at) continue;
-    const box = at.box;
-    // Runs of one line join into one box.
-    const list = byPage.get(at.n) ?? [];
+export type Box = [number, number, number, number];
+
+/** Runs of one line joined into one box, so a line underlined is one stroke and not several. */
+export function mergeLines(boxes: Box[]): Box[] {
+  const list: Box[] = [];
+  for (const box of boxes) {
     const same = list.find(
       (b) =>
         Math.min(b[3], box[3]) - Math.max(b[1], box[1]) > 0.5 * (box[3] - box[1]) &&
@@ -99,8 +96,7 @@ export function selectionMarks(doc: Document, viewer: PDFViewer, kind: MarkKind)
       same[1] = Math.min(same[1], box[1]);
       same[2] = Math.max(same[2], box[2]);
       same[3] = Math.max(same[3], box[3]);
-    } else list.push(box);
-    byPage.set(at.n, list);
+    } else list.push([...box]);
   }
-  return [...byPage].map(([page, boxes]) => ({ page, kind, color: MARK_COLORS[kind], boxes }));
+  return list;
 }

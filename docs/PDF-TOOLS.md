@@ -8,12 +8,14 @@ downloading it and opening it.
 
 - The ⋮ at the end of the PDF's bar opens a glass sheet: the kinds of tools down its side (Pages, Edit, Shapes,
   Convert, OCR, Optimize, Security, More, and Settings at its foot), each kind's tools as tiles, and search across
-  all of them. The rail and what's beside it scroll each on their own.
+  all of them. The rail and what's beside it scroll each on their own; only the side with the tools shows a bar,
+  the app's own.
 - Settings there are the PDF's own (Dark pages, view, Annotation tools, the annotation toolbar), taking effect at
   once; a toolbar button switched off folds away as it does in a show.
 - Text selected on a page glows in the app's colour and gets a small bar just above it: Bold, Italic, Underline,
-  Strikethrough, Copy. Bold and italic redraw the words in the bold or italic face of their own kind of type,
-  fitted to their old width.
+  Strikethrough, Monospace, Copy. They show at once, with no reload, and toggle like any formatting bar (pressed
+  again on the same words, the style comes off; bold then italic is both). Pressed beside the words, a selection
+  starts at the nearest one, as in other readers.
 - The highlighter's own settings choose Freehand, Text (snaps to words, a rounded box per line) or Area (a rounded
   box with its own pointer).
 - "Annotation tools" off (Settings ▸ View) folds the pens out of the bar and stops drawing; ink stays.
@@ -60,6 +62,11 @@ A PDF that won't open offers Repair.
 - **Edit text** paints over the old words in the paper's most common colour around them and writes the new ones
   at the same size, in the same kind of type (sans, serif or mono) and ink colour. The old words stay in the file
   under the paint, so they can still be found by searching; Redact removes words for good.
+- **Text styles** (`textStyles.ts`) are kept beside the file while it's open and drawn over the pages
+  (`textStyleLayer.ts`, an SVG per page in the page's own units, so zooming needs nothing). They're written in
+  when the file is: on Save, or when a tool reads it. Bold, italic and monospace paint over the old words in the
+  paper's colour and write them again in the bold, italic or Courier face of their own kind of type, fitted to
+  their old width; underline and strike through are the PDF's own text-markup annotations.
 - **Highlight, underline and strikethrough** are the PDF's own text-markup annotations, with appearances, so any
   reader shows them and can remove them.
 - **Redact** turns the marked pages into pictures of themselves with the areas blacked out, so the text is gone

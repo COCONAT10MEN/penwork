@@ -51,3 +51,35 @@ export function sampleColors(page: HTMLElement, box: DOMRect): { paper: string; 
   }
   return { paper: hex(...paper), ink: hex(...ink) };
 }
+
+/** What pdf.js paints pages with when "Dark pages" is on: data for pdf.js, not app colours. */
+export const DARK_PAGE = { background: "#1b1b1f", foreground: "#e4e2e6" };
+
+const rgb = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) || 0);
+const FG = rgb(DARK_PAGE.foreground);
+const BG = rgb(DARK_PAGE.background);
+
+/**
+ * A page colour as it's shown. With dark pages pdf.js turns each colour's lightness into a blend
+ * from the light ink (for black) to the dark paper (for white), so the same is done here.
+ */
+export function asShown(color: string, dark: boolean): string {
+  if (!dark) return color;
+  const [r = 0, g = 0, b = 0] = rgb(color);
+  const light = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+  return hex(...(FG.map((f, i) => f + light * ((BG[i] ?? 0) - f)) as [number, number, number]));
+}
+
+/** The other way: a colour read off a dark page back to the grey it is in the file. */
+export function asPrinted(seen: string, dark: boolean): string {
+  if (!dark) return seen;
+  const s = rgb(seen);
+  let along = 0;
+  let length = 0;
+  FG.forEach((f, i) => {
+    along += ((s[i] ?? 0) - f) * ((BG[i] ?? 0) - f);
+    length += ((BG[i] ?? 0) - f) ** 2;
+  });
+  const grey = Math.max(0, Math.min(1, along / length)) * 255;
+  return hex(grey, grey, grey);
+}

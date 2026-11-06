@@ -151,7 +151,7 @@ export function ToolsSheet({
                   material="tonal"
                 />
                 {/* Each side scrolls on its own: the rail, and what's beside it. */}
-                <div className={styles.browseScroll}>
+                <div className={styles.browseScroll} data-scroll>
                   {query.trim() ? (
                     found.length ? (
                       <ToolGrid tools={found} onPick={(t) => void choose(t)} />

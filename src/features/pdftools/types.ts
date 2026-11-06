@@ -24,6 +24,8 @@ export interface ToolHost {
   markText(kind: MarkKind): void;
   /** Click words on the pages to change them. */
   editText(): void;
+  /** The annotation toolbar's settings changed in the sheet: this PDF's toolbar takes them now. */
+  toolbarChanged(settings: Record<string, unknown>): void;
 }
 
 export interface Lock {

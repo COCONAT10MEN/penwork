@@ -113,6 +113,12 @@ export function usePdfTools(o: {
             setOpen(false);
             setEditing(true);
           },
+          // The same message the toolbar gets with its saved settings when the PDF opens.
+          toolbarChanged: (settings) =>
+            o.frame?.contentWindow?.postMessage(
+              { v: 1, type: "toolbar", payload: settings },
+              location.origin,
+            ),
         }
       : null;
 

@@ -1,4 +1,5 @@
-import { useState, type ReactNode } from "react";
+import { useContext, useState, type ReactNode } from "react";
+import { FlatSections } from "./settingsContexts";
 import { Button, ButtonGroup, ColorPicker, Dialog, Shape, Surface } from "../../ui";
 import styles from "./Settings.module.css";
 
@@ -11,6 +12,14 @@ export function Section({
   hint?: string;
   children: ReactNode;
 }) {
+  if (useContext(FlatSections))
+    return (
+      <section className={styles.flat}>
+        <h2 className={styles.title}>{title}</h2>
+        {hint && <p className={styles.hint}>{hint}</p>}
+        {children}
+      </section>
+    );
   return (
     <Surface material="glass" blur={false} className={styles.section}>
       <h2 className={styles.title}>{title}</h2>

@@ -12,6 +12,7 @@ import {
 import { notify } from "../notices/notices";
 import type { Change } from "./compare";
 import { ToolFields } from "./ToolFields";
+import { PdfSettingsPane } from "./PdfSettingsPane";
 import { ToolGrid } from "./ToolGrid";
 import { ALL_TOOLS } from "./registry";
 import { GROUPS, type GroupId, type Tool, type ToolHost, type Values } from "./types";
@@ -33,7 +34,7 @@ export function ToolsSheet({
 }) {
   const [query, setQuery] = useState("");
   // Kept between openings: the tab used last is where the next look starts.
-  const [tab, setTab] = useState<GroupId>("pages");
+  const [tab, setTab] = useState<GroupId | "settings">("pages");
   const [tool, setTool] = useState<Tool | null>(null);
   const [values, setValues] = useState<Values>({});
   const [running, setRunning] = useState<[number, number] | null>(null);
@@ -133,8 +134,9 @@ export function ToolsSheet({
                 value={query.trim() ? "" : tab}
                 onChange={(id) => {
                   setQuery("");
-                  setTab(id as GroupId);
+                  setTab(id as GroupId | "settings");
                 }}
+                footerItems={[{ id: "settings", label: "Settings", icon: "settings" }]}
               />
               <div className={styles.browseMain}>
                 <SearchBar
@@ -152,10 +154,14 @@ export function ToolsSheet({
                   )
                 ) : (
                   <FadeThrough id={tab}>
-                    <ToolGrid
-                      tools={found.filter((t) => t.group === tab)}
-                      onPick={(t) => void choose(t)}
-                    />
+                    {tab === "settings" ? (
+                      host && <PdfSettingsPane toToolbar={host.toolbarChanged} />
+                    ) : (
+                      <ToolGrid
+                        tools={found.filter((t) => t.group === tab)}
+                        onPick={(t) => void choose(t)}
+                      />
+                    )}
                   </FadeThrough>
                 )}
               </div>

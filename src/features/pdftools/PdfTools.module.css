@@ -20,8 +20,13 @@
   margin-left: -20px;
   padding-bottom: 12px;
 }
+/* The rail keeps its own height and stays put while a long page (Settings) scrolls beside it,
+   so its last item is always in sight. */
 .list > nav[class] {
+  position: sticky;
+  top: 0;
   flex: none;
+  align-self: flex-start;
   height: auto;
   padding-top: 0;
   background: transparent;
@@ -498,4 +503,12 @@
   outline: 2px solid var(--md-sys-color-primary);
   font-family: Helvetica, Arial, sans-serif;
   line-height: 1;
+}
+
+/* The PDF's settings in the ⋮ sheet: one column. */
+.settingsPane {
+  padding-top: 8px;
+}
+.settingsPane > div {
+  columns: 1;
 }

@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { IconButton, Switch } from "../../ui";
 import { loadToolbar, saveToolbar } from "../deck/toolbarFile";
 import { Choice, Section } from "./parts";
+import { ToolbarLive } from "./settingsContexts";
 import styles from "./Settings.module.css";
 
 /**
@@ -40,6 +41,7 @@ const DEFAULT_ORDER = Object.keys(BUTTONS);
 /** On the PDF tab only what a PDF's toolbar has; on the Presentations tab every button. */
 export function ToolbarSettings({ kind }: { kind: "pdf" | "deck" }) {
   const [file, setFile] = useState<Record<string, unknown> | null>(null);
+  const live = useContext(ToolbarLive);
   useEffect(() => {
     void loadToolbar().then((t) => setFile(t ?? {}));
   }, []);
@@ -49,6 +51,7 @@ export function ToolbarSettings({ kind }: { kind: "pdf" | "deck" }) {
     const next = { v: 1, ...file, ui: { ...ui, ...patch } };
     setFile(next);
     saveToolbar(next);
+    live?.(next);
   };
   const order = [...(ui.order ?? []), ...DEFAULT_ORDER].filter(
     (id, i, all) => BUTTONS[id] && all.indexOf(id) === i,

@@ -125,7 +125,8 @@ const OPS = {
   crop,
   readDetails,
   writeDetails,
-  addThings: (bytes: Uint8Array, things: Addition[]) => addThings(bytes, things),
+  addThings: (bytes: Uint8Array, things: Addition[], fonts?: Record<string, Uint8Array>) =>
+    addThings(bytes, things, fonts),
   redactPages,
   addMarks,
   addOcrText,

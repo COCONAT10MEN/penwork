@@ -11,10 +11,10 @@ import { runTool } from "../pdftools/client";
 import type { Lock } from "../pdftools/types";
 import { DARK_PAGE } from "../pdftools/pageColors";
 import { unlockIfNeeded, usePdfTools } from "../pdftools/usePdfTools";
-import { useTextStyles } from "../pdftools/useTextStyles";
+import { usePageEdits } from "../pdftools/usePageEdits";
 import { useEditHistory } from "../pdftools/useEditHistory";
 import { usePdfSearch } from "../pdftools/usePdfSearch";
-import { NO_STYLES, type TextStyles } from "../pdftools/textStyles";
+import { NO_EDITS, type PageEdits } from "../pdftools/pageEdits";
 import type { OfficeEditorProps } from "./officeFile";
 import { PdfSidebar } from "./PdfSidebar";
 import { PdfToolbar } from "./PdfToolbar";
@@ -65,8 +65,8 @@ export default function PdfEditor({
   const updateSettings = useSettings((s) => s.update);
   const { darkPages, pdfZoom, pdfTwoPages, pdfHideBar, pdfInk } = settings;
   const [parts, setParts] = useState<Loaded | null>(null);
-  // Bold, underline and the rest, shown over the pages until the file is written.
-  const textStyles = useTextStyles(parts?.viewer ?? null, darkPages, source);
+  // Edits shown over the pages until the file is written: styled words, added text and the rest.
+  const pageEdits = usePageEdits(parts?.viewer ?? null, darkPages, source);
   const [page, setPage] = useState(1);
   const pageNow = useRef(page);
   useEffect(() => {
@@ -198,7 +198,12 @@ export default function PdfEditor({
       });
 
       // pdf.js shows the file without Penwork's own ink: the engine draws that, and can change it.
-      const task = pdfjs.getDocument({ ...PDF_ASSETS, data: taken.clean.slice() });
+      // fontExtraProperties keeps each font's file, so an edit can read which font words are set in.
+      const task = pdfjs.getDocument({
+        ...PDF_ASSETS,
+        data: taken.clean.slice(),
+        fontExtraProperties: true,
+      });
       opened = task;
       const document = await task.promise;
       if (quit.signal.aborted) return;
@@ -250,12 +255,12 @@ export default function PdfEditor({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [source, box, darkPages, pdfTwoPages]);
 
-  // The file as shown (with any form filled in), with its text styles (unless left out), and then
-  // the ink on top as PDF ink.
-  const asSaved = async (withStyles = true) => {
+  // The file as shown (with any form filled in), with the edits not in it yet (unless left out), and
+  // then the ink on top as PDF ink.
+  const asSaved = async (withEdits = true) => {
     if (!parts) return null;
     const form = await parts.document.saveDocument();
-    const shown = withStyles ? await textStyles.bake(form) : form;
+    const shown = withEdits ? await pageEdits.bake(form) : form;
     const pages: Record<number, PointStroke[]> = {};
     for (const [key, strokes] of Object.entries(reader.ink.current)) {
       const number = Number(key.slice(1));
@@ -318,16 +323,16 @@ export default function PdfEditor({
     frame,
     page,
     current: asSaved,
-    show: (next: Uint8Array, styles: TextStyles = NO_STYLES) =>
+    show: (next: Uint8Array, edits: PageEdits = NO_EDITS) =>
       new Promise<void>((done) => {
         keepPage.current = pageNow.current;
-        textStyles.restoreWith(next, styles);
+        pageEdits.restoreWith(next, edits);
         whenOpen.current?.();
         whenOpen.current = done;
         setSource(next);
       }),
     changed: () => changed.current(),
-    textStyles,
+    edits: pageEdits,
     history,
     editing: pdfInk,
     turnOnEditing: () => updateSettings({ pdfInk: true }),

@@ -6,6 +6,7 @@ import {
   type PDFDocument,
   type PDFFont,
 } from "pdf-lib";
+import fontkit from "@pdf-lib/fontkit";
 import { arrowHeads, SHAPES } from "./shapes";
 import { isolate, hexColor, seen } from "./stamp";
 import { load, save } from "./pages";
@@ -36,6 +37,15 @@ export type Addition =
       italic?: boolean;
       /** Squeezed or stretched to exactly this width: restyled words keep their place on the line. */
       fit?: number;
+      /**
+       * The font the words were set in, installed on this PC: its name on Windows' list (a key into
+       * the fonts handed to addThings) and its CSS family, for drawing it on screen until it's saved.
+       */
+      face?: { css: string; installed?: string };
+      /** Where the old words' baseline was, so new words sit exactly on it (one line, unturned). */
+      baseline?: number;
+      /** The old words and their width: new ones get the same spacing between letters. */
+      track?: { text: string; width: number };
     }
   | {
       kind: "shape";
@@ -113,12 +123,41 @@ export function plainText(text: string): boolean {
   return /^[\x20-\x7e\xa0-\xff\n]*$/.test(text);
 }
 
-export async function addThings(bytes: Uint8Array, things: Addition[]): Promise<Uint8Array> {
+/**
+ * `installed` holds the files of installed fonts that text uses, by their name on Windows' list.
+ * Each goes in once, with only the letters used; one that won't load falls back to the built-in.
+ */
+export async function addThings(
+  bytes: Uint8Array,
+  things: Addition[],
+  installed: Record<string, Uint8Array> = {},
+): Promise<Uint8Array> {
   const doc = await load(bytes);
   const font = await doc.embedFont(StandardFonts.Helvetica);
   const fonts = new Map<string, PDFFont>();
-  const fontFor = (t: { font?: string; bold?: boolean; italic?: boolean }) =>
-    fontOf(doc, fonts, t.font ?? "sans", !!t.bold, !!t.italic);
+  if (Object.keys(installed).length) doc.registerFontkit(fontkit);
+  const fontFor = async (t: {
+    font?: string;
+    bold?: boolean;
+    italic?: boolean;
+    face?: { installed?: string };
+  }) => {
+    const name = t.face?.installed;
+    const file = name ? installed[name] : undefined;
+    if (name && file) {
+      const key = `installed:${name}`;
+      const known = fonts.get(key);
+      if (known) return known;
+      try {
+        const embedded = await doc.embedFont(file, { subset: true });
+        fonts.set(key, embedded);
+        return embedded;
+      } catch {
+        // Not a font pdf-lib can carry: the built-in of its kind instead.
+      }
+    }
+    return fontOf(doc, fonts, t.font ?? "sans", !!t.bold, !!t.italic);
+  };
   const pages = doc.getPages();
   const isolated = new Set<number>();
   let fieldCount = 0;
@@ -137,8 +176,10 @@ export async function addThings(bytes: Uint8Array, things: Addition[]): Promise<
       // The first line's baseline, at the top of the box as the page is seen.
       for (const [i, line] of lines.entries()) {
         const down = t.size * 0.8 + i * lineH;
-        const [px, py] =
-          turn === 90
+        const exact = t.baseline !== undefined && turn === 0 && lines.length === 1;
+        const [px, py] = exact
+          ? [x, t.baseline as number]
+          : turn === 90
             ? [x + down, y]
             : turn === 180
               ? [x + width, y + down]
@@ -147,9 +188,13 @@ export async function addThings(bytes: Uint8Array, things: Addition[]): Promise<
                 : [x, y + height - down];
         const face = await fontFor(t);
         // Tz stretches the letters' spacing; it stays set until put back, so it's put back after.
+        // To a width, or with the old words' spacing between letters.
+        const natural = face.widthOfTextAtSize(line, t.size);
         const squeeze = t.fit
-          ? (t.fit / Math.max(1, face.widthOfTextAtSize(line, t.size))) * 100
-          : 0;
+          ? (t.fit / Math.max(1, natural)) * 100
+          : t.track
+            ? (t.track.width / Math.max(1, face.widthOfTextAtSize(t.track.text, t.size))) * 100
+            : 0;
         if (squeeze) page.pushOperators(setCharacterSqueeze(+squeeze.toFixed(2)));
         page.drawText(line, {
           x: px,

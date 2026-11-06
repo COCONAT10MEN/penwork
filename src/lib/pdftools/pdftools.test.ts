@@ -271,11 +271,7 @@ describe("shapes, text marks and covers", () => {
       .getPage(0)
       .node.Annots()
       ?.asArray()
-      .map((a) =>
-        String(
-          doc.context.lookup(a, PDFDict).get(PDFName.of("Subtype")),
-        ),
-      );
+      .map((a) => String(doc.context.lookup(a, PDFDict).get(PDFName.of("Subtype"))));
     expect(kinds).toEqual(["/Highlight", "/Underline", "/StrikeOut"]);
   });
 });

@@ -115,6 +115,22 @@ export function numberText(format: NumberOptions["format"], n: number, total: nu
         : `Page ${n} of ${total}`;
 }
 
+/** Where a page number's baseline starts, on the page as seen, for text this wide. */
+export function numberSpot(
+  view: { width: number; height: number },
+  o: Pick<NumberOptions, "corner" | "margin" | "size">,
+  textWidth: number,
+) {
+  const u =
+    o.corner[1] === "l"
+      ? o.margin
+      : o.corner[1] === "r"
+        ? view.width - o.margin - textWidth
+        : (view.width - textWidth) / 2;
+  const v = o.corner[0] === "b" ? o.margin : view.height - o.margin - o.size * 0.72;
+  return { u, v };
+}
+
 export async function addPageNumbers(bytes: Uint8Array, o: NumberOptions): Promise<Uint8Array> {
   const doc = await load(bytes);
   const font = await doc.embedFont(StandardFonts.Helvetica);
@@ -123,12 +139,8 @@ export async function addPageNumbers(bytes: Uint8Array, o: NumberOptions): Promi
   o.pages.forEach((n, i) => {
     const page = all[n - 1];
     if (!page) return;
-    const { width, height } = seen(page);
     const text = numberText(o.format, o.start + i, total);
-    const w = font.widthOfTextAtSize(text, o.size);
-    const u =
-      o.corner[1] === "l" ? o.margin : o.corner[1] === "r" ? width - o.margin - w : (width - w) / 2;
-    const v = o.corner[0] === "b" ? o.margin : height - o.margin - o.size * 0.72;
+    const { u, v } = numberSpot(seen(page), o, font.widthOfTextAtSize(text, o.size));
     isolate(doc, page);
     marked(doc, page, "PageNumber", () =>
       seenText(page, text, u, v, { font, size: o.size, color: o.color, opacity: 1 }),
@@ -149,6 +161,48 @@ export interface WatermarkOptions {
   place: "center" | Corner;
 }
 
+/**
+ * A watermark's size and place on the page as seen: its width and height before it's turned, the
+ * text size, and where its bottom-left corner ends up once it's turned around its middle. Measured
+ * by the text's width at size 1 in its font, or by a picture's width over its height.
+ */
+export function watermarkSpot(
+  view: { width: number; height: number },
+  o: Pick<WatermarkOptions, "scale" | "angle" | "place">,
+  measure: { widthAt1?: number; aspect?: number },
+) {
+  const a = (o.angle * Math.PI) / 180;
+  let w: number;
+  let h: number;
+  let size = 0;
+  if (measure.aspect) {
+    w = view.width * o.scale;
+    h = w / measure.aspect;
+  } else {
+    size = Math.max(6, (view.width * o.scale) / Math.max(1, measure.widthAt1 ?? 1));
+    w = (measure.widthAt1 ?? 0) * size;
+    h = size * 0.72;
+  }
+  const pad = 36;
+  const cx =
+    o.place === "center"
+      ? view.width / 2
+      : o.place[1] === "l"
+        ? pad + w / 2
+        : o.place[1] === "r"
+          ? view.width - pad - w / 2
+          : view.width / 2;
+  const cy =
+    o.place === "center"
+      ? view.height / 2
+      : o.place[0] === "b"
+        ? pad + h / 2
+        : view.height - pad - h / 2;
+  const u = cx - Math.cos(a) * (w / 2) + Math.sin(a) * (h / 2);
+  const v = cy - Math.sin(a) * (w / 2) - Math.cos(a) * (h / 2);
+  return { w, h, size, u, v };
+}
+
 export async function addWatermark(bytes: Uint8Array, o: WatermarkOptions): Promise<Uint8Array> {
   const doc = await load(bytes);
   const font = await doc.embedFont(StandardFonts.HelveticaBold);
@@ -163,38 +217,13 @@ export async function addWatermark(bytes: Uint8Array, o: WatermarkOptions): Prom
     const page = all[n - 1];
     if (!page) continue;
     const view = seen(page);
-    const a = (o.angle * Math.PI) / 180;
-    // The stamp's own width and height before turning it.
-    let w: number;
-    let h: number;
-    let size = 0;
-    if (image) {
-      w = view.width * o.scale;
-      h = (w * image.height) / image.width;
-    } else {
-      const text = o.text ?? "";
-      size = Math.max(6, (view.width * o.scale) / Math.max(1, font.widthOfTextAtSize(text, 1)));
-      w = font.widthOfTextAtSize(text, size);
-      h = size * 0.72;
-    }
-    const pad = 36;
-    const cx =
-      o.place === "center"
-        ? view.width / 2
-        : o.place[1] === "l"
-          ? pad + w / 2
-          : o.place[1] === "r"
-            ? view.width - pad - w / 2
-            : view.width / 2;
-    const cy =
-      o.place === "center"
-        ? view.height / 2
-        : o.place[0] === "b"
-          ? pad + h / 2
-          : view.height - pad - h / 2;
-    // Turned around its middle: where its bottom-left corner ends up.
-    const u = cx - Math.cos(a) * (w / 2) + Math.sin(a) * (h / 2);
-    const v = cy - Math.sin(a) * (w / 2) - Math.cos(a) * (h / 2);
+    const { w, h, size, u, v } = watermarkSpot(
+      view,
+      o,
+      image
+        ? { aspect: image.width / image.height }
+        : { widthAt1: font.widthOfTextAtSize(o.text ?? "", 1) },
+    );
     isolate(doc, page);
     marked(doc, page, "Watermark", () => {
       if (image) {

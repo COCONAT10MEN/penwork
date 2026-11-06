@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-installed-font-file"
+description = "Enables the installed_font_file command without any pre-configured scope."
+commands.allow = ["installed_font_file"]
+
+[[permission]]
+identifier = "deny-installed-font-file"
+description = "Denies the installed_font_file command without any pre-configured scope."
+commands.deny = ["installed_font_file"]

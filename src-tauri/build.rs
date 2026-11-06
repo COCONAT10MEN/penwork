@@ -36,6 +36,8 @@ fn main() {
         "write_new_file",
         "make_folder",
         "print_to_pdf",
+        "installed_fonts",
+        "installed_font_file",
         "save_deck",
         "write_recovery",
         "list_recovery",

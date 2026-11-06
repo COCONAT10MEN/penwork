@@ -40,8 +40,20 @@ downloading it and opening it.
 
 ## How they work
 
-- **In place, unsaved.** Tools that change this PDF show the result at once, as a step in the PDF's undo history.
-  The file is written only on Save, like every edit (the version Save replaced is kept in `before-save`).
+- **Live, with no reload.** Edits to what's on the pages (styled words, Edit text, Add text, pictures, signatures,
+  shapes, watermarks, page numbers) are kept beside the file and drawn over the pages (`pageEdits.ts`,
+  `pageEditLayer.ts`), so they show the moment they're made; Undo and Redo are instant too. They're written in
+  on Save, or when a tool reads the file. Tools that change the file's structure still show their result as a
+  new file: page tools, Crop (page sizes), Redact (pages become pictures), Remove watermark (rewrites the
+  page), Form fields (the form), Optimize and Security. Every change is a step in the PDF's undo history.
+  The file is written only on Save (the version Save replaced is kept in `before-save`).
+- **The words' own font.** Edit text and the selection bar read which font words are set in from the PDF
+  itself (`runFont.ts`: pdf.js keeps each font's file, whose name table holds the original name) and find
+  the same font installed on Windows (`fontMatch.ts`, from the registry's list through a Rust command that
+  reads only fonts on that list). New words go on the old baseline, at the old size and colour, with the
+  old spacing between letters, drawn in that font on screen and embedded in the file (only the letters
+  used) on Save. A font that isn't installed, or a font collection (.ttc), falls back to the closest
+  built-in kind. Bold on words already bold in the file takes the bold off, as in Word.
 - **New files beside it.** Tools that make files (split, extract, convert) write them next to the PDF, never over
   another file ("name (2).pdf"), several at once into a new folder. The notice offers Open and Show in folder.
 - **Off the app's thread.** pdf-lib and qpdf run in a worker (`worker.ts`), so the window never stops responding;
@@ -73,9 +85,10 @@ A PDF that won't open offers Repair.
 - **Remove watermark** removes what the file marks as a watermark (watermark annotations, `/Artifact` sections of
   subtype Watermark, optional-content layers named watermark). Penwork's own watermarks are marked that way. A
   watermark drawn as plain page content can't be told apart from the page and stays; the notice says so.
-- **Edit text** paints over the old words in the paper's most common colour around them and writes the new ones
-  at the same size, in the same kind of type (sans, serif or mono) and ink colour. The old words stay in the file
-  under the paint, so they can still be found by searching; Redact removes words for good.
+- **Edit text** works as in Acrobat: click words and they open in place, in their own font, size and colour;
+  Enter keeps the change. It paints over the old words in the paper's most common colour around them and
+  writes the new ones in their font on their baseline. The old words stay in the file under the paint, so they
+  can still be found by searching; Redact removes words for good.
 - **Text styles** (`textStyles.ts`) are kept beside the file while it's open and drawn over the pages
   (`textStyleLayer.ts`, an SVG per page in the page's own units, so zooming needs nothing). They're written in
   when the file is: on Save, or when a tool reads it. Bold, italic and monospace paint over the old words in the

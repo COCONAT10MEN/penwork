@@ -1,11 +1,9 @@
 import { SHAPES } from "../../lib/pdftools/shapes";
-import { runTool } from "./client";
 import type { Tool } from "./types";
 
 /**
- * Shapes, from a box to a star. The Shapes tab shows each shape as a tile; picking one opens this
- * tool with it chosen. Marks on text (underline, strike through, bold, italic) are on the bar that
- * appears over selected text, and highlighting is the toolbar's highlighter.
+ * Shapes, from a box to a star. The Shapes tab shows how they're drawn and each shape as a tile;
+ * picking one starts drawing it. They show on the page at once and go into the file on Save.
  */
 export const SHAPE_TOOLS: Tool[] = [
   {
@@ -35,8 +33,7 @@ export const SHAPE_TOOLS: Tool[] = [
       });
       if (!areas?.length) return;
       const stroke = String(v.color);
-      const out = await runTool("addThings", [
-        await host.current(),
+      host.addLive(
         areas.map((area) => ({
           kind: "shape" as const,
           area,
@@ -47,9 +44,6 @@ export const SHAPE_TOOLS: Tool[] = [
           flipX: area.flipX,
           flipY: area.flipY,
         })),
-      ]);
-      await host.replace(
-        out,
         areas.length === 1 ? `${label} added.` : `${areas.length} shapes added.`,
       );
     },

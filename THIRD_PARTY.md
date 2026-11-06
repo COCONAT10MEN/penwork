@@ -32,6 +32,7 @@ Licenses below were checked against the installed packages (`package.json` / `LI
 | FortuneExcel (`@corbe30/fortune-excel`) | Corbe30 (Shashank Chauhan) and contributors | MIT | Reading and writing Excel files for FortuneSheet |
 | ExcelJS (`exceljs`) | Guyon Roche and contributors | MIT | Writing `.xlsx` files |
 | pdf-lib (`pdf-lib`) | Andrew Dillon and contributors | MIT | Writing ink into PDFs as real annotations; the PDF tools (pages, stamps, flatten, forms) |
+| fontkit for pdf-lib (`@pdf-lib/fontkit`) | Andrew Dillon, after Devon Govett's fontkit | MIT | Putting an installed font into a PDF, so edited text keeps the font it was set in |
 | qpdf, compiled to WebAssembly (`@neslinesli93/qpdf-wasm`) | Jay Berkenbilt and contributors (qpdf, Apache-2.0); WebAssembly build by Tommaso Pifferi (ISC) | Apache-2.0 / ISC | PDF passwords, repair and packing files smaller |
 | Tesseract.js (`tesseract.js`, `tesseract.js-core`) | Jerome Wu, Guillermo Webster and contributors; Tesseract by Google and contributors | Apache-2.0 | OCR, on this computer |
 | Tesseract language data (`@tesseract.js-data/eng`, `@tesseract.js-data/ara`) | Google (tessdata_best); packaged by Balearica | Apache-2.0 data, MIT package | English and Arabic for OCR |

@@ -23,7 +23,8 @@ const dataUrl = (bytes: Uint8Array, type: string) => {
   return `data:${type};base64,${btoa(s)}`;
 };
 
-async function addAll(host: ToolHost, things: Addition[], message: string) {
+/** Form fields become part of the file's form, so they're written in and the PDF opened again. */
+async function addFields(host: ToolHost, things: Addition[], message: string) {
   if (!things.length) return;
   await host.replace(await runTool("addThings", [await host.current(), things]), message);
 }
@@ -89,8 +90,7 @@ export const EDIT_TOOLS: Tool[] = [
       });
       const typed = (areas ?? []).filter((a) => a.text?.trim());
       const things = await Promise.all(typed.map((a) => textThing(a, a.text ?? "", size, color)));
-      await addAll(
-        host,
+      host.addLive(
         things,
         typed.length === 1 ? "Text added." : `${typed.length} pieces of text added.`,
       );
@@ -115,8 +115,7 @@ export const EDIT_TOOLS: Tool[] = [
         look: "picture",
         picture: dataUrl(pic.bytes, pic.type === "png" ? "image/png" : "image/jpeg"),
       });
-      await addAll(
-        host,
+      host.addLive(
         (areas ?? []).map((area) => ({ kind: "image", area, bytes: pic.bytes, type: pic.type })),
         "Picture added.",
       );
@@ -142,8 +141,7 @@ export const EDIT_TOOLS: Tool[] = [
         look: "picture",
         picture: dataUrl(sig.bytes, "image/png"),
       });
-      await addAll(
-        host,
+      host.addLive(
         (areas ?? []).map((area) => ({ kind: "image", area, bytes: sig.bytes, type: "png" })),
         "Signed.",
       );
@@ -234,20 +232,22 @@ export const EDIT_TOOLS: Tool[] = [
         };
         text = undefined;
       }
-      const out = await runTool("addWatermark", [
-        await host.current(),
+      host.addStamp(
         {
-          pages: pagesOf(host, v.pages),
-          text,
-          image,
-          scale: Number(v.scale),
-          opacity: Number(v.opacity),
-          angle: Number(v.angle),
-          color: String(v.color),
-          place: v.place as "center",
+          kind: "watermark",
+          o: {
+            pages: pagesOf(host, v.pages),
+            text,
+            image,
+            scale: Number(v.scale),
+            opacity: Number(v.opacity),
+            angle: Number(v.angle),
+            color: String(v.color),
+            place: v.place as "center",
+          },
         },
-      ]);
-      await host.replace(out, "Watermark added.");
+        "Watermark added.",
+      );
     },
   },
   {
@@ -306,19 +306,21 @@ export const EDIT_TOOLS: Tool[] = [
     action: "Add numbers",
     async run(host, v) {
       const corner = `${v.top ? "t" : "b"}${String(v.corner)[1]}` as "bc";
-      const out = await runTool("addPageNumbers", [
-        await host.current(),
+      host.addStamp(
         {
-          pages: pagesOf(host, v.pages),
-          corner,
-          format: v.format as "n",
-          start: Number(v.start),
-          size: Number(v.size),
-          margin: 28,
-          color: "#1b1b1f",
+          kind: "numbers",
+          o: {
+            pages: pagesOf(host, v.pages),
+            corner,
+            format: v.format as "n",
+            start: Number(v.start),
+            size: Number(v.size),
+            margin: 28,
+            color: "#1b1b1f",
+          },
         },
-      ]);
-      await host.replace(out, "Page numbers added.");
+        "Page numbers added.",
+      );
     },
   },
   {
@@ -401,7 +403,7 @@ export const EDIT_TOOLS: Tool[] = [
         look: "box",
         aspect: v.field === "check" ? 1 : undefined,
       });
-      await addAll(
+      await addFields(
         host,
         (areas ?? []).map((area) => ({ kind: "field", area, field: v.field as "text", name: "" })),
         "Fields added. They can be filled in now.",

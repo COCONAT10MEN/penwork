@@ -1,3 +1,5 @@
+import type { Addition } from "../../lib/pdftools/draw";
+import type { Stamp } from "./pageEdits";
 import type { PDFDocumentProxy } from "pdfjs-dist";
 import type { Area } from "../../lib/pdftools/draw";
 import type { Change } from "./compare";
@@ -12,6 +14,13 @@ export interface ToolHost {
   current(): Promise<Uint8Array>;
   /** Shows the changed file in place of this one, unsaved, with Undo on the notice. */
   replace(bytes: Uint8Array, message: string): Promise<void>;
+  /**
+   * Things drawn on pages (text, pictures, signatures, shapes): they show at once over the pages,
+   * with no reload, and go into the file on Save. A step in Undo.
+   */
+  addLive(things: Addition[], message: string): void;
+  /** A watermark or page numbers, the same way. */
+  addStamp(stamp: Stamp, message: string): void;
   goTo(page: number): void;
   /** A password the file will be saved with, or none. */
   lock: Lock | null;

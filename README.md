@@ -22,7 +22,7 @@ Penwork's Word, Excel and PDF screens are built on these free, open-source proje
 - [FortuneSheet](https://github.com/ruilisi/fortune-sheet) by Suzhou Ruilisi Technology Co., Ltd, MIT
 - [FortuneExcel](https://github.com/Corbe30/FortuneExcel) by Corbe30, MIT
 - [ExcelJS](https://github.com/exceljs/exceljs) by Guyon Roche, MIT
-- [pdf-lib](https://github.com/Hopding/pdf-lib) by Andrew Dillon, MIT
+- [pdf-lib](https://github.com/Hopding/pdf-lib) by Andrew Dillon, MIT, with [@pdf-lib/fontkit](https://github.com/Hopding/fontkit) (after fontkit by Devon Govett), MIT
 - [qpdf](https://github.com/qpdf/qpdf) by Jay Berkenbilt, Apache-2.0, as [qpdf-wasm](https://github.com/neslinesli93/qpdf-wasm) by Tommaso Pifferi, ISC
 - [Tesseract.js](https://github.com/naptha/tesseract.js) by Jerome Wu and Guillermo Webster, Apache-2.0, with Google's Tesseract and its language data
 - [docx](https://github.com/dolanmiu/docx) by Dolan Miu, MIT

@@ -2,6 +2,7 @@ mod accent;
 mod capture;
 pub mod deck;
 mod files;
+mod fonts;
 mod office;
 mod pdftools;
 mod window;
@@ -84,6 +85,8 @@ pub fn run() {
             pdftools::write_new_file,
             pdftools::make_folder,
             pdftools::print_to_pdf,
+            fonts::installed_fonts,
+            fonts::installed_font_file,
             session::open_deck,
             session::create_deck_session,
             session::add_deck_asset,

@@ -4,7 +4,7 @@ import { useReduceMotion, useSpring } from "../../theme/motion";
 import { IconButton, Surface } from "../../ui";
 import { marginSelect } from "./marginSelect";
 import { selectedPieces, selectionBounds } from "./selectionBoxes";
-import type { TextStyle } from "./textStyles";
+import type { TextStyle } from "./pageEdits";
 import styles from "./PdfTools.module.css";
 
 /**

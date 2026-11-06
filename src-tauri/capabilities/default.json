@@ -46,6 +46,8 @@
     "allow-write-new-file",
     "allow-make-folder",
     "allow-print-to-pdf",
+    "allow-installed-fonts",
+    "allow-installed-font-file",
     "allow-save-deck",
     "allow-write-recovery",
     "allow-list-recovery",

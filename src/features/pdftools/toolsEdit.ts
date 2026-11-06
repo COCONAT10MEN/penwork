@@ -261,7 +261,7 @@ export const EDIT_TOOLS: Tool[] = [
     async run(host) {
       const r = await runTool("removeWatermarks", [await host.current()]);
       if (!r.count)
-        return "No marked watermark was found. One drawn as part of the page can't be told apart from it.";
+        return "No marked watermarks found. Watermarks drawn into the page itself can't be removed this way.";
       await host.replace(
         r.bytes,
         `Removed ${r.count} ${r.count === 1 ? "watermark" : "watermark parts"}.`,

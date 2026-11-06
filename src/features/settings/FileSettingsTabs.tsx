@@ -84,7 +84,7 @@ export function FilesSavingTab() {
       </Section>
       <Section
         title="Previous versions"
-        hint="Word, Excel and PDF files. Some things in a file may not survive editing, so the version Save replaced can be kept."
+        hint="Word, Excel and PDF. Editing can drop parts of a file, so the replaced version can be kept."
       >
         <Switch
           label="Keep the old version on Save"
@@ -107,7 +107,7 @@ export function FilesSavingTab() {
       </Section>
       <Section
         title="Recovery"
-        hint="Unsaved work in a presentation is copied to a separate file, so a crash can't lose it."
+        hint="Unsaved presentation work is copied to a separate file in case of a crash."
       >
         <Choice
           label="Copy every"
@@ -221,7 +221,7 @@ export function PdfTab() {
         />
         <Switch
           label="Hide the top bar while reading"
-          description="It slides away as you scroll down and comes back as you scroll up, or when you point at the top of the window."
+          description="Slides away as you scroll down. Scroll up or point at the top to bring it back."
           checked={settings.pdfHideBar}
           onCheckedChange={(pdfHideBar) => update({ pdfHideBar })}
         />
@@ -232,7 +232,7 @@ export function PdfTab() {
         />
         <Switch
           label="Editing"
-          description="The pens and highlighter, shapes, the Edit tools, and styling selected text. Off is for reading only; what's already on the pages stays."
+          description="Pens, shapes, Edit tools and text styling. Off is read-only."
           checked={settings.pdfInk}
           onCheckedChange={(pdfInk) => update({ pdfInk })}
         />

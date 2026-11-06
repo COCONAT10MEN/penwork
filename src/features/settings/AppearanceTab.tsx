@@ -42,10 +42,7 @@ function LogoSection() {
   };
 
   return (
-    <Section
-      title="Logo"
-      hint="An .svg file: square, one colour, transparent, 200 KB or smaller. Text must be converted to shapes."
-    >
+    <Section title="Logo" hint="SVG, square, one colour, up to 200 KB. Text converted to shapes.">
       <div className={styles.logoRow}>
         <LogoTile size={72} svg={logo?.svg} label="Logo preview" />
         <div className={styles.actions}>
@@ -91,7 +88,7 @@ export function AppearanceTab() {
         />
         <Switch
           label="Dark pages"
-          description="The pages of Word, Excel and PDF files go dark too. When this is off they stay white, like paper."
+          description="Also darkens Word, Excel and PDF pages."
           checked={settings.darkPages}
           onCheckedChange={(darkPages) => update({ darkPages })}
         />
@@ -134,7 +131,7 @@ export function AppearanceTab() {
       <Section title="Background and size">
         <Switch
           label="Ambient colours"
-          description="The soft colours behind Home and your files. Off gives a plain background."
+          description="Soft colour behind Home and your files."
           checked={settings.ambient}
           onCheckedChange={(ambient) => update({ ambient })}
         />
@@ -150,10 +147,7 @@ export function AppearanceTab() {
           onChange={(uiScale) => update({ uiScale })}
         />
       </Section>
-      <Section
-        title="Transparency"
-        hint="Reduced uses solid surfaces, which is easier on older laptops."
-      >
+      <Section title="Transparency" hint="Reduced uses solid surfaces. Lighter on older laptops.">
         <Choice
           label="Glass"
           options={[

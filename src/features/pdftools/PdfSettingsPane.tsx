@@ -22,7 +22,7 @@ export function PdfSettingsPane({
           <Section title="Pages">
             <Switch
               label="Dark pages"
-              description="The pages go dark too. Off, they stay white, like paper."
+              description="Off keeps pages white."
               checked={settings.darkPages}
               onCheckedChange={(darkPages) => update({ darkPages })}
             />

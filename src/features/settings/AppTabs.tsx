@@ -18,7 +18,7 @@ export function AnimationsTab() {
       <Section title="Motion">
         <Switch
           label="Reduce motion"
-          description="When this is off, Penwork follows your Windows setting."
+          description="Off follows Windows."
           checked={settings.reduceMotion}
           onCheckedChange={(reduceMotion) => update({ reduceMotion })}
         />
@@ -37,7 +37,7 @@ export function AnimationsTab() {
       <Section title="Opening a file">
         <Switch
           label="Opening animation"
-          description="The tools appear one after another and the page rises into place."
+          description="Tools and pages animate in."
           checked={settings.openingAnimation}
           onCheckedChange={(openingAnimation) => update({ openingAnimation })}
         />
@@ -78,10 +78,7 @@ function ToolbarSection() {
   };
 
   return (
-    <Section
-      title="Slide toolbar"
-      hint="Its tools, colours and sizes are changed on the toolbar itself during a show. This moves them between computers."
-    >
+    <Section title="Slide toolbar" hint="Moves the toolbar's settings to another computer.">
       <div className={styles.buttons}>
         <Button variant="tonal" size="small" icon="upload" onClick={() => void importIt()}>
           Import
@@ -134,7 +131,7 @@ export function AiTab() {
     <div className={styles.columns}>
       <Section
         title="AI kit"
-        hint="What an AI needs to write a Penwork presentation: the guide, a packing tool, an example and a prompt."
+        hint="A guide, packing tool, example and prompt for writing a presentation with AI."
       >
         <Button variant="tonal" size="small" icon="download" onClick={() => void saveAiKit()}>
           Get the AI kit
@@ -250,7 +247,7 @@ export function AboutTab() {
       </Section>
       <Section
         title="Credits"
-        hint="Penwork is built on free, open-source work. Word uses docx-editor, spreadsheets use FortuneSheet, FortuneExcel and ExcelJS, and PDFs use PDF.js."
+        hint="Built on open-source software, including docx-editor, FortuneSheet, FortuneExcel, ExcelJS and PDF.js."
       >
         <Button
           variant="tonal"

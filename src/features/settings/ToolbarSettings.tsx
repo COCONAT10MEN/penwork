@@ -74,8 +74,8 @@ export function ToolbarSettings({ kind }: { kind: "pdf" | "deck" }) {
       title="Annotation toolbar"
       hint={
         kind === "pdf"
-          ? "Shared with presentations. Pen colours and sizes are set on the pens themselves."
-          : "Shared with PDFs. Pen colours and sizes are set on the pens themselves."
+          ? "Shared with presentations. Set pen colours and sizes on the pens."
+          : "Shared with PDFs. Set pen colours and sizes on the pens."
       }
     >
       <Choice

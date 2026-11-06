@@ -284,8 +284,7 @@
   pointer-events: auto;
   white-space: pre-wrap;
 }
-.placeBar,
-.organizeBar {
+.placeBar {
   position: absolute;
   bottom: 20px;
   left: 50%;
@@ -304,27 +303,63 @@
   font-weight: var(--md-sys-typescale-body-medium-weight-emphasized);
 }
 
-/* Organize: every page as a card, over the PDF. */
+/* Organize: the pages on a page of their own, over the app's background, with a bar like the
+   document's own at the top. */
 .organize {
+  position: fixed;
+  z-index: 50;
+  inset: 0;
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+}
+.organizeTop {
   position: absolute;
-  z-index: 5;
-  inset: var(--pw-pdf-top, 64px) 0 0 0;
-  overflow: auto;
+  z-index: 2;
+  top: 10px;
+  right: 10px;
+  left: 10px;
 }
 .organizeBar {
-  position: sticky;
-  top: 12px;
-  bottom: auto;
-  z-index: 1;
-  width: max-content;
-  margin: 12px auto 0;
-  translate: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 64px;
+  padding: 8px 12px 8px 10px;
+  box-sizing: border-box;
+  border-radius: var(--md-sys-shape-corner-full);
+}
+.organizeTitles {
+  min-width: 0;
+  margin-right: auto;
+}
+.organizeTitle {
+  margin: 0;
+  font-size: var(--md-sys-typescale-title-medium-size);
+  line-height: var(--md-sys-typescale-title-medium-line-height);
+  font-weight: var(--md-sys-typescale-title-medium-weight-emphasized);
+}
+.organizeStatus {
+  margin: 0;
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: var(--md-sys-typescale-body-small-size);
+  font-variant-numeric: tabular-nums;
+}
+.organizeActions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-right: 8px;
 }
 .grid {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(176px, 1fr));
+  align-content: start;
   gap: 16px;
-  padding: 24px 32px 96px;
+  padding: 96px 32px 48px;
+  overflow: hidden auto;
   touch-action: none;
 }
 .card {
@@ -671,4 +706,172 @@
   gap: 12px;
   padding: 4px 4px 16px;
   border-bottom: 1px solid var(--md-sys-color-outline-variant);
+}
+
+/* Picking pages by looking at them. */
+.pagePicker {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.pickerHead {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.pickerCount {
+  flex: 1;
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: var(--md-sys-typescale-label-large-size);
+  font-variant-numeric: tabular-nums;
+}
+.pickerGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  gap: 4px;
+  max-height: 300px;
+  padding: 4px;
+  overflow: hidden auto;
+  border-radius: var(--md-sys-shape-corner-large);
+  background: var(--md-sys-color-surface-container-lowest);
+}
+.pickerPage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 4px 6px;
+  border: 0;
+  border-radius: var(--md-sys-shape-corner-medium);
+  background: transparent;
+  color: var(--md-sys-color-on-surface);
+  font: inherit;
+}
+.pickerPage[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--md-sys-color-primary) 20%, transparent);
+  box-shadow: inset 0 0 0 2px var(--md-sys-color-primary);
+}
+.pickerNumber {
+  font-size: var(--md-sys-typescale-label-medium-size);
+  font-variant-numeric: tabular-nums;
+}
+.pickerCheck {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+}
+
+/* Split: a range a row, from and to with steps; what it makes, as chips. */
+.ranges {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.rangeRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.rangeName {
+  min-width: 48px;
+  font-size: var(--md-sys-typescale-label-large-size);
+}
+.rangeTo {
+  color: var(--md-sys-color-on-surface-variant);
+}
+.partChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.partChip {
+  padding: 4px 10px;
+  border-radius: var(--md-sys-shape-corner-small);
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+  font-size: var(--md-sys-typescale-label-medium-size);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Merge: a row a PDF, dragged by its handle or moved with the arrows. */
+.mergeList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.mergeRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 6px 6px 4px;
+  border-radius: var(--md-sys-shape-corner-large);
+  background: var(--md-sys-color-surface-container-lowest);
+  box-shadow: inset 0 0 0 1px var(--md-sys-color-outline-variant);
+}
+.mergeRow[data-this] {
+  box-shadow: inset 0 0 0 2px var(--md-sys-color-primary);
+}
+.dragHandle {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 40px;
+  color: var(--md-sys-color-on-surface-variant);
+  cursor: grab;
+  touch-action: none;
+}
+.dragHandle:active {
+  cursor: grabbing;
+}
+.mergeThumb {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+}
+.mergeText {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+.mergeName {
+  overflow: hidden;
+  font-size: var(--md-sys-typescale-body-medium-size);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mergeMeta {
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: var(--md-sys-typescale-label-medium-size);
+}
+.iconGap {
+  width: 40px;
+  flex: none;
+}
+/* Lists of pages and files take the panel's whole width, and a long name gives way, not the buttons. */
+.field > .pagePicker,
+.field > .mergeList,
+.field > .ranges,
+.field > .partChips {
+  align-self: stretch;
+  min-width: 0;
+}
+.mergeRow {
+  min-width: 0;
 }

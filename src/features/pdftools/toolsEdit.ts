@@ -298,7 +298,7 @@ export const EDIT_TOOLS: Tool[] = [
           { value: "page-n-of", label: "Page 1 of 9" },
         ],
       },
-      { key: "start", kind: "slider", label: "First number", min: 0, max: 999, step: 1 },
+      { key: "start", kind: "number", label: "First number", min: 0, max: 9999 },
       { key: "size", kind: "slider", label: "Size", min: 6, max: 24, step: 1 },
       { key: "pages", kind: "pages" },
     ],

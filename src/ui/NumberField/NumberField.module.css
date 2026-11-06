@@ -1,0 +1,42 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.label {
+  font-size: var(--md-sys-typescale-label-large-size);
+  line-height: var(--md-sys-typescale-label-large-line-height);
+  letter-spacing: var(--md-sys-typescale-label-large-tracking);
+  font-weight: var(--md-sys-typescale-label-large-weight);
+}
+
+/* The same filled field as TextField, with the steps either side of the number. */
+.field {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  width: max-content;
+  min-height: 44px;
+  padding: 0 2px;
+  border-radius: var(--md-sys-shape-corner-large);
+  background: var(--md-sys-color-surface-container-lowest);
+  box-shadow: inset 0 0 0 1px var(--md-sys-color-outline-variant);
+}
+.field:has(.input:focus) {
+  box-shadow: inset 0 0 0 2px var(--md-sys-color-primary);
+}
+
+.input {
+  width: 5ch;
+  min-height: 40px;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--md-sys-color-on-surface);
+  font-size: var(--md-sys-typescale-body-large-size);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}

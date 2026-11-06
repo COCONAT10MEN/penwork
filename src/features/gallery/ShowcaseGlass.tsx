@@ -14,6 +14,7 @@ import {
   SideSheet,
   SplitButton,
   Surface,
+  NumberField,
   TextField,
   ToolbarDivider,
 } from "../../ui";
@@ -129,8 +130,9 @@ export function ShowcaseFields() {
   const [saved, setSaved] = useState<string[]>([]);
   const [heading, setHeading] = useState("What it means");
   const [title, setTitle] = useState("A slide title that is far too long to fit on one line");
+  const [pages, setPages] = useState(3);
   return (
-    <Section title="Text field · Breadcrumb · Color picker">
+    <Section title="Text field · Number field · Breadcrumb · Color picker">
       <div className={styles.row}>
         <div className={`${styles.column} ${styles.fields}`}>
           <TextField label="Heading" value={heading} onChange={setHeading} />
@@ -150,6 +152,13 @@ export function ShowcaseFields() {
             supporting="Shown on the cover"
           />
           <TextField label="Disabled" value="Read only" onChange={() => {}} disabled />
+          <NumberField
+            label="Pages in each file"
+            min={1}
+            max={12}
+            value={pages}
+            onChange={setPages}
+          />
           <Breadcrumb
             label="Selection"
             items={[

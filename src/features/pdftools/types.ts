@@ -88,6 +88,12 @@ export type Field =
       step: number;
       format?: (v: number) => string;
     }
+  /** A whole number with − and +; max "pages" is this PDF's page count. */
+  | { key: string; kind: "number"; label: string; min: number; max: number | "pages" }
+  /** Split's own: how, and ranges picked with steppers. */
+  | { key: string; kind: "split" }
+  /** Merge's own: this PDF and the ones added, in order. */
+  | { key: string; kind: "merge" }
   | { key: string; kind: "switch"; label: string; description?: string }
   | { key: string; kind: "color"; label: string }
   | { key: string; kind: "files"; label: string; accept: "pdf" | "image"; multiple: boolean }

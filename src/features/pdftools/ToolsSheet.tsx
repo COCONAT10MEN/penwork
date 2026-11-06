@@ -155,14 +155,15 @@ export function ToolsSheet({
       onTab("shapes");
       return;
     }
-    setTool(t);
-    setChanges(null);
-    setError(null);
+    // Its starting values first, so its options are never drawn without them.
     const defaults = {
       ...(typeof t.defaults === "function" ? await t.defaults(host) : (t.defaults ?? {})),
       ...preset,
     };
     setValues(defaults);
+    setTool(t);
+    setChanges(null);
+    setError(null);
     if (t.instant) void run(t, defaults);
   };
 

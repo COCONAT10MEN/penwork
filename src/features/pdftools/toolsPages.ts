@@ -1,5 +1,6 @@
+import { splitParts, THIS_PDF, type MergeItem, type SplitValue } from "./pageToolValues";
 import { fileStem } from "../../lib/office";
-import { describePages, pageSet, splitGroups } from "../../lib/pdftools/ranges";
+import { describePages, pageSet } from "../../lib/pdftools/ranges";
 import { runTool } from "./client";
 import { deliver, pickFiles } from "./files";
 import { renderPage } from "./pdfRead";
@@ -76,31 +77,25 @@ export const PAGE_TOOLS: Tool[] = [
     group: "pages",
     blurb: "Add other PDFs' pages to this one",
     keywords: "combine join append",
-    fields: [
-      { key: "files", kind: "files", label: "PDFs to add", accept: "pdf", multiple: true },
-      {
-        key: "where",
-        kind: "choice",
-        label: "Put them",
-        options: [
-          { value: "end", label: "After this one" },
-          { value: "start", label: "Before it" },
-        ],
-      },
-    ],
-    defaults: { files: [], where: "end" },
+    fields: [{ key: "order", kind: "merge" }],
+    defaults: () => ({ order: [THIS_PDF] }),
     action: "Merge",
     async run(host, v, progress) {
-      const files = v.files as { bytes: Uint8Array; name: string }[];
-      if (!files.length) throw new Error("Pick the PDFs to add first.");
-      const out = await runTool(
-        "merge",
-        [await host.current(), files.map((f) => f.bytes), v.where as "end" | "start"],
-        progress,
-      );
+      const order = v.order as MergeItem[];
+      const at = order.findIndex((item) => !item.file);
+      const before = order.slice(0, at).flatMap((item) => (item.file ? [item.file] : []));
+      const after = order.slice(at + 1).flatMap((item) => (item.file ? [item.file] : []));
+      const added = [...before, ...after];
+      if (!added.length) throw new Error("Add the PDFs to merge first.");
+      // This PDF stays the base, so its bookmarks and form come along; the others go round it.
+      let out = await host.current();
+      if (before.length)
+        out = await runTool("merge", [out, before.map((f) => f.bytes), "start"], progress);
+      if (after.length)
+        out = await runTool("merge", [out, after.map((f) => f.bytes), "end"], progress);
       await host.replace(
         out,
-        `Added ${files.length === 1 ? `"${files[0]?.name ?? ""}"` : `${files.length} PDFs`}.`,
+        added.length === 1 ? `Merged "${added[0]?.name ?? ""}".` : `Merged ${added.length} PDFs.`,
       );
     },
   },
@@ -111,35 +106,28 @@ export const PAGE_TOOLS: Tool[] = [
     group: "pages",
     blurb: "Into one file per page, per few pages, or per range",
     keywords: "separate divide break",
-    fields: [
-      {
-        key: "how",
-        kind: "choice",
-        label: "Split",
-        options: [
-          { value: "every", label: "Every page" },
-          { value: "n", label: "Every few pages" },
-          { value: "ranges", label: "By ranges" },
-        ],
-      },
-      { key: "n", kind: "slider", label: "Pages in each file", min: 2, max: 50, step: 1 },
-      {
-        key: "ranges",
-        kind: "text",
-        label: "Ranges, one file each",
-        placeholder: "1-3, 4-10, 11-",
-      },
-    ],
-    defaults: { how: "every", n: 2, ranges: "" },
+    fields: [{ key: "split", kind: "split" }],
+    defaults: (host) => {
+      const count = host.doc.numPages;
+      const half = Math.max(1, Math.ceil(count / 2));
+      const split: SplitValue = {
+        how: "every",
+        n: Math.min(2, count),
+        ranges:
+          count > 1
+            ? [
+                [1, half],
+                [half + 1, count],
+              ]
+            : [[1, 1]],
+      };
+      return { split };
+    },
     action: "Split",
     async run(host, v, progress) {
       const source = sourceOf(host);
-      const count = host.doc.numPages;
-      const groups =
-        v.how === "ranges"
-          ? splitGroups({ ranges: String(v.ranges) }, count)
-          : splitGroups({ every: v.how === "every" ? 1 : Number(v.n) }, count);
-      if (!groups?.length) throw new Error(`Type ranges between 1 and ${count}, like "1-3, 4-10".`);
+      const groups = splitParts(v.split as SplitValue, host.doc.numPages);
+      if (!groups.length) throw new Error("Pick at least one range of pages.");
       const parts = await runTool("split", [await host.current(), groups], progress);
       const stem = stemOf(host);
       await deliver(
@@ -230,16 +218,8 @@ export const PAGE_TOOLS: Tool[] = [
     blurb: "Empty pages, for notes or to make a booklet even",
     keywords: "insert empty new page",
     fields: [
-      {
-        key: "after",
-        kind: "slider",
-        label: "After page",
-        min: 0,
-        max: 9999,
-        step: 1,
-        format: (n) => (n === 0 ? "At the start" : `${n}`),
-      },
-      { key: "count", kind: "slider", label: "How many", min: 1, max: 20, step: 1 },
+      { key: "after", kind: "number", label: "After page (0 for the start)", min: 0, max: "pages" },
+      { key: "count", kind: "number", label: "How many", min: 1, max: 100 },
     ],
     defaults: (host) => ({ after: host.page, count: 1 }),
     action: "Add",

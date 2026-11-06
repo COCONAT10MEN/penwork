@@ -1,14 +1,17 @@
 import { motion } from "motion/react";
 import type { PDFDocumentProxy } from "pdfjs-dist";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { PageOrder } from "../../lib/pdftools/pages";
-import { useSpring } from "../../theme/motion";
-import { Button, IconButton, Surface } from "../../ui";
+import { useReduceMotion, useSpring } from "../../theme/motion";
+import { AmbientBackground, Button, IconButton, Surface } from "../../ui";
+import { PageThumb } from "./PageThumb";
 import styles from "./PdfTools.module.css";
 
 /**
- * Organize: every page as a card. Pick some (click, Ctrl, Shift), drag them to a new place, turn,
- * copy or delete them, add blank pages. Nothing changes in the file until Done.
+ * Organize: the PDF's pages on a page of their own, over the app's background, as Acrobat's
+ * Organize Pages. Pick some (click, Ctrl, Shift), drag them to a new place, turn, copy or delete
+ * them, add blank pages. Nothing changes in the file until Done.
  */
 
 interface Card {
@@ -16,53 +19,6 @@ interface Card {
   /** Index in the PDF now, or null for a new blank page. */
   from: number | null;
   turn: number;
-}
-
-function Thumb({ doc, card }: { doc: PDFDocumentProxy; card: Card }) {
-  const canvas = useRef<HTMLCanvasElement>(null);
-  const [seen, setSeen] = useState(false);
-  useEffect(() => {
-    const el = canvas.current;
-    if (!el) return;
-    const watch = new IntersectionObserver(([e]) => e?.isIntersecting && setSeen(true), {
-      rootMargin: "300px",
-    });
-    watch.observe(el);
-    return () => watch.disconnect();
-  }, []);
-  useEffect(() => {
-    if (!seen || card.from === null || !canvas.current) return;
-    let task: { cancel: () => void } | null = null;
-    let gone = false;
-    void doc.getPage(card.from + 1).then((page) => {
-      if (gone || !canvas.current) return;
-      const base = page.getViewport({ scale: 1 });
-      const view = page.getViewport({
-        scale: (150 * devicePixelRatio) / Math.max(base.width, base.height),
-      });
-      canvas.current.width = view.width;
-      canvas.current.height = view.height;
-      const ctx = canvas.current.getContext("2d");
-      if (!ctx) return;
-      const render = page.render({ canvasContext: ctx, canvas: canvas.current, viewport: view });
-      task = render;
-      render.promise.catch(() => {});
-    });
-    return () => {
-      gone = true;
-      task?.cancel();
-    };
-  }, [seen, doc, card.from]);
-  return (
-    <span className={styles.thumbBox}>
-      <canvas
-        ref={canvas}
-        className={styles.thumb}
-        data-blank={card.from === null || undefined}
-        style={{ rotate: `${card.turn}deg` }}
-      />
-    </span>
-  );
 }
 
 export function OrganizeView({
@@ -89,9 +45,10 @@ export function OrganizeView({
   const grid = useRef<HTMLDivElement>(null);
   const press = useRef<{ key: number; x: number; y: number } | null>(null);
   const spring = useSpring("spatialDefault");
+  const fade = useSpring("effectsDefault");
+  const reduce = useReduceMotion();
 
   const chosen = cards.filter((c) => picked.has(c.key));
-  const targets = chosen.length ? chosen : [];
 
   const pick = (key: number, e: React.MouseEvent | React.PointerEvent) => {
     if (e.shiftKey && anchor !== null) {
@@ -114,7 +71,7 @@ export function OrganizeView({
       all.map((c) => (picked.has(c.key) ? { ...c, turn: (c.turn + by + 360) % 360 } : c)),
     );
   const remove = () => {
-    if (picked.size >= cards.length) return;
+    if (!picked.size || picked.size >= cards.length) return;
     setCards((all) => all.filter((c) => !picked.has(c.key)));
     setPicked(new Set());
   };
@@ -131,8 +88,10 @@ export function OrganizeView({
       ...all.slice(at),
     ]);
   };
+  const done = () =>
+    onDone(cards.map((c) => (c.from === null ? "blank" : { from: c.from, turn: c.turn })));
 
-  // Delete removes, Ctrl+A picks every page, Esc leaves without changes.
+  // Delete removes, Ctrl+A picks every page, Enter is Done, Esc leaves without changes.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Delete" || e.key === "Backspace") remove();
@@ -167,53 +126,75 @@ export function OrganizeView({
     setCards([...before, ...moving, ...after]);
   };
 
-  return (
-    <div className={styles.organize}>
-      <Surface material="glass" strength="thick" floating className={styles.organizeBar}>
-        <span className={styles.placeHint}>
-          {picked.size ? `${picked.size} picked` : "Pick pages, or drag them into order"}
-        </span>
-        <IconButton
-          icon="rotate_left"
-          label="Turn left"
-          disabled={!picked.size}
-          onClick={() => turn(-90)}
-        />
-        <IconButton
-          icon="rotate_right"
-          label="Turn right"
-          disabled={!picked.size}
-          onClick={() => turn(90)}
-        />
-        <IconButton icon="content_copy" label="Copy" disabled={!picked.size} onClick={copy} />
-        <IconButton icon="note_add" label="Add a blank page after" onClick={blank} />
-        <IconButton
-          icon="file_export"
-          label="Save the picked pages as a new PDF"
-          disabled={!targets.length || targets.some((c) => c.from === null)}
-          onClick={() => onExtract(targets.map((c) => (c.from ?? 0) + 1))}
-        />
-        <IconButton
-          icon="delete"
-          label="Delete"
-          disabled={!picked.size || picked.size >= cards.length}
-          onClick={remove}
-        />
-        <Button variant="tonal" size="small" onClick={() => onDone(null)}>
-          Cancel
-        </Button>
-        <Button
-          size="small"
-          onClick={() =>
-            onDone(cards.map((c) => (c.from === null ? "blank" : { from: c.from, turn: c.turn })))
-          }
-        >
-          Done
-        </Button>
-      </Surface>
-      <div
+  const count = cards.length;
+  return createPortal(
+    <motion.div
+      className={styles.organize}
+      role="dialog"
+      aria-label="Organize pages"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1, transition: fade }}
+      exit={{ opacity: 0, transition: fade }}
+    >
+      <AmbientBackground layout="edit" />
+      <motion.div
+        className={styles.organizeTop}
+        initial={reduce ? false : { y: -24, opacity: 0 }}
+        animate={{ y: 0, opacity: 1, transition: spring }}
+      >
+        <Surface material="glass" floating className={styles.organizeBar}>
+          <IconButton icon="close" label="Cancel" onClick={() => onDone(null)} />
+          <div className={styles.organizeTitles}>
+            <h2 className={styles.organizeTitle}>Organize pages</h2>
+            <p className={styles.organizeStatus}>
+              {chosen.length
+                ? `${chosen.length} of ${count} selected`
+                : `${count} ${count === 1 ? "page" : "pages"}`}
+            </p>
+          </div>
+          <div className={styles.organizeActions} role="toolbar" aria-label="Page actions">
+            <IconButton
+              icon="rotate_left"
+              label="Rotate left"
+              disabled={!picked.size}
+              onClick={() => turn(-90)}
+            />
+            <IconButton
+              icon="rotate_right"
+              label="Rotate right"
+              disabled={!picked.size}
+              onClick={() => turn(90)}
+            />
+            <IconButton
+              icon="content_copy"
+              label="Duplicate"
+              disabled={!picked.size}
+              onClick={copy}
+            />
+            <IconButton icon="note_add" label="Insert blank page" onClick={blank} />
+            <IconButton
+              icon="file_export"
+              label="Extract as new PDF"
+              disabled={!chosen.length || chosen.some((c) => c.from === null)}
+              onClick={() => onExtract(chosen.map((c) => (c.from ?? 0) + 1))}
+            />
+            <IconButton
+              icon="delete"
+              label="Delete"
+              disabled={!picked.size || picked.size >= cards.length}
+              onClick={remove}
+            />
+          </div>
+          <Button size="medium" icon="check" onClick={done}>
+            Done
+          </Button>
+        </Surface>
+      </motion.div>
+      <motion.div
         ref={grid}
         className={styles.grid}
+        initial={reduce ? false : { scale: 1.04, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1, transition: spring }}
         onPointerMove={(e) => {
           const p = press.current;
           if (!p) return;
@@ -256,11 +237,12 @@ export function OrganizeView({
               if (!picked.has(c.key) || e.ctrlKey || e.shiftKey) pick(c.key, e);
             }}
           >
-            <Thumb doc={doc} card={c} />
+            <PageThumb doc={doc} page={c.from === null ? null : c.from + 1} turn={c.turn} />
             <span className={styles.cardNumber}>{i + 1}</span>
           </motion.button>
         ))}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>,
+    document.body,
   );
 }

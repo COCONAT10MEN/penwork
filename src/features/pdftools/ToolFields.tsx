@@ -1,4 +1,16 @@
-import { Button, Chip, ColorSwatches, SegmentedButton, Slider, Switch, TextField } from "../../ui";
+import {
+  Button,
+  Chip,
+  ColorSwatches,
+  NumberField,
+  SegmentedButton,
+  Slider,
+  Switch,
+  TextField,
+} from "../../ui";
+import { PagePicker } from "./PagePicker";
+import { MergeField, SplitField } from "./PageToolFields";
+import { THIS_PDF, type MergeItem, type SplitValue } from "./pageToolValues";
 import { pickFiles, type Picked } from "./files";
 import { SHAPES, shapeSvg } from "../../lib/pdftools/shapes";
 import { SignaturePad } from "./SignaturePad";
@@ -117,6 +129,44 @@ export function ToolFields({
                 />
               );
             }
+            case "number": {
+              const max = f.max === "pages" ? host.doc.numPages : f.max;
+              return (
+                <NumberField
+                  key={f.key}
+                  label={f.label}
+                  min={f.min}
+                  max={max}
+                  value={Math.min(Number(value), max)}
+                  onChange={(v) => set(f.key, v)}
+                />
+              );
+            }
+            case "split":
+              return (
+                <SplitField
+                  key={f.key}
+                  count={host.doc.numPages}
+                  value={
+                    (value as SplitValue | undefined) ?? {
+                      how: "every",
+                      n: 2,
+                      ranges: [[1, host.doc.numPages]],
+                    }
+                  }
+                  onChange={(v) => set(f.key, v)}
+                />
+              );
+            case "merge":
+              return (
+                <MergeField
+                  key={f.key}
+                  here={host.doc}
+                  name={host.name}
+                  value={(value as MergeItem[] | undefined) ?? [THIS_PDF]}
+                  onChange={(v) => set(f.key, v)}
+                />
+              );
             case "switch":
               return (
                 <Switch
@@ -226,11 +276,9 @@ export function ToolFields({
                     onChange={(which) => set(f.key, { ...p, which })}
                   />
                   {p.which === "some" && (
-                    <TextField
-                      label="Pages"
-                      value={p.ranges}
-                      placeholder={`1-3, 5, 8-${host.doc.numPages}`}
-                      autoFocus
+                    <PagePicker
+                      doc={host.doc}
+                      ranges={p.ranges}
                       onChange={(ranges) => set(f.key, { ...p, ranges })}
                     />
                   )}

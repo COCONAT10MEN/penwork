@@ -82,6 +82,16 @@ A PDF that won't open offers Repair.
 
 ## How some of them are done
 
+- **Organize pages** opens on a page of its own over the app's background (above the PDF and its bar), with
+  a bar like the document's: Cancel, the title and how many pages are picked, Rotate, Duplicate, Insert blank
+  page, Extract, Delete, and Done.
+- **Merge** is a list in the order the pages will go, this PDF in it too: each with its first page, name and
+  page count, dragged by its handle or moved with the arrows. This PDF stays the base (its bookmarks and form
+  come along) and the others go before and after it.
+- **Split**: Single pages, Equal parts (a number with − and +) or Ranges (a row a file, from and to with − and
+  +, Add range), with the files it will make shown as chips.
+- **Pages** in any tool ("Some"): the pages as thumbnails to click (Shift+click for a run), All and None, and
+  the same pages typed as ranges if that's quicker; the two stay in step.
 - **Remove watermark** removes what the file marks as a watermark (watermark annotations, `/Artifact` sections of
   subtype Watermark, optional-content layers named watermark). Penwork's own watermarks are marked that way. A
   watermark drawn as plain page content can't be told apart from the page and stays; the notice says so.

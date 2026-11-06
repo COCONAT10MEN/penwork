@@ -1,5 +1,6 @@
 import type { PDFDocumentProxy } from "pdfjs-dist";
 import type { PDFViewer } from "pdfjs-dist/web/pdf_viewer.mjs";
+import { AnimatePresence } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { fileStem } from "../../lib/office";
 import { describePages } from "../../lib/pdftools/ranges";
@@ -302,34 +303,41 @@ export function usePdfTools(o: {
       {placing && o.frame && o.viewer && (
         <PlaceLayer frame={o.frame} viewer={o.viewer} spec={placing.spec} onDone={placing.done} />
       )}
-      {organizing && o.doc && (
-        <OrganizeView
-          doc={o.doc}
-          onDone={async (order) => {
-            setOrganizing(false);
-            if (!order) return;
-            try {
-              await replace(await runTool("arrange", [await current(), order]), "Pages organized.");
-            } catch (e) {
-              showError(e instanceof Error ? e.message : String(e));
-            }
-          }}
-          onExtract={async (pages) => {
-            try {
-              if (!o.path)
-                throw new Error("Save this PDF first, so there's a folder to put the new file in.");
-              const bytes = await runTool("copyOut", [await current(), pages]);
-              await deliver(
-                o.path,
-                [{ name: `${fileStem(o.path)} pages ${describePages(pages)}.pdf`, bytes }],
-                "",
-              );
-            } catch (e) {
-              showError(e instanceof Error ? e.message : String(e));
-            }
-          }}
-        />
-      )}
+      <AnimatePresence>
+        {organizing && o.doc && (
+          <OrganizeView
+            doc={o.doc}
+            onDone={async (order) => {
+              setOrganizing(false);
+              if (!order) return;
+              try {
+                await replace(
+                  await runTool("arrange", [await current(), order]),
+                  "Pages organized.",
+                );
+              } catch (e) {
+                showError(e instanceof Error ? e.message : String(e));
+              }
+            }}
+            onExtract={async (pages) => {
+              try {
+                if (!o.path)
+                  throw new Error(
+                    "Save this PDF first, so there's a folder to put the new file in.",
+                  );
+                const bytes = await runTool("copyOut", [await current(), pages]);
+                await deliver(
+                  o.path,
+                  [{ name: `${fileStem(o.path)} pages ${describePages(pages)}.pdf`, bytes }],
+                  "",
+                );
+              } catch (e) {
+                showError(e instanceof Error ? e.message : String(e));
+              }
+            }}
+          />
+        )}
+      </AnimatePresence>
       <PasswordPrompt />
     </>
   );

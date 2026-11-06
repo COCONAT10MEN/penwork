@@ -29,7 +29,7 @@ export function ShowcaseRail() {
   const material = useGalleryMaterial();
   const [page, setPage] = useState("library");
   return (
-    <Section title="Navigation rail (wide · icons · slim · slim dense)">
+    <Section title="Navigation rail (wide · icons · slim · slim with settings pinned)">
       <div className={styles.railBox}>
         <NavigationRail
           label="Main (wide example)"
@@ -59,11 +59,12 @@ export function ShowcaseRail() {
           onChange={setPage}
         />
         <NavigationRail
-          label="Main (slim, dense example)"
+          label="Main (slim, settings pinned example)"
           material={material}
           layout="stacked"
-          dense
+          pinFooter
           items={RAIL_ITEMS}
+          footerItems={[{ id: "settings", label: "Settings", icon: "settings" }]}
           value={page}
           onChange={setPage}
         />

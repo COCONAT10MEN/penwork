@@ -195,3 +195,29 @@
   padding-block: 2px;
   gap: 2px;
 }
+
+/* Pinned footer: the rail itself doesn't scroll; its main destinations do, above the footer, and
+   fade out where they pass under it. No bar takes width from the labels. */
+.pinned {
+  overflow: hidden;
+}
+.scroller {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  align-self: stretch;
+  min-height: 0;
+  padding-bottom: 24px;
+  overflow: hidden auto;
+  scrollbar-width: none;
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent);
+}
+.scroller::-webkit-scrollbar {
+  display: none;
+}
+.pinned .items.end {
+  flex: none;
+  margin-top: 0;
+  padding-top: 4px;
+}

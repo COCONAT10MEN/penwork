@@ -36,6 +36,11 @@ export interface NavigationRailProps {
   material?: SurfaceMaterial;
   /** Tighter rows, for a rail inside a panel with many destinations. Stacked only. */
   dense?: boolean;
+  /**
+   * The footer destinations stay put at the bottom however short the rail is; the others scroll
+   * above them and pass under, fading out as they go.
+   */
+  pinFooter?: boolean;
 }
 
 /** M3 Expressive navigation rail. The active destination gets a secondary-container pill. */
@@ -50,6 +55,7 @@ export function NavigationRail({
   footerItems = [],
   material = "tonal",
   dense = false,
+  pinFooter = false,
 }: NavigationRailProps) {
   const grow = useSpring("spatialDefault");
   const entry = (item: RailItem) => {
@@ -111,12 +117,19 @@ export function NavigationRail({
         styles.rail,
         styles[layout],
         dense && styles.dense,
+        pinFooter && styles.pinned,
         material === "tonal" ? styles.tonal : styles.glassRail,
         surfaceClass({ material }),
       )}
     >
       {header && <div className={styles.header}>{header}</div>}
-      <ul className={styles.items}>{items.map(entry)}</ul>
+      {pinFooter ? (
+        <div className={styles.scroller}>
+          <ul className={styles.items}>{items.map(entry)}</ul>
+        </div>
+      ) : (
+        <ul className={styles.items}>{items.map(entry)}</ul>
+      )}
       {footerItems.length > 0 && (
         <ul className={cx(styles.items, styles.end)}>{footerItems.map(entry)}</ul>
       )}

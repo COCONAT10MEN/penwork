@@ -22,14 +22,13 @@
   height: calc(100vh - var(--pw-pdf-top, 64px) - 22px - 64px - 26px);
   margin-left: -20px;
 }
-/* The rail scrolls by itself when the window is too short for it, by wheel, touchpad or touch,
-   with no bar of its own taking width from its labels. */
+/* The rail: its kinds of tools scroll by themselves when the window is too short for them, and
+   Settings stays pinned at its foot. */
 .list > nav[class] {
   flex: none;
   height: 100%;
-  padding-top: 0;
-  overflow: hidden auto;
-  scrollbar-width: none;
+  padding-top: 8px;
+  padding-bottom: 8px;
   background: transparent;
 }
 .browseMain {
@@ -584,10 +583,12 @@
 }
 
 /* Search: the field and its options stay at the top; results scroll under them. */
+/* Room around the field for its focus glow, which the scrolling area beside it would cut off. */
 .searchHead {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  padding: 14px 6px 4px;
 }
 .searchBar {
   display: flex;

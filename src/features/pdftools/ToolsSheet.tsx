@@ -195,7 +195,7 @@ export function ToolsSheet({
               <NavigationRail
                 label="Kinds of tools"
                 layout="stacked"
-                dense
+                pinFooter
                 items={[
                   { id: "search", label: "Search", icon: "search" },
                   ...GROUPS.map((g) => ({ id: g.id, label: g.title, icon: g.icon })),

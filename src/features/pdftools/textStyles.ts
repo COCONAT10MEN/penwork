@@ -72,13 +72,19 @@ export function applyStyle(
         styles: { ...s, lines: s.lines.filter((l) => !picked.some((p) => marked(p, l))) },
         on: false,
       };
-    const added = picked.filter((p) => !has(p)).map((p) => ({ page: p.page, box: p.box, kind: style }));
+    const added = picked
+      .filter((p) => !has(p))
+      .map((p) => ({ page: p.page, box: p.box, kind: style }));
     return { styles: { ...s, lines: [...s.lines, ...added] }, on: true };
   }
   // A run's look so far: the newest restyled run it sits in, or plain.
   const lookOf = (p: Picked) => {
     const under = [...s.words].reverse().find((w) => w.page === p.page && within(p.box, w.box));
-    return { bold: under?.bold ?? false, italic: under?.italic ?? false, mono: under?.mono ?? false };
+    return {
+      bold: under?.bold ?? false,
+      italic: under?.italic ?? false,
+      mono: under?.mono ?? false,
+    };
   };
   const on = !picked.every((p) => lookOf(p)[style]);
   let words = s.words;

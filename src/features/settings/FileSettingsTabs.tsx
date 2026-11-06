@@ -231,8 +231,8 @@ export function PdfTab() {
           onCheckedChange={(pdfTwoPages) => update({ pdfTwoPages })}
         />
         <Switch
-          label="Annotation tools"
-          description="The pens, highlighter, laser and eraser in the bar. Off is for reading only; ink already on the pages stays."
+          label="Editing"
+          description="The pens and highlighter, shapes, the Edit tools, and styling selected text. Off is for reading only; what's already on the pages stays."
           checked={settings.pdfInk}
           onCheckedChange={(pdfInk) => update({ pdfInk })}
         />

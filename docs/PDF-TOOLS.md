@@ -10,7 +10,7 @@ downloading it and opening it.
   Convert, OCR, Optimize, Security, More, and Settings at its foot), each kind's tools as tiles, and search across
   all of them. The rail and what's beside it scroll each on their own; only the side with the tools shows a bar,
   the app's own.
-- Settings there are the PDF's own (Dark pages, view, Annotation tools, the annotation toolbar), taking effect at
+- Settings there are the PDF's own (Dark pages, view, Editing, the annotation toolbar), taking effect at
   once; a toolbar button switched off folds away as it does in a show.
 - Text selected on a page glows in the app's colour and gets a small bar just above it: Bold, Italic, Underline,
   Strikethrough, Monospace, Copy. They show at once, with no reload, and toggle like any formatting bar (pressed
@@ -18,7 +18,14 @@ downloading it and opening it.
   starts at the nearest one, as in other readers.
 - The highlighter's own settings choose Freehand, Text (snaps to words, a rounded box per line) or Area (a rounded
   box with its own pointer).
-- "Annotation tools" off (Settings ▸ View) folds the pens out of the bar and stops drawing; ink stays.
+- **Editing** (Settings ▸ View) covers everything that changes what's on the pages: the pens, the Edit and Shapes
+  tools, and styling selected text. Off, the pens fold out of the bar, the Edit and Shapes tabs say editing is off
+  (with a button to turn it on), and the selection bar offers only Copy. What's on the pages stays. Pages,
+  Convert, OCR, Optimize, Security and More don't need it.
+- **One undo history.** The toolbar's Undo and Redo, Ctrl+Z and Ctrl+Y (on the page or in the app's bar), and Undo
+  on a notice all go through one history for the whole PDF, in the order things were done: ink, text styles, and
+  every tool that changes this PDF. The toolbar keeps it (`engine.js`); the app's steps go in by id
+  (`useEditHistory.ts`), and a tool's step keeps the file from before it and after it.
 - `src/features/pdftools/registry.ts` lists the entries. One entry is one more item; it doesn't have to be a tool.
 - A tool's options show in the same sheet; tools with nothing to choose run as soon as they're picked.
 - Word and spreadsheets: Save ▸ Save as PDF in their bar.
@@ -26,8 +33,8 @@ downloading it and opening it.
 
 ## How they work
 
-- **In place, unsaved.** Tools that change this PDF show the result at once, with Undo on the notice. The file is
-  written only on Save, like every edit (the version Save replaced is kept in `before-save`).
+- **In place, unsaved.** Tools that change this PDF show the result at once, as a step in the PDF's undo history.
+  The file is written only on Save, like every edit (the version Save replaced is kept in `before-save`).
 - **New files beside it.** Tools that make files (split, extract, convert) write them next to the PDF, never over
   another file ("name (2).pdf"), several at once into a new folder. The notice offers Open and Show in folder.
 - **Off the app's thread.** pdf-lib and qpdf run in a worker (`worker.ts`), so the window never stops responding;

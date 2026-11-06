@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Button,
+  Icon,
   IconButton,
   LinearProgress,
   SearchBar,
@@ -24,9 +25,14 @@ export function ToolsSheet({
   open,
   hidden,
   host,
+  editing,
+  onEditing,
   onClose,
 }: {
   open: boolean;
+  /** Settings ▸ Editing. Off, the Edit and Shapes tools are put away; the rest stay. */
+  editing: boolean;
+  onEditing: () => void;
   /** Out of the way while a tool has the person place things on the pages. */
   hidden: boolean;
   host: ToolHost | null;
@@ -95,6 +101,12 @@ export function ToolsSheet({
   /** `preset` starts some options chosen already: the shape picked on the Shapes tab. */
   const choose = async (t: Tool, preset: Values = {}) => {
     if (!host) return;
+    // Found by search while editing is off: its tab says so, with the way to turn it on.
+    if (!editing && EDITS.includes(t.group)) {
+      setQuery("");
+      setTab(t.group);
+      return;
+    }
     setTool(t);
     setChanges(null);
     setError(null);
@@ -160,7 +172,9 @@ export function ToolsSheet({
                     )
                   ) : (
                     <FadeThrough id={tab}>
-                      {tab === "settings" ? (
+                      {!editing && EDITS.includes(tab as GroupId) ? (
+                        <EditingOff onEditing={onEditing} />
+                      ) : tab === "settings" ? (
                         host && <PdfSettingsPane toToolbar={host.toolbarChanged} />
                       ) : tab === "shapes" ? (
                         <ShapeGrid
@@ -223,6 +237,25 @@ export function ToolsSheet({
           )}
         </SharedAxis>
       </SideSheet>
+    </div>
+  );
+}
+
+/** The kinds of tools that change what's on the pages, which need Settings ▸ Editing on. */
+const EDITS: GroupId[] = ["edit", "shapes"];
+
+function EditingOff({ onEditing }: { onEditing: () => void }) {
+  return (
+    <div className={styles.editingOff}>
+      <Icon name="edit_off" size={32} className={styles.editingOffIcon} />
+      <p className={styles.editingOffTitle}>Editing is off</p>
+      <p className={styles.note}>
+        These tools change what's on the pages, so they need editing on. It can also be turned on or
+        off in Settings, under View.
+      </p>
+      <Button size="medium" icon="edit" onClick={onEditing}>
+        Turn on editing
+      </Button>
     </div>
   );
 }

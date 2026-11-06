@@ -1,6 +1,7 @@
 import { PDFDocument, PDFName } from "pdf-lib";
 import { describe, expect, it } from "vitest";
 import type { PointStroke } from "../../lib/pdfInk";
+import { save } from "../../lib/pdftools/pages";
 import { putInk, takeInk } from "./pdfInkFile";
 
 async function blank(pages = 2): Promise<Uint8Array> {
@@ -110,5 +111,12 @@ describe("area and text highlights", () => {
       [50, 300, 250, 316],
       [50, 280, 180, 296],
     ]);
+  });
+
+  it("finds the ink in a file a tool saved with compressed object streams", async () => {
+    const inked = await PDFDocument.load(await putInk(await blank(), { 1: [pen] }));
+    const packed = await save(inked);
+    expect((await takeInk(packed)).pages).toEqual({});
+    expect((await takeInk(packed, true)).pages[1]).toHaveLength(1);
   });
 });

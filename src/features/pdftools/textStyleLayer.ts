@@ -31,7 +31,10 @@ export function textStyleLayer(viewer: PDFViewer, dark: boolean) {
 
   const make = (n: number, page: PageView) => {
     const vp = page.viewport.clone({ scale: 1 });
-    const el = <K extends keyof SVGElementTagNameMap>(tag: K, attrs: Record<string, string | number>) => {
+    const el = <K extends keyof SVGElementTagNameMap>(
+      tag: K,
+      attrs: Record<string, string | number>,
+    ) => {
       const e = doc.createElementNS(SVG, tag);
       for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, String(v));
       return e;

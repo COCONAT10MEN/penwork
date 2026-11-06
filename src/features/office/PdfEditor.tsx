@@ -12,6 +12,8 @@ import type { Lock } from "../pdftools/types";
 import { DARK_PAGE } from "../pdftools/pageColors";
 import { unlockIfNeeded, usePdfTools } from "../pdftools/usePdfTools";
 import { useTextStyles } from "../pdftools/useTextStyles";
+import { useEditHistory } from "../pdftools/useEditHistory";
+import { NO_STYLES, type TextStyles } from "../pdftools/textStyles";
 import type { OfficeEditorProps } from "./officeFile";
 import { PdfSidebar } from "./PdfSidebar";
 import { PdfToolbar } from "./PdfToolbar";
@@ -56,12 +58,19 @@ export default function PdfEditor({
   const [lock, setLock] = useState<Lock | null>(null);
   // Where the reader was, to come back to after a tool changes the file.
   const keepPage = useRef(0);
+  // Undo and redo of a tool wait for the file they show to be open, with its ink handed over.
+  const whenOpen = useRef<(() => void) | null>(null);
   const settings = useSettings((s) => s.settings);
+  const updateSettings = useSettings((s) => s.update);
   const { darkPages, pdfZoom, pdfTwoPages, pdfHideBar, pdfInk } = settings;
   const [parts, setParts] = useState<Loaded | null>(null);
   // Bold, underline and the rest, shown over the pages until the file is written.
   const textStyles = useTextStyles(parts?.viewer ?? null, darkPages, source);
   const [page, setPage] = useState(1);
+  const pageNow = useRef(page);
+  useEffect(() => {
+    pageNow.current = page;
+  }, [page]);
   const [sidebar, setSidebar] = useState(false);
   const [query, setQuery] = useState("");
   const [matches, setMatches] = useState<{ current: number; total: number } | null>(null);
@@ -72,6 +81,7 @@ export default function PdfEditor({
 
   const reader = useReader(() => changed.current());
   const { box, frame } = reader;
+  const history = useEditHistory(frame);
   usePageLayout(frame, box, parts?.viewer ?? null);
 
   const [startFit] = useState<Fit | null>(() =>
@@ -138,10 +148,17 @@ export default function PdfEditor({
     const quit = new AbortController();
     let opened: { destroy: () => Promise<void> } | null = null;
     let shown: PDFViewer | null = null;
+    const done = () => {
+      whenOpen.current?.();
+      whenOpen.current = null;
+    };
     let pageTimer: ReturnType<typeof setTimeout> | 0 = 0;
 
     void (async () => {
-      const [{ pdfjs, viewer: kit }, taken] = await Promise.all([loadPdf(), takeInk(bytes)]);
+      const [{ pdfjs, viewer: kit }, taken] = await Promise.all([
+        loadPdf(),
+        takeInk(bytes, bytes !== file.bytes),
+      ]);
       if (quit.signal.aborted) return;
       const bus = new kit.EventBus();
       const links = new kit.PDFLinkService({ eventBus: bus });
@@ -205,8 +222,10 @@ export default function PdfEditor({
       }
       // After a tool, the ink moves with its pages, and pages without any are cleared.
       if (!quit.signal.aborted && (back > 0 || Object.keys(ink).length > 0)) reader.setInk(ink);
+      if (!quit.signal.aborted) done();
     })().catch(async (error: unknown) => {
       if (quit.signal.aborted) return;
+      done();
       const yes = await askGoAhead({
         title: "This PDF couldn't be opened",
         text: "It may be damaged. Penwork can try to rebuild it; the file itself isn't changed unless you save.",
@@ -237,10 +256,12 @@ export default function PdfEditor({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [source, box, darkPages, pdfTwoPages]);
 
-  // The file as shown (with any form filled in), and then the ink on top as PDF ink.
-  const asSaved = async () => {
+  // The file as shown (with any form filled in), with its text styles (unless left out), and then
+  // the ink on top as PDF ink.
+  const asSaved = async (withStyles = true) => {
     if (!parts) return null;
-    const shown = await textStyles.bake(await parts.document.saveDocument());
+    const form = await parts.document.saveDocument();
+    const shown = withStyles ? await textStyles.bake(form) : form;
     const pages: Record<number, PointStroke[]> = {};
     for (const [key, strokes] of Object.entries(reader.ink.current)) {
       const number = Number(key.slice(1));
@@ -318,12 +339,19 @@ export default function PdfEditor({
     frame,
     page,
     current: asSaved,
-    show: (next) => {
-      keepPage.current = page;
-      setSource(next);
-    },
+    show: (next: Uint8Array, styles: TextStyles = NO_STYLES) =>
+      new Promise<void>((done) => {
+        keepPage.current = pageNow.current;
+        textStyles.restoreWith(next, styles);
+        whenOpen.current?.();
+        whenOpen.current = done;
+        setSource(next);
+      }),
     changed: () => changed.current(),
     textStyles,
+    history,
+    editing: pdfInk,
+    turnOnEditing: () => updateSettings({ pdfInk: true }),
     dark: darkPages,
     goTo,
     lock,

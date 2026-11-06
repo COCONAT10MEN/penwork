@@ -26,11 +26,16 @@ function hasMark(bytes: Uint8Array): boolean {
 /**
  * Takes Penwork's ink out of a file: the strokes by page number, and the file without them, which
  * is what pdf.js shows, so the ink isn't drawn twice. Anyone else's annotations stay.
+ *
+ * A file opened from disk is first scanned for the ink's mark, so one without ink isn't read
+ * through. `thorough` reads it through anyway: the PDF tools pack objects into compressed streams,
+ * where the mark can't be seen, so a file a tool made is always read.
  */
 export async function takeInk(
   bytes: Uint8Array,
+  thorough = false,
 ): Promise<{ clean: Uint8Array; pages: Record<number, PointStroke[]> }> {
-  if (!hasMark(bytes)) return { clean: bytes, pages: {} };
+  if (!thorough && !hasMark(bytes)) return { clean: bytes, pages: {} };
   const doc = await PDFDocument.load(bytes, { updateMetadata: false });
   const pages: Record<number, PointStroke[]> = {};
   doc.getPages().forEach((page, index) => {

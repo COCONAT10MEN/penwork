@@ -51,7 +51,10 @@ export interface Settings {
   /** The top bar slides away while reading down a PDF, and comes back on the way up. */
   pdfHideBar: boolean;
   pdfTwoPages: boolean;
-  /** The pens and the rest in a PDF's bar. Off is for reading only; ink already drawn stays. */
+  /**
+   * Editing a PDF: the pens in its bar, the Edit and Shapes tools, and styling selected text. Off is
+   * for reading only; what's on the pages stays. (Named before it covered more than the pens.)
+   */
   pdfInk: boolean;
   /** Whether a new presentation starts with its ink saved into the file. */
   newKeepInk: boolean;

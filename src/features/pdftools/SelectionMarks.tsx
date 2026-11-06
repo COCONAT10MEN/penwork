@@ -26,9 +26,12 @@ const GAP = 10;
 
 export function SelectionMarks({
   frame,
+  canStyle,
   onStyle,
 }: {
   frame: HTMLIFrameElement;
+  /** Settings ▸ Editing is on; off, only Copy is offered. */
+  canStyle: boolean;
   onStyle: (style: TextStyle) => void;
 }) {
   const doc = frame.contentDocument;
@@ -108,18 +111,19 @@ export function SelectionMarks({
           exit={{ opacity: 0, scale: reduce ? 1 : 0.92, transition: fade }}
         >
           <Surface material="glass" strength="thick" floating className={styles.selectionBar}>
-            {BUTTONS.map(([kind, icon, label]) => (
-              <IconButton
-                key={kind}
-                icon={icon}
-                label={label}
-                onClick={() => {
-                  onStyle(kind);
-                  done();
-                }}
-              />
-            ))}
-            <span className={styles.selectionDivider} />
+            {canStyle &&
+              BUTTONS.map(([kind, icon, label]) => (
+                <IconButton
+                  key={kind}
+                  icon={icon}
+                  label={label}
+                  onClick={() => {
+                    onStyle(kind);
+                    done();
+                  }}
+                />
+              ))}
+            {canStyle && <span className={styles.selectionDivider} />}
             <IconButton
               icon="content_copy"
               label="Copy"

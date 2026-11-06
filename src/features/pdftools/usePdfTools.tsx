@@ -17,7 +17,8 @@ import { askPassword } from "./passwordAsk";
 import { PasswordPrompt } from "./PasswordPrompt";
 import { PlaceLayer } from "./PlaceLayer";
 import { ToolsSheet } from "./ToolsSheet";
-import type { Face, Picked, TextStyle } from "./textStyles";
+import { NO_STYLES, type Face, type Picked, type TextStyle, type TextStyles } from "./textStyles";
+import type { useEditHistory } from "./useEditHistory";
 import type { useTextStyles } from "./useTextStyles";
 import type { Lock, PlacedArea, PlaceSpec, ToolHost } from "./types";
 
@@ -47,12 +48,16 @@ export function usePdfTools(o: {
   viewer: PDFViewer | null;
   frame: HTMLIFrameElement | null;
   page: number;
-  /** The file as Save would write it, before any password. */
-  current: () => Promise<Uint8Array | null>;
-  /** Show these bytes instead (unsaved). */
-  show: (bytes: Uint8Array) => void;
+  /** The file as Save would write it, before any password; without the text styles if asked. */
+  current: (withStyles?: boolean) => Promise<Uint8Array | null>;
+  /** Show these bytes instead (unsaved), with these text styles over them; done once it's open. */
+  show: (bytes: Uint8Array, styles?: TextStyles) => Promise<void>;
   changed: () => void;
   textStyles: ReturnType<typeof useTextStyles>;
+  history: ReturnType<typeof useEditHistory>;
+  /** Settings ▸ Editing: off, the Edit and Shapes tools and styling selected text are put away. */
+  editing: boolean;
+  turnOnEditing: () => void;
   /** Dark pages are on: colours read off a page are turned back to the file's own. */
   dark: boolean;
   goTo: (page: number) => void;
@@ -66,27 +71,39 @@ export function usePdfTools(o: {
   } | null>(null);
   const [organizing, setOrganizing] = useState(false);
   const [editing, setEditing] = useState(false);
-  const last = useRef<Uint8Array | null>(null);
+  // What the last tool read: the file without its text styles, and the styles, for its Undo.
+  const last = useRef<{ bytes: Uint8Array; styles: TextStyles } | null>(null);
   const opts = useRef(o);
   useEffect(() => {
     opts.current = o;
   });
 
   const current = async () => {
-    const bytes = await opts.current.current();
-    if (!bytes) throw new Error("The PDF is still opening.");
-    last.current = bytes;
-    return bytes;
+    const plain = await opts.current.current(false);
+    if (!plain) throw new Error("The PDF is still opening.");
+    last.current = { bytes: plain, styles: opts.current.textStyles.snapshot() };
+    return opts.current.textStyles.bake(plain);
+  };
+
+  /** A step in the PDF's one history, with Undo on its notice while it's still the last. */
+  const remember = (message: string, undo: () => unknown, redo: () => unknown) => {
+    const again = (run: () => unknown) => async () => {
+      await run();
+      opts.current.changed();
+    };
+    const id = opts.current.history.add({ undo: again(undo), redo: again(redo) });
+    notify(message, "check_circle", [{ label: "Undo", run: () => opts.current.history.undo(id) }]);
   };
 
   const replace = async (bytes: Uint8Array, message: string) => {
     const before = last.current;
-    opts.current.show(bytes);
+    void opts.current.show(bytes);
     opts.current.changed();
-    notify(
+    if (!before) return notify(message, "check_circle");
+    remember(
       message,
-      "check_circle",
-      before ? [{ label: "Undo", run: () => opts.current.show(before) }] : undefined,
+      () => opts.current.show(before.bytes, before.styles),
+      () => opts.current.show(bytes, NO_STYLES),
     );
   };
 
@@ -163,9 +180,14 @@ export function usePdfTools(o: {
       });
     }
     if (!picked.length) return;
-    const { on, undo } = opts.current.textStyles.apply(picked, kind);
+    const { textStyles } = opts.current;
+    const { on, before, after } = textStyles.apply(picked, kind);
     opts.current.changed();
-    notify(on ? STYLE_ON[kind] : STYLE_OFF[kind], "check_circle", [{ label: "Undo", run: undo }]);
+    remember(
+      on ? STYLE_ON[kind] : STYLE_OFF[kind],
+      () => textStyles.set(before),
+      () => textStyles.set(after),
+    );
   };
 
   const applyEdits = async (edits: TextEdit[]) => {
@@ -208,13 +230,12 @@ export function usePdfTools(o: {
         open={open}
         hidden={placing !== null}
         host={host}
+        editing={o.editing}
+        onEditing={o.turnOnEditing}
         onClose={() => setOpen(false)}
       />
       {o.frame && o.viewer && !editing && !placing && (
-        <SelectionMarks
-          frame={o.frame}
-          onStyle={style}
-        />
+        <SelectionMarks frame={o.frame} canStyle={o.editing} onStyle={style} />
       )}
       {editing && o.frame && o.viewer && (
         <EditTextLayer

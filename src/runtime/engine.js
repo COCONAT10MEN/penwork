@@ -489,6 +489,7 @@ function setIc(b,n,ani){
 }
 function updActs(){
   var k=ikey(),h=hist[k],r=redoS[k],u=document.getElementById('bundo'),d=document.getElementById('bredo'),c=document.getElementById('bclear');
+  if(DOC){h=seq;r=rseq;}
   if(u)u.classList.toggle('dis',!(h&&h.length));if(d)d.classList.toggle('dis',!(r&&r.length));if(c)c.classList.toggle('dis',!hasInk());
   if(DOC)docReport();
 }
@@ -676,7 +677,26 @@ function inkRedraw(){
   document.body.classList.toggle('onhero',!!(slides[cur]&&slides[cur].classList.contains('hero')));
   updActs();
 }
-function pushHist(i,snap){inkChanged(i);(hist[i]=hist[i]||[]).push(snap);if(hist[i].length>60)hist[i].shift();redoS[i]=[];updActs();}
+function pushHist(i,snap){inkChanged(i);(hist[i]=hist[i]||[]).push(snap);if(!DOC&&hist[i].length>60)hist[i].shift();redoS[i]=[];if(DOC){seq.push(i);dropRedo();}updActs();}
+/* A PDF has one history for all its pages, in the order things were done: ink by page, and the app's
+   own changes ('x' and their id: text made bold, a picture added, pages turned), which the app undoes
+   and redoes when asked. While the app is still doing one, further presses wait their turn. */
+var seq=[],rseq=[],histWait=false,histQ=[];
+function dropRedo(){
+  rseq.forEach(function(k){if(k.charAt(0)==='x')send('histDrop',{id:k.slice(1)});});
+  rseq=[];for(var k in redoS)redoS[k]=[];
+}
+function docStep(back){
+  if(histWait){histQ.push(back);return;}
+  var from=back?seq:rseq,to=back?rseq:seq,k;
+  while((k=from.pop())!==undefined){
+    if(k.charAt(0)==='x'){to.push(k);histWait=true;send(back?'histUndo':'histRedo',{id:k.slice(1)});updActs();return;}
+    var a=back?hist[k]:redoS[k],b=back?redoS:hist;
+    if(a&&a.length){(b[k]=b[k]||[]).push((ink[k]||[]).slice());swapInk(k,a.pop(),back?'undo':'redo');to.push(k);updActs();return;}
+  }
+  toast(back?'Nothing to undo':'Nothing to redo',900);
+}
+function histDone(){histWait=false;updActs();if(histQ.length)docStep(histQ.shift());}
 /* ---- ink effects: strokes that appear / vanish are painted on a throw-away layer that is animated ---- */
 var inkSkip=null,fxEls=[];
 function fxCancel(){
@@ -734,8 +754,8 @@ function swapInk(k,nw,kind){setTimeout(function(){inkChanged(k);},0);
   if(add.length)inkFx(add,'in',function(){inkSkip=null;inkRedraw();});
   if(wbOn)wbBar();
 }
-function undo(){var k=ikey(),h=hist[k];if(h&&h.length){(redoS[k]=redoS[k]||[]).push((ink[k]||[]).slice());swapInk(k,h.pop(),'undo');}else toast('Nothing to undo',900);}
-function redo(){var k=ikey(),r=redoS[k];if(r&&r.length){(hist[k]=hist[k]||[]).push((ink[k]||[]).slice());swapInk(k,r.pop(),'redo');}else toast('Nothing to redo',900);}
+function undo(){if(DOC)return docStep(true);var k=ikey(),h=hist[k];if(h&&h.length){(redoS[k]=redoS[k]||[]).push((ink[k]||[]).slice());swapInk(k,h.pop(),'undo');}else toast('Nothing to undo',900);}
+function redo(){if(DOC)return docStep(false);var k=ikey(),r=redoS[k];if(r&&r.length){(hist[k]=hist[k]||[]).push((ink[k]||[]).slice());swapInk(k,r.pop(),'redo');}else toast('Nothing to redo',900);}
 function clearInk(){var k=ikey();if(hasInk()){pushHist(k,ink[k].slice());swapInk(k,[],'clear');}}
 
 /* ---------- eraser ---------- */
@@ -1865,6 +1885,8 @@ function flushInk(){
 }
 function indexOfId(id){if(DOC)return /^p\d+$/.test(id)?id:-1;if(id==='wb')return 'wb';for(var i=0;i<N;i++)if(slides[i].getAttribute('data-id')===id)return i;return -1;}
 function setInk(all){
+  /* a PDF's ink comes whole: a page left out has none (after a tool, or undoing one) */
+  if(DOC)for(var key in ink)if(!(key in all))ink[key]=[];
   for(var id in all){
     var k=indexOfId(id);if(k===-1)continue;
     ink[k]=all[id];
@@ -2529,11 +2551,16 @@ addEventListener('message',function(e){
       dockOpen=(DOC&&!inkOff)||UIS.open;applyAll();
       break;
     case 'inkOff':
-      /* the app's "Annotation tools" setting: off, the tools fold away and nothing can be drawn;
-         ink already on the pages stays */
+      /* the app's "Editing" setting: off, the tools fold away and nothing can be drawn;
+         ink already on the pages stays, and so does its undo */
       inkOff=!!p.off;if(inkOff&&annot)setAnnot(false);
       toggleDock(!inkOff,p.ani!==false);
       break;
+    case 'histAdd':seq.push('x'+p.id);dropRedo();updActs();break;
+    case 'histDone':histDone();break;
+    /* from the app: Ctrl+Z pressed outside the page, or Undo on a notice (only while still the last) */
+    case 'undo':if(DOC&&(!p.id||seq[seq.length-1]==='x'+p.id))undo();break;
+    case 'redo':if(DOC)redo();break;
     case 'toolbarFile':importText(p.text);break;
     case 'logo':{
       var l=document.querySelector('#logo .lg');

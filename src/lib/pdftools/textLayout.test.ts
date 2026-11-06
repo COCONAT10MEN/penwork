@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { cellValue, toLines, toMarkdown, toParagraphs, toTable, type Word } from "./textLayout";
+import {
+  cellOf,
+  cellValue,
+  toLines,
+  toMarkdown,
+  toParagraphs,
+  toTable,
+  type Word,
+} from "./textLayout";
 
 const w = (text: string, x: number, y: number, size = 11, bold = false): Word => ({
   text,
@@ -49,5 +57,16 @@ describe("text layout", () => {
     ]);
     expect(cellValue("1,200")).toBe(1200);
     expect(cellValue("Tea")).toBe("Tea");
+  });
+});
+
+describe("spreadsheet cells that keep their look", () => {
+  it("percentages, separators and money become numbers with a format", () => {
+    expect(cellOf("14%")).toEqual({ value: 0.14, format: "0%" });
+    expect(cellOf("12.5%")).toEqual({ value: 0.125, format: "0.0%" });
+    expect(cellOf("1,250,000")).toEqual({ value: 1250000, format: "#,##0" });
+    expect(cellOf("$1,200.50")).toEqual({ value: 1200.5, format: '"$"#,##0.00' });
+    expect(cellOf("42")).toEqual({ value: 42 });
+    expect(cellOf("North")).toEqual({ value: "North" });
   });
 });

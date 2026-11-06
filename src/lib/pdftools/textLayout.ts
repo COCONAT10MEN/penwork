@@ -158,6 +158,36 @@ export function cellValue(text: string): string | number {
   return text;
 }
 
+/**
+ * Text as a spreadsheet cell that keeps its look: "14%" is 0.14 shown as a percentage, "1,250,000"
+ * a number shown with separators, "$1,200.50" a number shown as money. Anything else stays text.
+ */
+export function cellOf(text: string): { value: string | number; format?: string } {
+  const t = text.trim().replace(/\s/g, "");
+  const pct = /^([-+]?\d+(?:\.(\d+))?)%$/.exec(t);
+  if (pct)
+    return {
+      value: Number(pct[1]) / 100,
+      format: pct[2] ? `0.${"0".repeat(pct[2].length)}%` : "0%",
+    };
+  const money = /^([-+]?)([$€£¥])([\d,]+(?:\.(\d+))?)$/.exec(t);
+  if (money && /^\d{1,3}(,\d{3})*(\.\d+)?$|^\d+(\.\d+)?$/.test(money[3] ?? "")) {
+    const n = Number((money[3] ?? "").replace(/,/g, "")) * (money[1] === "-" ? -1 : 1);
+    const decimals = money[4]?.length ?? 0;
+    return { value: n, format: `"${money[2]}"#,##0${decimals ? `.${"0".repeat(decimals)}` : ""}` };
+  }
+  const grouped = /^[-+]?\d{1,3}(,\d{3})+(\.(\d+))?$/.exec(t);
+  if (grouped) {
+    const decimals = grouped[3]?.length ?? 0;
+    return {
+      value: Number(t.replace(/,/g, "")),
+      format: `#,##0${decimals ? `.${"0".repeat(decimals)}` : ""}`,
+    };
+  }
+  const value = cellValue(text);
+  return { value };
+}
+
 export function toMarkdown(paragraphs: Paragraph[]): string {
   let n = 0;
   return paragraphs

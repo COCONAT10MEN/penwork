@@ -1,10 +1,15 @@
 import type { PDFDocumentProxy } from "pdfjs-dist";
-import { cellValue, toMarkdown, toTable, type Paragraph } from "../../lib/pdftools/textLayout";
+import type { Block, PageLayout, Run } from "../../lib/pdftools/pageLayout";
+import { cellOf } from "../../lib/pdftools/textLayout";
+import { readPage } from "./pageRead";
 import { pageText, renderPage } from "./pdfRead";
 
+export { toWord } from "./wordExport";
+
 /**
- * PDF to Word, Excel, PowerPoint, pictures, text and Markdown. Each library is loaded only when its
- * tool runs, so none of them slows opening a PDF.
+ * PDF to Word (wordExport.ts), Excel, PowerPoint, pictures, text and Markdown, all from the page's
+ * layout read back (pageLayout.ts). Each library is loaded only when its tool runs, so none of them
+ * slows opening a PDF.
  */
 
 type Progress = (done: number, total: number) => void;
@@ -12,91 +17,16 @@ type Out = { name: string; bytes: Uint8Array }[];
 
 const pagesOf = (doc: PDFDocumentProxy) => Array.from({ length: doc.numPages }, (_, i) => i + 1);
 
-export async function toWord(
-  doc: PDFDocumentProxy,
-  stem: string,
-  progress: Progress,
-): Promise<Out> {
-  const docx = await import("docx");
-  const children: InstanceType<typeof docx.Paragraph>[] = [];
-  const headings = [
-    undefined,
-    docx.HeadingLevel.HEADING_1,
-    docx.HeadingLevel.HEADING_2,
-    docx.HeadingLevel.HEADING_3,
-  ];
-  for (const n of pagesOf(doc)) {
-    progress(n - 1, doc.numPages);
-    const { paragraphs } = await pageText(doc, n);
-    const first = children.length;
-    if (paragraphs.length === 0) {
-      // A scanned page: its picture, so nothing is lost. OCR first makes its text editable.
-      const pic = await renderPage(doc, n, 1.5, "jpg", 0.85);
-      const width = 600;
-      children.push(
-        new docx.Paragraph({
-          children: [
-            new docx.ImageRun({
-              type: "jpg",
-              data: pic.bytes,
-              transformation: { width, height: Math.round((width * pic.height) / pic.width) },
-            }),
-          ],
-        }),
-      );
-    }
-    for (const p of paragraphs) children.push(wordParagraph(docx, p, headings));
-    if (n > 1 && children[first]) {
-      // A new page where the PDF had one.
-      children.splice(first, 0, new docx.Paragraph({ children: [new docx.PageBreak()] }));
-    }
-  }
-  progress(doc.numPages, doc.numPages);
-  const file = new docx.Document({
-    numbering: {
-      config: [
-        {
-          reference: "numbers",
-          levels: [
-            {
-              level: 0,
-              format: docx.LevelFormat.DECIMAL,
-              text: "%1.",
-              alignment: docx.AlignmentType.START,
-            },
-          ],
-        },
-      ],
-    },
-    sections: [{ children }],
-  });
-  const blob = await docx.Packer.toBlob(file);
-  return [{ name: `${stem}.docx`, bytes: new Uint8Array(await blob.arrayBuffer()) }];
-}
+const plain = (runs: Run[]) =>
+  runs
+    .map((r) => r.text)
+    .join("")
+    .trim();
 
-function wordParagraph(
-  docx: typeof import("docx"),
-  p: Paragraph,
-  headings: (string | undefined)[],
-) {
-  const heading = headings[p.heading] as
-    (typeof docx.HeadingLevel)[keyof typeof docx.HeadingLevel] | undefined;
-  return new docx.Paragraph({
-    ...(heading ? { heading } : {}),
-    ...(p.list === "bullet" ? { bullet: { level: 0 } } : {}),
-    ...(p.list === "number" ? { numbering: { reference: "numbers", level: 0 } } : {}),
-    // Arabic and Hebrew read right to left.
-    bidirectional: /[֐-ࣿ]/.test(p.text),
-    children: [
-      new docx.TextRun({
-        text: p.text,
-        bold: p.bold && !p.heading,
-        size: p.heading ? undefined : Math.round(Math.min(Math.max(p.size, 8), 28) * 2),
-      }),
-    ],
-  });
-}
-
+/**
+ * Each page as a sheet: its tables as rows and columns, numbers as numbers and the header row in
+ * bold; the text around them as rows of their own, headings in bold.
+ */
 export async function toExcel(
   doc: PDFDocumentProxy,
   stem: string,
@@ -106,15 +36,43 @@ export async function toExcel(
   const book = new ExcelJS.Workbook();
   for (const n of pagesOf(doc)) {
     progress(n - 1, doc.numPages);
-    const { lines } = await pageText(doc, n);
-    if (!lines.length) continue;
+    const { layout } = await readPage(doc, n, 1);
+    const blocks = layout.blocks.filter((b) => b.kind !== "picture");
+    if (!blocks.length) continue;
     const sheet = book.addWorksheet(`Page ${n}`);
-    const rows = toTable(lines);
-    for (const row of rows) sheet.addRow(row.map(cellValue));
-    sheet.columns.forEach((col, i) => {
-      const longest = Math.max(...rows.map((r) => (r[i] ?? "").length), 6);
-      col.width = Math.min(60, longest + 2);
-    });
+    const widths: number[] = [];
+    const note = (i: number, text: string) =>
+      (widths[i] = Math.max(widths[i] ?? 8, Math.min(60, text.length + 2)));
+    for (const b of blocks) {
+      if (b.kind === "paragraph") {
+        const text = plain(b.runs);
+        const row = sheet.addRow([text]);
+        if (b.heading || b.runs.every((r) => r.bold))
+          row.font = { bold: true, size: b.heading ? 13 : 11 };
+        // Long text runs across the cells beside it rather than widening the column.
+        note(0, text.slice(0, 30));
+      } else if (b.kind === "table") {
+        b.rows.forEach((cells, i) => {
+          const values = cells.map((c) => cellOf(plain(c)));
+          const row = sheet.addRow(values.map((v) => v.value));
+          values.forEach((v, j) => {
+            note(j, plain(cells[j] ?? []));
+            if (v.format) row.getCell(j + 1).numFmt = v.format;
+          });
+          if (i === 0 && cells.every((c) => !c.length || c.every((r) => r.bold)))
+            row.font = { bold: true };
+          row.eachCell((cell) => {
+            cell.border = {
+              top: { style: "thin", color: { argb: "FF8C8C8C" } },
+              bottom: { style: "thin", color: { argb: "FF8C8C8C" } },
+              left: { style: "thin", color: { argb: "FF8C8C8C" } },
+              right: { style: "thin", color: { argb: "FF8C8C8C" } },
+            };
+          });
+        });
+      }
+    }
+    sheet.columns.forEach((col, i) => (col.width = widths[i] ?? 12));
   }
   if (book.worksheets.length === 0)
     book.addWorksheet("Page 1").addRow(["This PDF has no text. Run OCR on it first."]);
@@ -123,7 +81,80 @@ export async function toExcel(
   return [{ name: `${stem}.xlsx`, bytes: new Uint8Array(data as ArrayBuffer) }];
 }
 
-/** Each page as a slide, looking exactly as it does in the PDF. */
+/** The most common colour around a box on a drawn page: what the text there sits on. */
+function paperAround(canvas: HTMLCanvasElement, x: number, y: number, w: number, h: number) {
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return "#ffffff";
+  const counts = new Map<number, number>();
+  const strip = (sx: number, sy: number, sw: number, sh: number) => {
+    const d = ctx.getImageData(
+      Math.max(0, sx),
+      Math.max(0, sy),
+      Math.max(1, sw),
+      Math.max(1, sh),
+    ).data;
+    for (let i = 0; i < d.length; i += 4) {
+      const k = (((d[i] ?? 0) >> 3) << 10) | (((d[i + 1] ?? 0) >> 3) << 5) | ((d[i + 2] ?? 0) >> 3);
+      counts.set(k, (counts.get(k) ?? 0) + 1);
+    }
+  };
+  strip(x - 3, y - 3, w + 6, 2);
+  strip(x - 3, y + h + 1, w + 6, 2);
+  const k = [...counts].sort((a, b) => b[1] - a[1])[0]?.[0] ?? 0x7fff;
+  const c = [((k >> 10) & 31) * 8.226, ((k >> 5) & 31) * 8.226, (k & 31) * 8.226];
+  return `#${c.map((v) => Math.round(v).toString(16).padStart(2, "0")).join("")}`;
+}
+
+/** The boxes text sits in on a page: each paragraph, and each table cell's row. */
+function textBoxes(layout: PageLayout) {
+  const out: {
+    block: Block;
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+    runs: Run[];
+    row?: number;
+    col?: number;
+  }[] = [];
+  for (const b of layout.blocks) {
+    if (b.kind === "paragraph")
+      out.push({
+        block: b,
+        x: b.left,
+        y: b.top,
+        w: b.right - b.left,
+        h: b.bottom - b.top,
+        runs: b.runs,
+      });
+    else if (b.kind === "table")
+      b.rows.forEach((cells, r) =>
+        cells.forEach((cell, c) => {
+          if (!cell.length) return;
+          const x = b.columns[c] ?? b.left;
+          const next = b.columns[c + 1] ?? b.right;
+          const y = b.rowTops[r] ?? b.top;
+          out.push({
+            block: b,
+            x,
+            y,
+            w: next - x,
+            h: (b.rowBottoms[r] ?? y + 12) - y,
+            runs: cell,
+            row: r,
+            col: c,
+          });
+        }),
+      );
+  }
+  return out;
+}
+
+/**
+ * Each page as a slide, its text editable: the page's drawing is the slide's background with the
+ * text painted out in the colour around it, and the text sits on it in text boxes, in its own font,
+ * size and colour, where it was. A scanned page stays a picture.
+ */
 export async function toPowerPoint(
   doc: PDFDocumentProxy,
   stem: string,
@@ -136,30 +167,115 @@ export async function toPowerPoint(
   const h = first.height / 72;
   deck.defineLayout({ name: "PDF", width: w, height: h });
   deck.layout = "PDF";
+  const inch = (pt: number) => pt / 72;
   for (const n of pagesOf(doc)) {
     progress(n - 1, doc.numPages);
-    const pic = await renderPage(doc, n, 2, "jpg", 0.88);
-    const slide = deck.addSlide();
-    // A page of another shape is fitted in the middle.
-    const s = Math.min(w / (pic.width / 144), h / (pic.height / 144));
-    const pw = (pic.width / 144) * s;
-    const ph = (pic.height / 144) * s;
+    const read = await readPage(doc, n, 2);
+    const { layout, canvas, scale } = read;
+    const boxes = read.scanned ? [] : textBoxes(layout);
+    const ctx = canvas.getContext("2d");
+    for (const b of boxes) {
+      if (!ctx) break;
+      const x = (b.x - 1.5) * scale;
+      const y = (b.y - 2) * scale;
+      const bw = (b.w + 3) * scale;
+      const bh = (b.h + 4) * scale;
+      ctx.fillStyle = paperAround(canvas, x, y, bw, bh);
+      ctx.fillRect(x, y, bw, bh);
+    }
+    const blob = await new Promise<Blob | null>((done) => canvas.toBlob(done, "image/jpeg", 0.88));
+    if (!blob) continue;
+    const bytes = new Uint8Array(await blob.arrayBuffer());
     let b64 = "";
-    for (let i = 0; i < pic.bytes.length; i += 0x8000)
-      b64 += String.fromCharCode(...pic.bytes.subarray(i, i + 0x8000));
+    for (let i = 0; i < bytes.length; i += 0x8000)
+      b64 += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+    const slide = deck.addSlide();
+    // A page of another shape than the first is fitted in the middle.
+    const s = Math.min(w / inch(layout.width), h / inch(layout.height));
+    const ox = (w - inch(layout.width) * s) / 2;
+    const oy = (h - inch(layout.height) * s) / 2;
     slide.addImage({
       data: `data:image/jpeg;base64,${btoa(b64)}`,
-      x: (w - pw) / 2,
-      y: (h - ph) / 2,
-      w: pw,
-      h: ph,
+      x: ox,
+      y: oy,
+      w: inch(layout.width) * s,
+      h: inch(layout.height) * s,
     });
-    const { paragraphs } = await pageText(doc, n);
-    if (paragraphs.length) slide.addNotes(paragraphs.map((p) => p.text).join("\n"));
+    for (const b of boxes) {
+      const para = b.block.kind === "paragraph" ? b.block : null;
+      slide.addText(
+        b.runs.map((r) => ({
+          text: r.text,
+          options: {
+            fontFace: r.font,
+            fontSize: Math.max(1, Math.round(r.size * s * 2) / 2),
+            bold: r.bold,
+            italic: r.italic,
+            color: r.color.slice(1),
+          },
+        })),
+        {
+          x: ox + inch(b.x) * s,
+          y: oy + inch(b.y - 1) * s,
+          // A little wider than the words, so a font drawn a touch wider doesn't wrap early.
+          w: inch(b.w * 1.04 + 6) * s,
+          h: inch(b.h + 4) * s,
+          align: para?.align === "justify" ? "justify" : (para?.align ?? "left"),
+          valign: "top",
+          margin: 0,
+          paraSpaceBefore: 0,
+          ...(para?.lineHeight ? { lineSpacing: para.lineHeight * s } : {}),
+          fit: "none",
+          wrap: true,
+        },
+      );
+    }
+    if (boxes.length) slide.addNotes(boxes.map((b) => plain(b.runs)).join("\n"));
   }
   progress(doc.numPages, doc.numPages);
   const data = (await deck.write({ outputType: "uint8array" })) as Uint8Array;
   return [{ name: `${stem}.pptx`, bytes: data }];
+}
+
+/** Markdown from a page's layout: headings, lists, bold and italic words, and tables. */
+export function layoutMarkdown(layout: PageLayout): string {
+  const md = (runs: Run[]) =>
+    runs
+      .map((r) => {
+        const t = r.text.replace(/([*_`|])/g, "\\$1");
+        if (!t.trim()) return t;
+        const lead = t.match(/^\s*/)?.[0] ?? "";
+        const tail = t.match(/\s*$/)?.[0] ?? "";
+        const core = t.trim();
+        const mark = r.bold && r.italic ? "***" : r.bold ? "**" : r.italic ? "*" : "";
+        return lead + mark + core + mark + tail;
+      })
+      .join("")
+      .trim();
+  const out: string[] = [];
+  let n = 0;
+  for (const b of layout.blocks) {
+    if (b.kind === "picture") continue;
+    if (b.kind === "table") {
+      const rows = b.rows.map((cells) => cells.map((c) => plain(c).replace(/\|/g, "\\|")));
+      const head = rows[0] ?? [];
+      out.push(
+        [
+          `| ${head.join(" | ")} |`,
+          `| ${head.map(() => "---").join(" | ")} |`,
+          ...rows.slice(1).map((r) => `| ${r.join(" | ")} |`),
+        ].join("\n"),
+      );
+      continue;
+    }
+    if (b.list !== "number") n = 0;
+    const text = b.heading ? plain(b.runs) : md(b.runs);
+    if (b.heading) out.push(`${"#".repeat(b.heading)} ${text}`);
+    else if (b.list === "bullet") out.push(`- ${text.replace(/^[•·▪◦‣●○■□\-–*]\s*/, "")}`);
+    else if (b.list === "number") out.push(`${++n}. ${text.replace(/^\(?\d{1,3}[.)]\s*/, "")}`);
+    else out.push(text);
+  }
+  return out.join("\n\n");
 }
 
 export async function toPictures(
@@ -189,8 +305,8 @@ export async function toText(
   const parts: string[] = [];
   for (const n of pagesOf(doc)) {
     progress(n - 1, doc.numPages);
-    const { paragraphs, lines } = await pageText(doc, n);
-    parts.push(kind === "md" ? toMarkdown(paragraphs) : lines.map((l) => l.text).join("\r\n"));
+    if (kind === "md") parts.push(layoutMarkdown((await readPage(doc, n, 1)).layout));
+    else parts.push((await pageText(doc, n)).lines.map((l) => l.text).join("\r\n"));
   }
   progress(doc.numPages, doc.numPages);
   const text = parts.join(kind === "md" ? "\n\n---\n\n" : "\r\n\f\r\n");

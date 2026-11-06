@@ -19,7 +19,7 @@ export interface RunFont {
 }
 
 /** pdf.js's loaded font, as far as it's read here. */
-interface LoadedFont {
+export interface LoadedFont {
   bold?: boolean;
   italic?: boolean;
   black?: boolean;
@@ -34,7 +34,7 @@ const names = new WeakMap<object, string | null>();
  * The font's own name. pdf.js doesn't hand it out, but the file it makes of each font carries the
  * original name in its name table, which fontkit reads.
  */
-function nameOf(font: LoadedFont): string | null {
+export function nameOf(font: LoadedFont): string | null {
   if (names.has(font)) return names.get(font) ?? null;
   let name: string | null = null;
   try {

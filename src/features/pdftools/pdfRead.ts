@@ -97,12 +97,17 @@ export async function textPicture(
   const scale = 4;
   const font = `${o.bold ? "700 " : ""}${o.size * scale}px ${o.font ?? "'Roboto Flex', 'Segoe UI', Arial, sans-serif"}`;
   const lines = text.split("\n");
-  const probe = new OffscreenCanvas(1, 1).getContext("2d");
+  // The app's own fonts (Caveat for a typed signature) are only used once loaded; before that a
+  // canvas quietly draws in a Windows font instead.
+  await document.fonts.load(font, text).catch(() => []);
+  const probe = document.createElement("canvas").getContext("2d");
   if (!probe) throw new Error("No canvas to draw on.");
   probe.font = font;
   const width = Math.ceil(Math.max(...lines.map((l) => probe.measureText(l).width), 1)) + 8;
   const lineH = o.size * scale * 1.25;
-  const canvas = new OffscreenCanvas(width, Math.ceil(lineH * lines.length) + 8);
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = Math.ceil(lineH * lines.length) + 8;
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("No canvas to draw on.");
   ctx.font = font;
@@ -110,7 +115,8 @@ export async function textPicture(
   ctx.textBaseline = "top";
   ctx.direction = "inherit";
   lines.forEach((l, i) => ctx.fillText(l, 4, 4 + i * lineH));
-  const blob = await canvas.convertToBlob({ type: "image/png" });
+  const blob = await new Promise<Blob | null>((done) => canvas.toBlob(done, "image/png"));
+  if (!blob) throw new Error("The text couldn't be drawn.");
   return {
     bytes: new Uint8Array(await blob.arrayBuffer()),
     width: width / scale,

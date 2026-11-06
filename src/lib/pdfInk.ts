@@ -15,8 +15,10 @@ export interface UnitStroke {
   w: number;
   op?: number;
   np?: boolean;
-  /** An area highlight: two corners, filled as a box. */
+  /** An area highlight: two corners, filled as a box with rounded corners. */
   box?: 1;
+  /** A text highlight: one box per line of the words it covers, as [x0, y0, x1, y1]. */
+  rects?: [number, number, number, number][];
   pts: [number, number, number][];
 }
 
@@ -27,8 +29,10 @@ export interface PointStroke {
   w: number;
   op?: number;
   np?: boolean;
-  /** An area highlight: two corners, filled as a box. */
+  /** An area highlight: two corners, filled as a box with rounded corners. */
   box?: 1;
+  /** A text highlight: one box per line of the words it covers, as [x0, y0, x1, y1]. */
+  rects?: [number, number, number, number][];
   pts: [number, number, number][];
 }
 
@@ -43,10 +47,32 @@ function round(n: number): number {
   return Math.round(n * 100) / 100;
 }
 
+/** A box's two corners through a conversion, back in order (the page may be turned). */
+function turnBox(
+  [x0, y0, x1, y1]: [number, number, number, number],
+  convert: (x: number, y: number) => number[],
+): [number, number, number, number] {
+  const [ax = 0, ay = 0] = convert(x0, y0);
+  const [bx = 0, by = 0] = convert(x1, y1);
+  return [
+    round(Math.min(ax, bx)),
+    round(Math.min(ay, by)),
+    round(Math.max(ax, bx)),
+    round(Math.max(ay, by)),
+  ];
+}
+
 export function toPoints(stroke: UnitStroke, view: PageView): PointStroke {
   const k = view.width / UNITS_ACROSS;
   return {
     ...stroke,
+    ...(stroke.rects
+      ? {
+          rects: stroke.rects.map((r) =>
+            turnBox(r, (x, y) => view.convertToPdfPoint(x * k, y * k)),
+          ),
+        }
+      : {}),
     w: round(stroke.w * k),
     pts: stroke.pts.map(([x, y, p]) => {
       const [px = 0, py = 0] = view.convertToPdfPoint(x * k, y * k);
@@ -59,6 +85,13 @@ export function toUnits(stroke: PointStroke, view: PageView): UnitStroke {
   const k = UNITS_ACROSS / view.width;
   return {
     ...stroke,
+    ...(stroke.rects
+      ? {
+          rects: stroke.rects.map((r) =>
+            turnBox(r, (x, y) => view.convertToViewportPoint(x, y).map((v) => v * k)),
+          ),
+        }
+      : {}),
     w: stroke.w * k,
     pts: stroke.pts.map(([x, y, p]) => {
       const [vx = 0, vy = 0] = view.convertToViewportPoint(x, y);
@@ -148,4 +181,25 @@ export function strokeBox(pts: number[][], w: number): [number, number, number, 
   }
   const m = w + 2;
   return [round(x0 - m), round(y0 - m), round(x1 + m), round(y1 + m)];
+}
+
+/** A box with rounded corners as PDF path operators, filled by the caller. */
+export function roundBoxPath(
+  x0: number,
+  y0: number,
+  x1: number,
+  y1: number,
+  radius: number,
+): string {
+  const [l, b, r, t] = [Math.min(x0, x1), Math.min(y0, y1), Math.max(x0, x1), Math.max(y0, y1)];
+  const q = Math.max(0, Math.min(radius, (r - l) / 2, (t - b) / 2));
+  const k = q * 0.4477; // how far a curve's handle sits back from the corner, for a quarter circle
+  const f = (n: number) => String(round(n));
+  return [
+    `${f(l + q)} ${f(b)} m`,
+    `${f(r - q)} ${f(b)} l ${f(r - k)} ${f(b)} ${f(r)} ${f(b + k)} ${f(r)} ${f(b + q)} c`,
+    `${f(r)} ${f(t - q)} l ${f(r)} ${f(t - k)} ${f(r - k)} ${f(t)} ${f(r - q)} ${f(t)} c`,
+    `${f(l + q)} ${f(t)} l ${f(l + k)} ${f(t)} ${f(l)} ${f(t - k)} ${f(l)} ${f(t - q)} c`,
+    `${f(l)} ${f(b + q)} l ${f(l)} ${f(b + k)} ${f(l + k)} ${f(b)} ${f(l + q)} ${f(b)} c h f`,
+  ].join(" ");
 }

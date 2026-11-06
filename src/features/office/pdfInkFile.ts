@@ -4,6 +4,7 @@ import {
   dotWidth,
   hexToRgb,
   outlinePath,
+  roundBoxPath,
   strokeBox,
   strokeOutline,
   type PointStroke,
@@ -73,9 +74,13 @@ function addStroke(doc: PDFDocument, stroke: PointStroke) {
   const strength = highlight ? (stroke.op ?? 0.42) : 1;
   const first = stroke.pts[0];
   const last = stroke.pts[stroke.pts.length - 1];
-  const shape =
-    stroke.box && first && last
-      ? `${Math.min(first[0], last[0])} ${Math.min(first[1], last[1])} ${Math.abs(last[0] - first[0])} ${Math.abs(last[1] - first[1])} re f`
+  // Text highlights are a rounded box per line; an area is one rounded box; the rest are outlines.
+  const shape = stroke.rects
+    ? stroke.rects
+        .map(([x0, y0, x1, y1]) => roundBoxPath(x0, y0, x1, y1, Math.min((y1 - y0) * 0.22, 6)))
+        .join(" ")
+    : stroke.box && first && last
+      ? roundBoxPath(first[0], first[1], last[0], last[1], 8)
       : stroke.pts.length === 1 && first
         ? dotPath(first[0], first[1], dotWidth(stroke, first[2]) / 2)
         : outlinePath(strokeOutline(stroke));

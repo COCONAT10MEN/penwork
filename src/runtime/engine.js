@@ -318,7 +318,7 @@ var COL={pen:['#e5352b','#1f6fe5','#10222b','#35aac5'],hl:['#ffe14a','#7df09a','
 var SZ={pen:[4,8,15],hl:[26,38,54],laser:[12,18,28],eraser:[30,50,80]};
 var RNG={pen:[1,40,1],hl:[10,90,1],laser:[6,50,1],eraser:[10,160,2]};
 /* every tool owns its own settings object — nothing is shared between tools */
-function defCfg(){return {pen:{c:COL.pen[0],w:8,press:true,cust:[]},hl:{c:COL.hl[0],w:38,op:.42,area:false,cust:[]},laser:{c:COL.laser[0],w:18,life:1500,cust:[]},eraser:{w:50}};}
+function defCfg(){return {pen:{c:COL.pen[0],w:8,press:true,cust:[]},hl:{c:COL.hl[0],w:38,op:.42,mode:'free',cust:[]},laser:{c:COL.laser[0],w:18,life:1500,cust:[]},eraser:{w:50}};}
 /* toolbar items: g = group (a separator is drawn between groups), i = icon, l = label, t = tooltip */
 var ITEMS={
  ptr:{g:'t',i:'ptr',l:'Pointer',t:'Pointer — click to navigate (Esc)'},
@@ -615,18 +615,25 @@ function bootDoc(){
 }
 function bbox(st){
   /* a box keeps two points while its corners move, so it is never cached */
-  if(st.bb&&st.bbn===st.pts.length&&!st.box)return st.bb;
+  if(st.bb&&st.bbn===st.pts.length&&!st.box&&!st.rects)return st.bb;
   var P=st.pts,x0=1e9,y0=1e9,x1=-1e9,y1=-1e9,i,m=st.w+2;
   for(i=0;i<P.length;i++){if(P[i][0]<x0)x0=P[i][0];if(P[i][0]>x1)x1=P[i][0];if(P[i][1]<y0)y0=P[i][1];if(P[i][1]>y1)y1=P[i][1];}
   st.bb=[x0-m,y0-m,x1+m,y1+m];st.bbn=P.length;return st.bb;
 }
 function onFit(){if(bgOpen)setTimeout(bgPlace,0);if(DOC){ox=0;oy=0;}else{ox=(innerWidth-1920*scaleF)/2;oy=(innerHeight-1080*scaleF)/2;}if(!UI)return;sizeCanvases();inkRedraw();if(wbOn)layoutWb();if(ovOpen)layoutOv();}
+/* settings saved with the earlier on/off "area" switch still mean Area */
+function hlMode(){var m=CFG.hl.mode||(CFG.hl.area?'area':'free');return m==='text'&&!DOC?'free':m;}
 function pw(st,p){return (st.k==='h'||st.np)?st.w:Math.max(.9,st.w*(.4+1.2*p));}
 /* the template's width rule, pw(), is the same curve: thinning .6 gives .4 to 1.6 times the size */
 function outline(st,done){
+  if(st.rects){
+    var T=new Path2D();
+    st.rects.forEach(function(o){var w=o[2]-o[0],h=o[3]-o[1];T.roundRect(o[0],o[1],w,h,Math.min(h*.22,w/2,8));});
+    return T;
+  }
   if(st.box){
-    var a=st.pts[0],z=st.pts[st.pts.length-1],R=new Path2D();
-    R.rect(Math.min(a[0],z[0]),Math.min(a[1],z[1]),Math.abs(z[0]-a[0]),Math.abs(z[1]-a[1]));return R;
+    var a=st.pts[0],z=st.pts[st.pts.length-1],R=new Path2D(),bw=Math.abs(z[0]-a[0]),bh=Math.abs(z[1]-a[1]);
+    R.roundRect(Math.min(a[0],z[0]),Math.min(a[1],z[1]),bw,bh,Math.min(16,bw/4,bh/4));return R;
   }
   var flat=st.k==='h'||st.np;
   var o=window.__pf.getStroke(flat?st.pts.map(function(p){return [p[0],p[1],.5];}):st.pts,{size:st.w,thinning:flat?0:.6,smoothing:.5,streamline:.4,simulatePressure:false,last:done!==false});
@@ -637,7 +644,7 @@ function outline(st,done){
 }
 function strokeTo(c,st,live){
   var P=st.pts;c.fillStyle=st.c;
-  if(st.box&&P.length<2)return;
+  if((st.box||st.rects)&&(P.length<2||(st.rects&&!st.rects.length)))return;
   if(P.length===1){c.beginPath();c.arc(P[0][0],P[0][1],pw(st,P[0][2])/2,0,6.2832);c.fill();return;}
   c.fill(outline(st,!live));
 }
@@ -733,6 +740,7 @@ function clearInk(){var k=ikey();if(hasInk()){pushHist(k,ink[k].slice());swapInk
 function segDist(px,py,ax,ay,bx,by){var dx=bx-ax,dy=by-ay,l=dx*dx+dy*dy,t=l?((px-ax)*dx+(py-ay)*dy)/l:0;t=t<0?0:t>1?1:t;var qx=ax+t*dx-px,qy=ay+t*dy-py;return Math.sqrt(qx*qx+qy*qy);}
 function strokeHit(st,x,y,r){
   var P=st.pts,rr=r+(st.k==='h'?st.w*.45:st.w*.5);
+  if(st.rects){for(var q=0;q<st.rects.length;q++){var o=st.rects[q];if(x>o[0]-r&&x<o[2]+r&&y>o[1]-r&&y<o[3]+r)return true;}return false;}
   if(st.box&&P.length>1){var a=P[0],z=P[P.length-1];return x>Math.min(a[0],z[0])-r&&x<Math.max(a[0],z[0])+r&&y>Math.min(a[1],z[1])-r&&y<Math.max(a[1],z[1])+r;}
   if(P.length===1)return Math.hypot(P[0][0]-x,P[0][1]-y)<rr;
   for(var n=1;n<P.length;n++)if(segDist(x,y,P[n-1][0],P[n-1][1],P[n][0],P[n][1])<rr)return true;
@@ -783,11 +791,13 @@ function laserPt(x,y,brk){lx=x;ly=y;headOn=false;trail.push([x,y,performance.now
 /* ---------- tool cursor: the real OS cursor (zero lag), swapped to a tool-shaped image ---------- */
 var cKey='',cVal='',curApplied='',lastType='';
 function toolCursor(er){
-  var t=er?'eraser':tool,col=colorOf(t),sc=scaleF,key=t+col+sizeOf(t)+'|'+Math.round(sc*100);
+  var t=er?'eraser':tool,col=colorOf(t),sc=scaleF,key=t+col+sizeOf(t)+'|'+Math.round(sc*100)+(t==='hl'?hlMode():'');
   if(key===cKey)return cVal;cKey=key;
   var d,S,h,svg,H='<svg xmlns="http://www.w3.org/2000/svg" ';
   if(t==='eraser'){d=Math.min(110,Math.round(CFG.eraser.w*sc));S=d+8;h=S/2;
     svg=H+'width="'+S+'" height="'+S+'"><circle cx="'+h+'" cy="'+h+'" r="'+(d/2)+'" fill="#fff" fill-opacity=".16" stroke="#fff" stroke-width="2"/><circle cx="'+h+'" cy="'+h+'" r="'+(d/2+1.5)+'" fill="none" stroke="#000" stroke-opacity=".5" stroke-width="1"/></svg>';}
+  else if(t==='hl'&&hlMode()==='area'){S=34;h=11;
+    svg=H+'width="34" height="34"><g stroke-linecap="round"><path d="M11 1v20M1 11h20" stroke="#000" stroke-opacity=".45" stroke-width="3.5"/><path d="M11 1v20M1 11h20" stroke="#fff" stroke-width="1.6"/></g><rect x="16" y="16" width="16" height="12" rx="4" fill="'+col+'" fill-opacity=".45" stroke="'+col+'" stroke-width="1.6" stroke-dasharray="3 2"/></svg>';}
   else if(t==='hl'){d=Math.min(110,Math.round(sizeOf('hl')*sc));S=d+8;h=S/2;
     svg=H+'width="'+S+'" height="'+S+'"><rect x="4" y="4" width="'+d+'" height="'+d+'" rx="6" fill="'+col+'" fill-opacity=".4" stroke="'+col+'" stroke-width="2"/><rect x="3" y="3" width="'+(d+2)+'" height="'+(d+2)+'" rx="7" fill="none" stroke="#000" stroke-opacity=".3"/></svg>';}
   else if(t==='laser'){S=60;h=30;
@@ -821,7 +831,9 @@ function startGesture(e,er){
   if(mode==='draw'){
     var a=ink[G.slide]=ink[G.slide]||[];G.snap=a.slice();
     G.st={k:tool==='hl'?'h':'p',c:colorOf(),w:sizeOf(),op:CFG.hl.op,np:tool==='pen'&&!CFG.pen.press,pts:[p]};G.all=[p];a.push(G.st);
-    if(tool==='hl'&&CFG.hl.area)G.st.box=1;
+    var hm=tool==='hl'?hlMode():'';
+    if(hm==='area')G.st.box=1;
+    else if(hm==='text'){G.st.rects=[];G.txt=[e.clientX,e.clientY];}
     if(G.st.k==='h')cv.cHLv.style.opacity=G.st.op;
     liveDraw(G.st);
     updActs();
@@ -830,7 +842,7 @@ function startGesture(e,er){
 }
 function endGesture(){
   var g=G;G=null;if(!g)return;
-  if(g.mode==='draw'&&g.st&&g.st.box&&g.st.pts.length<2){
+  if(g.mode==='draw'&&g.st&&((g.st.box&&g.st.pts.length<2)||(g.st.rects&&!g.st.rects.length))){
     var A=ink[g.slide];if(A&&A[A.length-1]===g.st)A.pop();g.st=null;clearLive(cx.cHLv,cv.cHLv);
   }
   if(g.mode==='draw'&&g.st){
@@ -845,8 +857,41 @@ function endGesture(){
   busy_(false);
   if(DOC){if(g.mode!=='laser'&&g.slide)docLast=g.slide;docKey=null;docPg=null;docTx();}
 }
+/* where text is under a point on a PDF page, as a caret, or null between words and off the text */
+function textCaret(x,y){
+  var r=document.caretRangeFromPoint?document.caretRangeFromPoint(x,y):null,n=r&&r.startContainer;
+  return n&&n.nodeType===3&&n.parentElement&&n.parentElement.closest('.textLayer')?r:null;
+}
+/* out to whole words, so a drag that starts or ends inside a word takes all of it */
+function wordEdge(node,off,back){
+  var t=node.data||'';
+  if(back){while(off>0&&!/\s/.test(t.charAt(off-1)))off--;}else{while(off<t.length&&!/\s/.test(t.charAt(off)))off++;}
+  return off;
+}
+/* the words from where the pointer went down to where it is now, one box per line, in page units */
+function textSpan(g,e){
+  var a=g.txtA||(g.txtA=textCaret(g.txt[0],g.txt[1]))||(g.txtA=textCaret(e.clientX,e.clientY));
+  var b=textCaret(e.clientX,e.clientY);if(!a||!b)return false;
+  var fwd=a.compareBoundaryPoints(Range.START_TO_START,b)<=0,s=fwd?a:b,z=fwd?b:a,r=document.createRange();
+  r.setStart(s.startContainer,wordEdge(s.startContainer,s.startOffset,true));
+  r.setEnd(z.startContainer,wordEdge(z.startContainer,z.startOffset,false));
+  var p=docLive();if(!p)return false;
+  var sc=docScaleOf(p),out=[],L=r.getClientRects(),i;
+  for(i=0;i<L.length;i++){
+    var q=L[i];if(q.width<1||q.height<2)continue;
+    var cy=q.top+q.height/2;if(cy<p.y||cy>p.y+p.h)continue;
+    var u=[(q.left-p.x)/sc,(q.top-p.y)/sc,(q.right-p.x)/sc,(q.bottom-p.y)/sc],m=null;
+    for(var j=0;j<out.length;j++){var o=out[j];if(Math.min(o[3],u[3])-Math.max(o[1],u[1])>.5*(u[3]-u[1])&&u[0]-o[2]<12&&o[0]-u[2]<12){m=o;break;}}
+    if(m){m[0]=Math.min(m[0],u[0]);m[1]=Math.min(m[1],u[1]);m[2]=Math.max(m[2],u[2]);m[3]=Math.max(m[3],u[3]);}else out.push(u);
+  }
+  if(!out.length)return false;
+  var st=g.st,x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
+  out.forEach(function(o){x0=Math.min(x0,o[0]);y0=Math.min(y0,o[1]);x1=Math.max(x1,o[2]);y1=Math.max(y1,o[3]);});
+  st.rects=out;st.pts=[[x0,y0,.5],[x1,y1,.5]];return true;
+}
 function moveGesture(e){
   var g=G,er=isEraserBtn(e);
+  if(g.mode==='draw'&&g.st&&g.st.rects&&!er){if(textSpan(g,e))liveDraw(g.st);return;}
   if(g.type!=='touch'){
     var wasE=g.mode==='erase'&&g.byBtn;
     if(er&&g.mode!=='erase'){endGesture();startGesture(e,true);G.byBtn=true;return;}
@@ -1371,7 +1416,12 @@ function cfgBuild(t){
   if(t==='hl')h+='<div class="lr"><span class="lb">Strength</span><output data-o="op"></output></div>'+slHTML('op',15,85,1,Math.round(c.op*100),'Strength');
   if(t==='laser')h+='<div class="lr"><span class="lb">Trail length</span><output data-o="life"></output></div>'+slHTML('life',300,4000,100,c.life,'Trail length');
   if(t==='pen')h+='<label class="tg"><input type="checkbox" data-p="press"'+(c.press?' checked':'')+'><span class="tk"></span><span>Pressure sensitive <small>(stylus)</small></span></label>';
-  if(t==='hl')h+='<label class="tg"><input type="checkbox" data-p="area"'+(c.area?' checked':'')+'><span class="tk"></span><span>Highlight an area <small>(drag a box)</small></span></label>';
+  if(t==='hl'){
+    var hm=hlMode(),HM=[['free','Freehand'],DOC?['text','Text']:null,['area','Area']].filter(Boolean);
+    h+='<div class="lr"><span class="lb">Highlight</span></div><div class="seg hm">';
+    HM.forEach(function(o){h+='<button data-hm="'+o[0]+'" class="'+(hm===o[0]?'on':'')+'">'+o[1]+'</button>';});
+    h+='</div><div class="cl hmt">'+(hm==='text'?'Drag across words: the highlight snaps to them, line by line.':hm==='area'?'Drag a box over anything: a picture, a chart, part of a page.':'Draw freely, as with a marker.')+'</div>';
+  }
   cfgEl.innerHTML=h;
 }
 function cfgSync(){
@@ -1415,6 +1465,7 @@ cfgEl.addEventListener('pointerdown',function(){poke();});
 cfgEl.addEventListener('mousedown',function(e){if(e.target.closest('label.tg'))e.preventDefault();});
 cfgEl.addEventListener('click',function(e){
   var t=cfgTool,c=CFG[t],b=e.target.closest('button');if(!b)return;
+  if(b.hasAttribute('data-hm')){c.mode=b.getAttribute('data-hm');delete c.area;cfgBuild(t);cfgSync();poke();b.blur();return;}
   if(b.hasAttribute('data-c')){c.c=b.getAttribute('data-c');if(cpOpen){cpFromHex(c.c);}}
   else if(b.hasAttribute('data-w'))c.w=+b.getAttribute('data-w');
   else if(b.getAttribute('data-x')==='reset'){CFG[t]=defCfg()[t];if(cpOpen)cpPop(false);cfgBuild(t);cfgSync();return;}
@@ -1424,8 +1475,7 @@ cfgEl.addEventListener('click',function(e){
 });
 cfgEl.addEventListener('input',function(e){
   var el=e.target,c=CFG[cfgTool];
-  if(el.type!=='checkbox')return;
-  if(el.getAttribute('data-p')==='area')c.area=el.checked;else c.press=el.checked;
+  if(el.type==='checkbox')c.press=el.checked;else return;
   cfgSync();poke();
 });
 

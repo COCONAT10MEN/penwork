@@ -64,3 +64,14 @@ describe("outlinePath", () => {
     expect(path.split(" c").length - 1).toBe(3);
   });
 });
+
+describe("rounded boxes", () => {
+  it("are four sides and four curved corners, filled", async () => {
+    const { roundBoxPath } = await import("./pdfInk");
+    const path = roundBoxPath(10, 10, 110, 60, 8);
+    expect(path.match(/ c/g)?.length).toBe(4);
+    expect(path.endsWith("h f")).toBe(true);
+    // A radius bigger than the box allows is cut down to half its height.
+    expect(roundBoxPath(0, 0, 100, 10, 50)).toContain("5 0 m");
+  });
+});

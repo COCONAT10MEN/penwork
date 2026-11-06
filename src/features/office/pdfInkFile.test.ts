@@ -70,8 +70,8 @@ describe("ink in a PDF file", () => {
   });
 });
 
-describe("area highlights", () => {
-  it("are saved as a filled box that reads back as one", async () => {
+describe("area and text highlights", () => {
+  it("save as rounded boxes that read back as the same highlight", async () => {
     const { PDFDocument: Doc } = await import("pdf-lib");
     const base = await Doc.create();
     base.addPage([400, 600]);
@@ -88,10 +88,27 @@ describe("area highlights", () => {
             [200, 160, 0.5],
           ],
         },
+        {
+          k: "h",
+          c: "#ffeb3b",
+          w: 4,
+          op: 0.4,
+          rects: [
+            [50, 300, 250, 316],
+            [50, 280, 180, 296],
+          ],
+          pts: [
+            [50, 280, 0.5],
+            [250, 316, 0.5],
+          ],
+        },
       ],
     });
     const back = await takeInk(saved);
     expect(back.pages[1]?.[0]?.box).toBe(1);
-    expect(new TextDecoder("latin1").decode(saved)).toContain("re f");
+    expect(back.pages[1]?.[1]?.rects).toEqual([
+      [50, 300, 250, 316],
+      [50, 280, 180, 296],
+    ]);
   });
 });

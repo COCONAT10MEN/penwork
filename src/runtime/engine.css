@@ -535,3 +535,11 @@ html.tab #setpop .sr.stk .pg{width:240px;grid-template-rows:repeat(2,46px)}
 #cfgpop::-webkit-scrollbar,#cpop::-webkit-scrollbar{width:7px}
 #cfgpop::-webkit-scrollbar-thumb,#cpop::-webkit-scrollbar-thumb{background:rgba(255,255,255,.28);border-radius:4px}
 @supports not selector(::-webkit-scrollbar){#setpop .sbody,#cfgpop,#cpop{scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.3) transparent}}
+
+/* The highlighter's way (freehand, text, area): the same segmented look as the toolbar settings */
+#cfgpop .seg{display:flex;background:rgba(255,255,255,.1);border-radius:999px;padding:3px;gap:2px;margin:2px 0 4px}
+#cfgpop .seg button{all:unset;box-sizing:border-box;flex:1;padding:0 10px;min-height:calc(var(--tapm) - 14px);border-radius:999px;font:600 12.5px/1 var(--sans);cursor:pointer;display:grid;place-items:center;color:rgba(255,255,255,.82);transition:background .2s,color .2s}
+#cfgpop .seg button:hover{background:rgba(255,255,255,.1)}
+#cfgpop .seg button.on{background:var(--pw-dock-accent,#35aac5);color:var(--pw-dock-on,#0b0e11)}
+#cfgpop .seg button:focus-visible{outline:2px solid rgba(255,255,255,.85);outline-offset:1px}
+#cfgpop .hmt{margin:2px 2px 4px;text-transform:none;letter-spacing:0;font-size:11.5px;line-height:1.35;font-weight:500;opacity:.8}

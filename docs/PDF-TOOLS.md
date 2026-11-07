@@ -96,9 +96,11 @@ A PDF that won't open offers Repair.
   subtype Watermark, optional-content layers named watermark). Penwork's own watermarks are marked that way. A
   watermark drawn as plain page content can't be told apart from the page and stays; the notice says so.
 - **Edit text** works as in Acrobat: click words and they open in place, in their own font, size and colour;
-  Enter keeps the change. It paints over the old words in the paper's most common colour around them and
-  writes the new ones in their font on their baseline. The old words stay in the file under the paint, so they
-  can still be found by searching; Redact removes words for good.
+  Enter keeps the change. On Save the old words are taken out of the page for good (`textRemove.ts`: the
+  page's drawing is followed letter by letter, from the font's widths and the text settings, and the letters
+  in the edited area go, with what came after them kept in place), so search, copy and Compare find only
+  the new ones; the same for Bold, Italic and Monospace. Where letters can't be measured (some fonts, text
+  inside a form XObject) they're painted over instead.
 - **Text styles** (`textStyles.ts`) are kept beside the file while it's open and drawn over the pages
   (`textStyleLayer.ts`, an SVG per page in the page's own units, so zooming needs nothing). They're written in
   when the file is: on Save, or when a tool reads it. Bold, italic and monospace paint over the old words in the

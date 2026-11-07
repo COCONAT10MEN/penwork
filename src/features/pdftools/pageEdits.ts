@@ -177,8 +177,21 @@ const asPicture = (t: Extract<Addition, { kind: "text" }>) =>
 /** The file with the edits written in. */
 export async function bakeEdits(bytes: Uint8Array, s: PageEdits): Promise<Uint8Array> {
   if (isEmpty(s)) return bytes;
+  let out = bytes;
+  let all = [...s.words.flatMap(wordThings), ...s.things];
+  // Words changed with Edit text, Bold or Italic go out of the file for good, as in Acrobat, so
+  // search and copy find only the new ones. Where they did, the paint over them isn't needed
+  // (and a coloured background shows as it was); where they couldn't be (a font that can't be
+  // measured, words inside a form), the paint stays and hides them.
+  const covers = all.filter((t): t is Extract<Addition, { kind: "cover" }> => t.kind === "cover");
+  if (covers.length) {
+    const r = await runTool("removeText", [out, covers.map((c) => c.area)]);
+    out = r.bytes;
+    const gone = new Set(covers.filter((_, i) => r.removed[i]));
+    all = all.filter((t) => !gone.has(t as Extract<Addition, { kind: "cover" }>));
+  }
   const things: Addition[] = [];
-  for (const t of [...s.words.flatMap(wordThings), ...s.things]) {
+  for (const t of all) {
     if (t.kind !== "text" || !asPicture(t)) {
       things.push(t);
       continue;
@@ -200,7 +213,6 @@ export async function bakeEdits(bytes: Uint8Array, s: PageEdits): Promise<Uint8A
     for (const [page, boxes] of byPage)
       marks.push({ page, kind, color: MARK_COLORS[kind], boxes: mergeLines(boxes) });
   }
-  let out = bytes;
   if (things.length) {
     const fonts = await fontFiles(
       things.flatMap((t) => (t.kind === "text" && t.face?.installed ? [t.face.installed] : [])),

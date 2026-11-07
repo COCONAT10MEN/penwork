@@ -1,4 +1,5 @@
 /// <reference lib="webworker" />
+import { removeText } from "../../lib/pdftools/textRemove";
 import createQpdf from "@neslinesli93/qpdf-wasm";
 import { flatten } from "../../lib/pdftools/flatten";
 import { addThings, redactPages, type Addition } from "../../lib/pdftools/draw";
@@ -128,6 +129,7 @@ const OPS = {
   addThings: (bytes: Uint8Array, things: Addition[], fonts?: Record<string, Uint8Array>) =>
     addThings(bytes, things, fonts),
   redactPages,
+  removeText,
   addMarks,
   addOcrText,
   imagesToPdf,

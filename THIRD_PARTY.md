@@ -39,7 +39,8 @@ Licenses below were checked against the installed packages (`package.json` / `LI
 | docx (`docx`) | Dolan Miu and contributors | MIT | PDF to Word |
 | PptxGenJS (`pptxgenjs`) | Brent Ely and contributors | MIT | PDF to PowerPoint |
 | jsdiff (`diff`) | Kevin Decker and contributors | BSD-3-Clause | Compare PDFs |
-| fflate (`fflate`) | Arjun Barrett | MIT | Zipping pictures exported from a PDF |
+| fflate (`fflate`) | Arjun Barrett | MIT | Zipping pictures exported from a PDF; reading and writing equations in Word files |
+| MathJax (`@mathjax/src`, `@mathjax/mathjax-newcm-font`, with `mhchemparser`) | The MathJax Consortium (Davide Cervone, Volker Sorge and contributors); mhchem by Martin Hensel | Apache-2.0 | Typesetting LaTeX equations in Word documents, and reading LaTeX for saving them as Word equations. Its font is drawn from New Computer Modern by Antonis Tsolomitis |
 
 The packages those six bring in (ProseMirror, HarfBuzz, lodash, dayjs and others), and the
 full licence text of every one, are in [`LICENSES/office-libraries.txt`](LICENSES/office-libraries.txt).

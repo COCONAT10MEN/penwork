@@ -1,13 +1,9 @@
 import type { PDFDocumentProxy } from "pdfjs-dist";
-import type {
-  Block,
-  PageLayout,
-  ParagraphBlock,
-  Run,
-  TableBlock,
-} from "../../lib/pdftools/pageLayout";
+import type { Block, PageLayout, ParagraphBlock, Line, Run } from "../../lib/pdftools/pageLayout";
 import { readPage } from "./pageRead";
 import { pageBoxes } from "./wordExact";
+import { sideBySide, type SideBySide } from "../../lib/pdftools/sideBySide";
+import { wordTable } from "./wordTable";
 import { renderPage } from "./pdfRead";
 
 /**
@@ -25,7 +21,7 @@ const tw = (pt: number) => Math.max(0, Math.round(pt * 20));
 /** Word measures pictures in pixels at 96 to the inch. */
 const px = (pt: number) => Math.max(1, Math.round((pt * 96) / 72));
 
-function runs(docx: Docx, list: Run[]) {
+function runs(docx: Docx, list: Run[], heading = false) {
   return list.map(
     (r) =>
       new docx.TextRun({
@@ -34,8 +30,9 @@ function runs(docx: Docx, list: Run[]) {
         size: Math.max(2, Math.round(r.size * 2)),
         bold: r.bold,
         italics: r.italic,
-        // Black stays automatic, so it follows Word's theme like typed text does.
-        ...(r.color !== "#000000" ? { color: r.color.slice(1) } : {}),
+        // Black stays automatic, so it follows Word's theme like typed text does; in a heading it's
+        // set, or Word's heading colour (blue) takes over.
+        ...(r.color !== "#000000" || heading ? { color: r.color.slice(1) } : {}),
       }),
   );
 }
@@ -55,17 +52,44 @@ const HEADINGS = (docx: Docx) => [
   docx.HeadingLevel.HEADING_3,
 ];
 
-function paragraph(docx: Docx, b: ParagraphBlock, left: number) {
+/** Word puts a line's baseline this far (times the size) above the bottom of a line of exact height. */
+const DESCENT = 0.22;
+const firstSize = (b: ParagraphBlock) =>
+  Math.max(...(b.lines[0]?.runs ?? b.runs).map((r) => r.size), 1);
+const lastSize = (b: ParagraphBlock) =>
+  Math.max(...(b.lines[b.lines.length - 1]?.runs ?? b.runs).map((r) => r.size), 1);
+/** A paragraph's line height: as on the page, or for one line, a little over its size. */
+const lineOf = (b: ParagraphBlock) => b.lineHeight ?? firstSize(b) * 1.2;
+/** Where a block starts and ends as Word lays it out: for a paragraph, from its baselines. */
+const startOf = (b: Block) =>
+  b.kind === "paragraph" && b.lines[0]
+    ? b.lines[0].baseline - (lineOf(b) - firstSize(b) * DESCENT)
+    : b.top;
+const endOf = (b: Block) =>
+  b.kind === "paragraph" && b.lines.length
+    ? (b.lines[b.lines.length - 1] as Line).baseline + lastSize(b) * DESCENT
+    : b.bottom;
+
+function paragraph(
+  docx: Docx,
+  b: ParagraphBlock,
+  left: number,
+  before = b.spaceBefore,
+  /** Ends the column after it: the next words start the next column. */
+  endsColumn = false,
+) {
   const indentLeft = b.align === "left" || b.align === "justify" ? b.left - left : 0;
   return new docx.Paragraph({
     ...(b.heading ? { heading: HEADINGS(docx)[b.heading] } : {}),
     alignment: ALIGN(docx)[b.align],
     // Arabic and Hebrew read right to left.
     bidirectional: /[֐-ࣿ]/.test(b.runs.map((r) => r.text).join("")),
+    // Every line at the height it had, so each baseline lands where it was.
     spacing: {
-      before: tw(b.spaceBefore),
+      before: tw(before),
       after: 0,
-      ...(b.lineHeight ? { line: tw(b.lineHeight), lineRule: docx.LineRuleType.EXACT } : {}),
+      line: tw(lineOf(b)),
+      lineRule: docx.LineRuleType.EXACT,
     },
     indent: {
       left: tw(indentLeft),
@@ -74,39 +98,10 @@ function paragraph(docx: Docx, b: ParagraphBlock, left: number) {
     },
     keepLines: !!b.heading,
     keepNext: !!b.heading,
-    children: runs(docx, b.runs),
-  });
-}
-
-function table(docx: Docx, b: TableBlock) {
-  const edges = [...b.columns, b.right + 6];
-  const widths = b.columns.map((c, i) => tw(Math.max(24, (edges[i + 1] ?? c + 60) - c)));
-  const line = { style: docx.BorderStyle.SINGLE, size: 4, color: "8C8C8C" };
-  return new docx.Table({
-    columnWidths: widths,
-    width: { size: widths.reduce((a, w) => a + w, 0), type: docx.WidthType.DXA },
-    borders: {
-      top: line,
-      bottom: line,
-      left: line,
-      right: line,
-      insideHorizontal: line,
-      insideVertical: line,
-    },
-    rows: b.rows.map(
-      (row, i) =>
-        new docx.TableRow({
-          tableHeader: i === 0,
-          children: row.map(
-            (cell, j) =>
-              new docx.TableCell({
-                width: { size: widths[j] ?? 1000, type: docx.WidthType.DXA },
-                margins: { top: 40, bottom: 40, left: 100, right: 100 },
-                children: [new docx.Paragraph({ children: runs(docx, cell) })],
-              }),
-          ),
-        }),
-    ),
+    children: [
+      ...runs(docx, b.runs, !!b.heading),
+      ...(endsColumn ? [new docx.TextRun({ children: [new docx.ColumnBreak()] })] : []),
+    ],
   });
 }
 
@@ -115,10 +110,11 @@ function picture(
   b: Extract<Block, { kind: "picture" }>,
   left: number,
   file: { bytes: Uint8Array; type: "png" | "jpg" } | undefined,
+  before = b.spaceBefore,
 ) {
   if (!file) return null;
   return new docx.Paragraph({
-    spacing: { before: tw(b.spaceBefore), after: 0 },
+    spacing: { before: tw(before), after: 0 },
     indent: { left: tw(Math.max(0, b.left - left)) },
     children: [
       new docx.ImageRun({
@@ -132,8 +128,93 @@ function picture(
 
 type Section = {
   properties: Record<string, unknown>;
+  headers?: Record<string, unknown>;
+  footers?: Record<string, unknown>;
   children: (InstanceType<Docx["Paragraph"]> | InstanceType<Docx["Table"]>)[];
 };
+
+/**
+ * A page's running head and foot: short lines at the very top or bottom, set apart from the text
+ * (a page number, a title repeated on every page). They go in Word's header and footer, where
+ * they stay put however the text in between flows; in the text they'd push it onto a page more.
+ */
+function marginal(layout: PageLayout) {
+  const blocks = layout.blocks;
+  const small = (b: Block): b is ParagraphBlock =>
+    b.kind === "paragraph" && !b.column && b.lines.length <= 2;
+  let foot = blocks.length;
+  while (foot > 0) {
+    const b = blocks[foot - 1] as Block;
+    const before = blocks[foot - 2];
+    if (!small(b) || b.top < layout.height * 0.88) break;
+    if (before && b.top - before.bottom < 12) break;
+    foot--;
+  }
+  let head = 0;
+  while (head < foot) {
+    const b = blocks[head] as Block;
+    const after = blocks[head + 1];
+    if (!small(b) || b.bottom > layout.height * 0.1) break;
+    if (after && after.top - b.bottom < 12) break;
+    head++;
+  }
+  return {
+    header: blocks.slice(0, head) as ParagraphBlock[],
+    body: blocks.slice(head, foot),
+    footer: blocks.slice(foot) as ParagraphBlock[],
+  };
+}
+
+const itemStart = (b: Block | SideBySide) =>
+  b.kind === "sideBySide" ? Math.min(...[...b.left, ...b.right].map(startOf)) : startOf(b);
+const itemEnd = (b: Block | SideBySide) =>
+  b.kind === "sideBySide" ? Math.max(...[...b.left, ...b.right].map(endOf)) : endOf(b);
+
+/** An empty line as tall as a gap: the space above a table, which has no space-before of its own. */
+const spacer = (docx: Docx, height: number) =>
+  new docx.Paragraph({
+    spacing: { before: 0, after: 0, line: tw(height), lineRule: docx.LineRuleType.EXACT },
+    children: [],
+  });
+
+/** Lines side by side as a table without lines: each side a cell, each line where it was. */
+function besideTable(docx: Docx, b: SideBySide, left: number) {
+  const none = { style: docx.BorderStyle.NONE, size: 0, color: "auto" };
+  const top = itemStart(b);
+  const cell = (list: ParagraphBlock[], from: number, width: number) => {
+    let end = top;
+    return new docx.TableCell({
+      width: { size: tw(width), type: docx.WidthType.DXA },
+      margins: { top: 0, bottom: 0, left: 0, right: 0 },
+      children: list.map((p) => {
+        const para = paragraph(docx, p, from, Math.max(0, startOf(p) - end));
+        end = endOf(p);
+        return para;
+      }),
+    });
+  };
+  const lw = b.gutter - b.x0;
+  const rw = Math.max(12, b.x1 - b.gutter + 1);
+  return new docx.Table({
+    columnWidths: [tw(lw), tw(rw)],
+    width: { size: tw(lw + rw), type: docx.WidthType.DXA },
+    indent: { size: tw(b.x0 - left), type: docx.WidthType.DXA },
+    layout: docx.TableLayoutType.FIXED,
+    borders: {
+      top: none,
+      bottom: none,
+      left: none,
+      right: none,
+      insideHorizontal: none,
+      insideVertical: none,
+    },
+    rows: [
+      new docx.TableRow({
+        children: [cell(b.left, b.x0, lw), cell(b.right, b.gutter, rw)],
+      }),
+    ],
+  });
+}
 
 /** One page's sections: one for the page, and continuous ones around text in two columns. */
 function pageSections(
@@ -142,28 +223,65 @@ function pageSections(
   files: Map<number, { bytes: Uint8Array; type: "png" | "jpg" }>,
   first: boolean,
 ): Section[] {
+  const { header, body, footer } = marginal(layout);
+  const top = Math.max(18, Math.min(...body.map(startOf), layout.height / 2));
+  const bodyEnd = Math.max(...body.map(endOf), top);
+  const footTop = footer.length ? Math.min(...footer.map(startOf)) : layout.height;
   const page = {
     size: { width: tw(layout.width), height: tw(layout.height) },
     margin: {
-      top: tw(Math.max(18, layout.top)),
-      bottom: tw(Math.max(36, Math.min(72, layout.height - layout.bottom - 4))),
+      top: tw(top),
+      // Below the text: up to the footer when there is one, else the page's own margin. Room to
+      // spare, so text a hair taller in Word doesn't run onto another page.
+      bottom: tw(
+        footer.length
+          ? Math.max(18, layout.height - footTop + 1)
+          : Math.max(18, Math.min(72, layout.height - bodyEnd - 4)),
+      ),
       left: tw(layout.left),
-      right: tw(Math.max(18, layout.width - layout.right)),
+      // A point to spare: a line that just fitted on the page mustn't wrap a word early.
+      right: tw(Math.max(18, layout.width - layout.right - 1)),
+      ...(header.length ? { header: tw(Math.max(0, Math.min(...header.map(startOf)))) } : {}),
+      ...(footer.length
+        ? { footer: tw(Math.max(0, layout.height - Math.max(...footer.map(endOf)))) }
+        : {}),
     },
+  };
+  const marginalParas = (list: ParagraphBlock[]) => {
+    let end: number | null = null;
+    return list.map((b) => {
+      const p = paragraph(docx, b, layout.left, end === null ? 0 : Math.max(0, startOf(b) - end));
+      end = endOf(b);
+      return p;
+    });
   };
   const sections: Section[] = [];
   let current: Section = {
     properties: { page, ...(first ? {} : { type: docx.SectionType.NEXT_PAGE }) },
+    // Every page sets its own, even empty, or Word carries the last page's over.
+    headers: { default: new docx.Header({ children: marginalParas(header) }) },
+    footers: { default: new docx.Footer({ children: marginalParas(footer) }) },
     children: [],
   };
+  // The space above each block, so its first baseline lands where it was on the page.
+  let prevEnd = top;
+  let beforeColumns: number | null = null;
+  let lastColumn: ParagraphBlock["column"];
   let region: number | null = null;
-  for (const b of layout.blocks) {
+  const items = sideBySide(body);
+  items.forEach((b, i) => {
     const column = b.kind === "paragraph" ? b.column : undefined;
+    if (column && !lastColumn) beforeColumns = prevEnd;
+    if (column && lastColumn && column.index !== lastColumn.index)
+      prevEnd = beforeColumns ?? prevEnd;
+    const before = Math.max(0, itemStart(b) - prevEnd);
+    prevEnd = itemEnd(b);
+    lastColumn = column;
     if ((column?.region ?? null) !== region) {
       // Into or out of two columns: a continuous section break, as Word's own Columns does.
       sections.push(current);
       const twoCols = column
-        ? layout.blocks.filter(
+        ? body.filter(
             (x): x is ParagraphBlock =>
               x.kind === "paragraph" && x.column?.region === column.region,
           )
@@ -186,32 +304,25 @@ function pageSections(
       region = column?.region ?? null;
     }
     const left = column ? column.left : layout.left;
-    if (b.kind === "paragraph") {
-      const prev = current.children.length
-        ? layout.blocks[layout.blocks.indexOf(b) - 1]
-        : undefined;
-      if (column?.index === 1 && prev?.kind === "paragraph" && prev.column?.index === 0)
-        current.children.push(new docx.Paragraph({ children: [new docx.ColumnBreak()] }));
-      current.children.push(paragraph(docx, b, left));
+    if (b.kind === "sideBySide") {
+      if (before > 1) current.children.push(spacer(docx, before));
+      current.children.push(besideTable(docx, b, layout.left));
+    } else if (b.kind === "paragraph") {
+      const next = items[i + 1];
+      const endsColumn =
+        column?.index === 0 &&
+        next?.kind === "paragraph" &&
+        next.column?.region === column.region &&
+        next.column.index === 1;
+      current.children.push(paragraph(docx, b, left, before, endsColumn));
     } else if (b.kind === "table") {
-      if (b.spaceBefore > 2)
-        current.children.push(
-          new docx.Paragraph({
-            spacing: {
-              before: 0,
-              after: 0,
-              line: tw(b.spaceBefore),
-              lineRule: docx.LineRuleType.EXACT,
-            },
-            children: [],
-          }),
-        );
-      current.children.push(table(docx, b));
+      if (before > 1) current.children.push(spacer(docx, before));
+      current.children.push(wordTable(docx, b, layout.left, (list) => runs(docx, list)));
     } else {
-      const p = picture(docx, b, left, files.get(b.id));
+      const p = picture(docx, b, left, files.get(b.id), before);
       if (p) current.children.push(p);
     }
-  }
+  });
   sections.push(current);
   // Word needs something in every section.
   return sections.filter((s, i) => s.children.length || i === 0);

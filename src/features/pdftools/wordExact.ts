@@ -128,6 +128,14 @@ export function pageBoxes(layout: PageLayout, firstId: number): { xml: string; c
       b.rows.forEach((cells, r) =>
         cells.forEach((runs, c) => {
           if (!runs.length) return;
+          // A table drawn with lines knows each cell's lines of text, on their own baselines.
+          const lines = b.ruled?.lines[r]?.[c];
+          if (lines?.length) {
+            const size = Math.max(...lines.flatMap((l) => l.runs.map((x) => x.size)));
+            const gaps = lines.slice(1).map((l, i) => l.baseline - (lines[i] as Line).baseline);
+            boxes.push(boxXml(lines, gaps[0] ?? size * 1.2, id++));
+            return;
+          }
           const size = Math.max(...runs.map((x) => x.size));
           const baseline = (b.rowTops[r] ?? b.top) + size * 0.8;
           // Where its words start (a cell's words may be centred), else the column's edge.

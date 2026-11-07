@@ -5,9 +5,10 @@ import {
   type Piece,
   type Picture,
 } from "../../lib/pdftools/pageLayout";
+import { gridsOf, rulesOf } from "../../lib/pdftools/rules";
 import { glyphsOf, looksLetterSpaced, respace, splitAtGaps } from "../../lib/pdftools/spacedText";
 import { loadPdf } from "../office/pdfLoader";
-import { faceFor, type Generic } from "./fontMatch";
+import { faceFor, parseFontName, type Generic } from "./fontMatch";
 import { nameOf, type LoadedFont } from "./runFont";
 
 /**
@@ -104,6 +105,36 @@ interface TextItem {
 const hex = (r: number, g: number, b: number) =>
   `#${[r, g, b].map((v) => Math.round(v).toString(16).padStart(2, "0")).join("")}`;
 
+const CLOUD_FONTS: Record<string, string> = Object.fromEntries(
+  [
+    "Aptos",
+    "Aptos Display",
+    "Aptos Narrow",
+    "Aptos Serif",
+    "Aptos Mono",
+    "Grandview",
+    "Seaford",
+    "Tenorite",
+    "Bierstadt",
+    "Skeena",
+  ].map((f) => [f.toLowerCase().replace(/[^a-z]/g, ""), f]),
+);
+
+/**
+ * Word's bullets are letters of the Symbol and Wingdings fonts, read as private codes: the
+ * bullets they draw, in a font that has them.
+ */
+const SYMBOL_BULLETS: Record<string, string> = {
+  "": "•",
+  "": "▪",
+  "": "◦",
+  "": "■",
+  "": "❖",
+  "": "➢",
+  "": "✓",
+  "": "→",
+};
+
 /**
  * The family to write words in: the installed font's own name (or its twin's, fontMatch.ts); for a
  * font that isn't on this PC, Arial, Times New Roman or Courier New by its kind. Naming a missing
@@ -113,6 +144,11 @@ async function familyOf(name: string | null, generic: Generic, bold: boolean, it
   const face = await faceFor(name, generic, { bold, italic });
   const first = /^'([^']+)'/.exec(face.css)?.[1];
   if (first) return first;
+  // Office's own fonts (Aptos is Word's default) aren't in Windows' list: Office fetches them when
+  // a file uses them, so they keep their names.
+  const family = name ? parseFontName(name).family : "";
+  const cloud = CLOUD_FONTS[family.toLowerCase().replace(/[^a-z]/g, "")];
+  if (cloud) return cloud;
   return generic === "serif" ? "Times New Roman" : generic === "mono" ? "Courier New" : "Arial";
 }
 
@@ -292,13 +328,14 @@ export async function readPage(
     // Text that leaves no mark on the page as drawn: invisible (OCR under a scan), or drawn as
     // part of the art. With a background it's in the picture already, so it isn't written again.
     if (under && ink.shown < 60) continue;
+    const bullet = [...item.str].some((c) => c in SYMBOL_BULLETS);
     pieces.push({
-      text: item.str,
+      text: bullet ? item.str.replace(/[-]/g, (c) => SYMBOL_BULLETS[c] ?? c) : item.str,
       x,
       y,
       width: item.width,
       size,
-      font: await family,
+      font: bullet ? "Arial" : await family,
       bold,
       italic,
       color: ink.color,
@@ -336,6 +373,15 @@ export async function readPage(
       if (parts) p.parts = parts;
     }
   }
+  // The lines and filled boxes it draws: a table drawn with lines is read from them.
+  const { pdfjs: lib } = await loadPdf();
+  const { rules, fills } = rulesOf(
+    list.fnArray,
+    list.argsArray,
+    lib.OPS as unknown as Record<string, number>,
+    (x, y) => view.convertToViewportPoint(x, y),
+  );
+  const lined = { grids: gridsOf(rules), fills };
   let pictures = await picturesOn(list, view);
   // A picture filling the page behind text is its background (a scan with OCR text, a letterhead).
   if (hasText)
@@ -375,7 +421,7 @@ export async function readPage(
   }
   page.cleanup();
   return {
-    layout: layoutPage(pieces, pictures, { width: view.width, height: view.height }),
+    layout: layoutPage(pieces, pictures, { width: view.width, height: view.height }, lined),
     canvas,
     scale,
     pictures: crops,

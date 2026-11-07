@@ -5,6 +5,10 @@
  * Markdown are written from this. Everything is in points from the page's top-left.
  */
 
+import { ruledTables } from "./ruledTables";
+import type { Fill, Grid } from "./rules";
+import { runsOf } from "./runs";
+
 /** A piece of text the PDF draws in one go, in one style. */
 export interface Piece {
   text: string;
@@ -109,6 +113,23 @@ export interface TableBlock {
   /** Each row's top and bottom. */
   rowTops: number[];
   rowBottoms: number[];
+  /** A table drawn with lines (ruledTables.ts): the grid's look and each cell as it was. */
+  ruled?: Ruled;
+}
+
+export type CellAlign = "left" | "center" | "right";
+
+export interface Ruled {
+  /** Each cell's lines of text, row by row, where they were. */
+  lines: Line[][][];
+  align: CellAlign[][];
+  valign: ("top" | "center" | "bottom")[][];
+  /** A cell's fill colour, "#rrggbb", or null. */
+  shade: (string | null)[][];
+  /** The space between the cell's edge and its words, in points. */
+  padding: number;
+  thickness: number;
+  color: string;
 }
 
 export interface PictureBlock {
@@ -166,11 +187,20 @@ const spanOf = (line: Piece[]) => [
 function toLines(pieces: Piece[]): Segment[][] {
   const sorted = pieces.filter((p) => p.text.trim()).sort((a, b) => a.y - b.y || a.x - b.x);
   const first: Piece[][] = [];
+  // Smaller text at the height of a line across the page (a superscript in one column, level
+  // with the other column's line) joins it only if it's beside its words.
+  const beside = (line: Piece[], p: Piece) =>
+    line.some(
+      (q) =>
+        Math.max(q.x, p.x) - Math.min(q.x + q.width, p.x + p.width) < Math.max(q.size, p.size) * 2,
+    );
   for (const p of sorted) {
     const last = first[first.length - 1];
     const head = last?.[0];
-    if (last && head && Math.abs(head.y - p.y) <= Math.max(1.5, Math.min(head.size, p.size) * 0.35))
-      last.push(p);
+    const level =
+      !!head && Math.abs(head.y - p.y) <= Math.max(1.5, Math.min(head.size, p.size) * 0.35);
+    const sameSize = !!head && p.size >= head.size * 0.85 && head.size >= p.size * 0.85;
+    if (last && level && (sameSize || beside(last, p))) last.push(p);
     else first.push([p]);
   }
   // A line of only small text just above or below a bigger one, within its width, is that line's
@@ -220,51 +250,6 @@ function toLines(pieces: Piece[]): Segment[][] {
     }
     return segments;
   });
-}
-
-/** A segment's words as runs: pieces of one style join, and gaps the PDF left become spaces. */
-function runsOf(pieces: Piece[]): Run[] {
-  const runs: Run[] = [];
-  const startOf = new Map<Run, number>();
-  let end = -Infinity;
-  for (const p of pieces) {
-    const gap = p.x - end > p.size * 0.18;
-    const last = runs[runs.length - 1];
-    let text = p.text;
-    const spaced = last && gap && !last.text.endsWith(" ") && !text.startsWith(" ");
-    if (spaced) text = ` ${text}`;
-    const parts: Part[] = (p.parts ?? [{ text: p.text, x: p.x, width: p.width }]).map((q, i) =>
-      i === 0 && spaced ? { ...q, text: ` ${q.text}` } : q,
-    );
-    if (
-      last &&
-      last.font === p.font &&
-      Math.abs(last.size - p.size) < 0.25 &&
-      last.bold === p.bold &&
-      last.italic === p.italic &&
-      last.color === p.color &&
-      last.rise === (p.rise ?? 0)
-    ) {
-      last.text += text;
-      last.width = p.x + p.width - (startOf.get(last) ?? p.x);
-      last.parts = [...(last.parts ?? []), ...parts];
-    } else
-      runs.push({
-        text,
-        font: p.font,
-        size: p.size,
-        bold: p.bold,
-        italic: p.italic,
-        color: p.color,
-        rise: p.rise ?? 0,
-        width: p.width,
-        x: p.x,
-        parts,
-      });
-    if (runs[runs.length - 1] !== last) startOf.set(runs[runs.length - 1] as Run, p.x);
-    end = p.x + p.width;
-  }
-  return runs;
 }
 
 const textOf = (runs: Run[]) => runs.map((r) => r.text).join("");
@@ -328,21 +313,28 @@ function findColumns(lines: Segment[][], left: number, right: number) {
       continue;
     }
     const [a, b] = line as [Segment, Segment];
-    const gutter = (a.x1 + b.x0) / 2;
-    let j = i;
-    let wide = false;
-    while (j < lines.length) {
-      const l = lines[j] as Segment[];
-      const ok =
-        (l.length === 2 && (l[0] as Segment).x1 < gutter && (l[1] as Segment).x0 > gutter) ||
-        (l.length === 1 && ((l[0] as Segment).x1 < gutter || (l[0] as Segment).x0 > gutter));
-      if (!ok) break;
-      if (l.some((x) => x.x1 - x.x0 > width * 0.3)) wide = true;
-      j++;
+    // Where the gap between the columns is. Halfway between this line's two parts is wrong when
+    // the left one is short (a heading beside the other column's text), so a few places are
+    // tried, the one the most lines after keep clear of taken.
+    const tries = [(a.x1 + b.x0) / 2, Math.max(a.x1 + 1, b.x0 - b.size * 2), b.x0 - 2];
+    let best = { j: i, wide: false, gutter: tries[0] as number };
+    for (const gutter of tries) {
+      let j = i;
+      let wide = false;
+      while (j < lines.length) {
+        const l = lines[j] as Segment[];
+        const ok =
+          (l.length === 2 && (l[0] as Segment).x1 < gutter && (l[1] as Segment).x0 > gutter) ||
+          (l.length === 1 && ((l[0] as Segment).x1 < gutter || (l[0] as Segment).x0 > gutter));
+        if (!ok) break;
+        if (l.some((x) => x.x1 - x.x0 > width * 0.3)) wide = true;
+        j++;
+      }
+      if (wide && j > best.j) best = { j, wide, gutter };
     }
-    if (wide && j - i >= 2) {
-      runs.push({ from: i, to: j, gutter });
-      i = j;
+    if (best.wide && best.j - i >= 2) {
+      runs.push({ from: i, to: best.j, gutter: best.gutter });
+      i = best.j;
     } else i++;
   }
   return runs;
@@ -397,11 +389,19 @@ export function layoutPage(
   pieces: Piece[],
   pictures: Picture[],
   page: { width: number; height: number },
+  /** The page's drawn grids and filled boxes (rules.ts): tables drawn with lines. */
+  drawn?: { grids: Grid[]; fills: Fill[] },
 ): PageLayout {
-  const all = toLines(pieces);
+  // Tables drawn with lines first, from their lines; the rest of the text is read as below.
+  const { tables: ruled, rest } = drawn
+    ? ruledTables(pieces, drawn.grids, drawn.fills)
+    : { tables: [], rest: pieces };
+  const all = toLines(rest);
   const segs = all.flat();
-  const left = segs.length ? Math.min(...segs.map((s) => s.x0)) : 72;
-  const right = segs.length ? Math.max(...segs.map((s) => s.x1)) : page.width - 72;
+  const lefts = [...segs.map((s) => s.x0), ...ruled.map((t) => t.left)];
+  const rights = [...segs.map((s) => s.x1), ...ruled.map((t) => t.right)];
+  const left = lefts.length ? Math.min(...lefts) : 72;
+  const right = rights.length ? Math.max(...rights) : page.width - 72;
   const body = median(segs.flatMap((s) => s.pieces.map((p) => p.size))) || 11;
   const columnRuns = findColumns(all, left, right);
   const inColumns = new Set<number>();
@@ -414,7 +414,10 @@ export function layoutPage(
   const inTable = new Set<number>();
   for (const t of tables) for (let i = t.from; i < t.to; i++) inTable.add(i);
 
-  const items: { top: number; block: Block | Segment[] }[] = [];
+  const items: { top: number; block: Block | Segment[] }[] = ruled.map((t) => ({
+    top: t.top,
+    block: t,
+  }));
   for (const t of tables) {
     const rows = all.slice(t.from, t.to);
     const columns = t.columns;

@@ -13,14 +13,21 @@ const ROOTS = [
   "@corbe30/fortune-excel",
   "exceljs",
   "pdf-lib",
+  "@mathjax/src",
 ];
 const ALLOWED = /^\(?(MIT|ISC|Apache-2\.0|BSD-[23]-Clause|0BSD|Unlicense|Zlib|BlueOak-1\.0\.0)/;
 // jszip offers a choice of two licences, and Penwork takes the MIT one.
 const CHOSEN = { jszip: "MIT" };
 // Only used by exceljs when it runs in Node. The browser build Penwork ships doesn't contain it.
 const NOT_SHIPPED = ["buffers"];
+// MathJax's speech and menu add-ons: Penwork imports only its TeX input and SVG output.
+NOT_SHIPPED.push("speech-rule-engine", "mj-context-menu");
 // Published without a licence file, so the text comes from the project's own repository.
-const STORED = { "@fortune-sheet/": "LICENSES/fortune-sheet-MIT.txt" };
+const STORED = {
+  "@fortune-sheet/": "LICENSES/fortune-sheet-MIT.txt",
+  // Published by the MathJax team under MathJax's own Apache-2.0 licence.
+  "@mathjax/mathjax-newcm-font": "node_modules/@mathjax/src/LICENSE",
+};
 
 function packageDir(name, from) {
   const nested = join(from, "node_modules", name);
@@ -34,7 +41,7 @@ function visit(name, from) {
   if (!existsSync(file)) return;
   const pkg = JSON.parse(readFileSync(file, "utf8"));
   const key = `${pkg.name}@${pkg.version}`;
-  if (found.has(key)) return;
+  if (found.has(key) || NOT_SHIPPED.includes(pkg.name)) return;
   found.set(key, { pkg, dir });
   for (const dep of Object.keys(pkg.dependencies ?? {})) visit(dep, dir);
 }

@@ -29,13 +29,32 @@ const GENERIC_CSS: Record<Generic, string> = {
   mono: "'Courier New', Courier, monospace",
 };
 
-/** The PDF built-in fonts, and the Windows fonts drawn the same size. */
+/**
+ * Fonts by another name: the PDF built-in fonts, and the free fonts made to take the same room as
+ * Windows' own (Chrome and LibreOffice set text in them), so a line keeps its length. KaTeX's maths
+ * fonts have no twin on Windows; Times New Roman and Cambria Math are the closest in look.
+ */
 const ALIASES: Record<string, string> = {
   helvetica: "arial",
   arialmt: "arial",
+  arimo: "arial",
+  liberationsans: "arial",
   times: "timesnewroman",
   timesroman: "timesnewroman",
+  tinos: "timesnewroman",
+  liberationserif: "timesnewroman",
   courier: "couriernew",
+  cousine: "couriernew",
+  liberationmono: "couriernew",
+  carlito: "calibri",
+  caladea: "cambria",
+  katexmain: "timesnewroman",
+  katexmath: "timesnewroman",
+  katexams: "cambriamath",
+  katexsize1: "cambriamath",
+  katexsize2: "cambriamath",
+  katexsize3: "cambriamath",
+  katexsize4: "cambriamath",
 };
 
 let list: Promise<Installed[]> | null = null;

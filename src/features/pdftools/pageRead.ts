@@ -5,8 +5,9 @@ import {
   type Piece,
   type Picture,
 } from "../../lib/pdftools/pageLayout";
+import { glyphsOf, looksLetterSpaced, respace, splitAtGaps } from "../../lib/pdftools/spacedText";
 import { loadPdf } from "../office/pdfLoader";
-import { faceFor, parseFontName, type Generic } from "./fontMatch";
+import { faceFor, type Generic } from "./fontMatch";
 import { nameOf, type LoadedFont } from "./runFont";
 
 /**
@@ -31,6 +32,9 @@ export interface ReadPage {
 }
 
 type Matrix = [number, number, number, number, number, number];
+type OpList = Awaited<
+  ReturnType<Awaited<ReturnType<PDFDocumentProxy["getPage"]>>["getOperatorList"]>
+>;
 const multiply = (m: Matrix, n: Matrix): Matrix => [
   m[0] * n[0] + m[2] * n[1],
   m[1] * n[0] + m[3] * n[1],
@@ -101,24 +105,20 @@ const hex = (r: number, g: number, b: number) =>
   `#${[r, g, b].map((v) => Math.round(v).toString(16).padStart(2, "0")).join("")}`;
 
 /**
- * The family to write words in: the installed font's own name, or the PDF's made readable; for a
- * font that isn't named (the PDF built-ins), Arial, Times New Roman or Courier New, which are drawn
- * the same size as Helvetica, Times and Courier.
+ * The family to write words in: the installed font's own name (or its twin's, fontMatch.ts); for a
+ * font that isn't on this PC, Arial, Times New Roman or Courier New by its kind. Naming a missing
+ * font would leave Word to choose, and it sets everything in one serif face.
  */
 async function familyOf(name: string | null, generic: Generic, bold: boolean, italic: boolean) {
   const face = await faceFor(name, generic, { bold, italic });
   const first = /^'([^']+)'/.exec(face.css)?.[1];
   if (first) return first;
-  const parsed = name ? parseFontName(name).family.replace(/([a-z])([A-Z])/g, "$1 $2") : "";
-  return (
-    parsed ||
-    (generic === "serif" ? "Times New Roman" : generic === "mono" ? "Courier New" : "Arial")
-  );
+  return generic === "serif" ? "Times New Roman" : generic === "mono" ? "Courier New" : "Arial";
 }
 
 /** Where the page's pictures are drawn, from its drawing instructions, in points from the top-left. */
 async function picturesOn(
-  page: Awaited<ReturnType<PDFDocumentProxy["getPage"]>>,
+  list: OpList,
   view: {
     convertToViewportPoint: (x: number, y: number) => number[];
     width: number;
@@ -127,7 +127,6 @@ async function picturesOn(
 ): Promise<Picture[]> {
   const { pdfjs } = await loadPdf();
   const OPS = pdfjs.OPS;
-  const list = await page.getOperatorList();
   type M = [number, number, number, number, number, number];
   const mul = (m: M, n: M): M => [
     m[0] * n[0] + m[2] * n[1],
@@ -320,7 +319,24 @@ export async function readPage(
     if (copy >= 0) pieces.splice(copy, 1);
   }
   const hasText = pieces.some((p) => p.text.trim());
-  let pictures = await picturesOn(page, view);
+  const list = await page.getOperatorList();
+  // Where each letter is drawn: letter-spaced words get their spaces back, and pieces with
+  // something drawn inside them (a root sign) are cut there, so the Word page puts each part back.
+  if (pieces.length) {
+    const { pdfjs } = await loadPdf();
+    const glyphs = glyphsOf(
+      list.fnArray,
+      list.argsArray,
+      pdfjs.OPS as unknown as Record<string, number>,
+      (x, y) => view.convertToViewportPoint(x, y),
+    );
+    for (const p of pieces) {
+      if (looksLetterSpaced(p.text)) p.text = respace(p, glyphs) ?? p.text;
+      const parts = splitAtGaps(p, glyphs);
+      if (parts) p.parts = parts;
+    }
+  }
+  let pictures = await picturesOn(list, view);
   // A picture filling the page behind text is its background (a scan with OCR text, a letterhead).
   if (hasText)
     pictures = pictures.filter((p) => p.width * p.height < view.width * view.height * 0.7);

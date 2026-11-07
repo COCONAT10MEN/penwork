@@ -56,9 +56,25 @@ function runXml(r: Run, width?: number): string {
   return `<w:r><w:rPr>${props}</w:rPr><w:t xml:space="preserve">${esc(r.text)}</w:t></w:r>`;
 }
 
-/** The width each run had on the page, from where the next one starts. */
-function widths(line: Line): (number | undefined)[] {
-  return line.runs.map((r) => r.width);
+/**
+ * A line's runs, cut where its words were far apart on the page, so each stretch can be put back
+ * where it was. One run of even width drifts: a root sign drawn as a shape between "2 :" and "2"
+ * leaves a wide gap the text alone doesn't have, and the numbers after it land off their signs.
+ */
+function placed(line: Line): Run[] {
+  return line.runs.flatMap((r) => {
+    if (!r.parts || r.parts.length < 2) return [r];
+    const out: Run[] = [];
+    for (const p of r.parts) {
+      const last = out[out.length - 1];
+      const end = last ? (last.x ?? 0) + (last.width ?? 0) : -Infinity;
+      if (last && p.x - end <= r.size * 0.6) {
+        last.text += p.text;
+        last.width = p.x + p.width - (last.x ?? p.x);
+      } else out.push({ ...r, text: p.text, x: p.x, width: p.width, parts: undefined });
+    }
+    return out;
+  });
 }
 
 /** One text box: its lines, each a paragraph starting where it started, on its own baseline. */
@@ -75,19 +91,18 @@ function boxXml(lines: Line[], lineHeight: number, id: number): string {
     .map((line, i) => {
       // Each line after the first sits at its own distance below the one before.
       const gap = i === 0 ? lineHeight : line.baseline - (lines[i - 1] as Line).baseline;
-      const ws = widths(line);
       // A wide gap on the page (a number set apart, a label, a column of its own) is a tab to a
       // tab stop where the next words started, so they land where they were.
       const stops: number[] = [];
       let end = line.x0;
-      const runs = line.runs.map((r, j) => {
+      const runs = placed(line).map((r, j) => {
         // Where its letters start on the page, and how far that is past the words before it.
         const at = r.x ?? end;
         const startsAfterGap = j > 0 && at - end > r.size * 0.6;
         end = at + (r.width ?? 0);
-        if (!startsAfterGap) return runXml(r, ws[j]);
+        if (!startsAfterGap) return runXml(r, r.width);
         stops.push(at - x);
-        return `<w:r><w:tab/></w:r>${runXml({ ...r, text: r.text.replace(/^ +/, "") }, ws[j])}`;
+        return `<w:r><w:tab/></w:r>${runXml({ ...r, text: r.text.replace(/^ +/, "") }, r.width)}`;
       });
       const tabs = stops.length
         ? `<w:tabs>${stops.map((t) => `<w:tab w:val="left" w:pos="${tw(t)}"/>`).join("")}</w:tabs>`
@@ -115,7 +130,9 @@ export function pageBoxes(layout: PageLayout, firstId: number): { xml: string; c
           if (!runs.length) return;
           const size = Math.max(...runs.map((x) => x.size));
           const baseline = (b.rowTops[r] ?? b.top) + size * 0.8;
-          const x0 = b.columns[c] ?? b.left;
+          // Where its words start (a cell's words may be centred), else the column's edge.
+          const starts = runs.flatMap((x) => (x.x === undefined ? [] : [x.x]));
+          const x0 = starts.length ? Math.min(...starts) : (b.columns[c] ?? b.left);
           boxes.push(
             boxXml([{ runs, baseline, x0, x1: b.columns[c + 1] ?? b.right }], size * 1.2, id++),
           );

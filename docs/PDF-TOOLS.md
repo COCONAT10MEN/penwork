@@ -126,6 +126,14 @@ A PDF that won't open offers Repair.
     for designed pages (much drawn besides text and pictures) and flows the rest. Text drawn more than
     once in one place (a web page's text shadow) is written once; sideways text and lettering filled with
     a picture stay part of the picture. A scanned page stays its picture.
+    Fonts are named as installed on Windows: the free fonts made the same size as Windows' own (Arimo,
+    Tinos, Cousine, Liberation, Carlito, Caladea) become Arial, Times New Roman, Courier New, Calibri and
+    Cambria; KaTeX's maths fonts become Times New Roman and Cambria Math; anything else missing becomes
+    Arial, Times New Roman or Courier New by kind. Naming a missing font leaves Word to pick, and it
+    picks one serif face for everything. Letter-spaced words ("P H Y S I C S", as pdf.js reads them) are
+    put back together from where each letter is drawn (`spacedText.ts`): gaps wider than the rest are
+    the spaces between words. Checked in Microsoft Word itself (open, page count, export to PDF and
+    compare with the original page by page).
   - **PowerPoint**: the text is editable text boxes in its own font, size and colour, over the page's drawing
     with the text painted out.
   - **Excel**: tables as rows and columns with a bold header; money, percentages and separated numbers as

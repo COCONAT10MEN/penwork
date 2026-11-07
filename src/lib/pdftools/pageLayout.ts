@@ -20,6 +20,15 @@ export interface Piece {
   color: string;
   /** Worked out here: how far above its line's baseline it sits. */
   rise?: number;
+  /** Its parts, where something else is drawn between its words (spacedText.ts splitAtGaps). */
+  parts?: Part[];
+}
+
+/** A stretch of a run's text and where its letters were: the text, end to end, is the run's. */
+export interface Part {
+  text: string;
+  x: number;
+  width: number;
 }
 
 export interface Picture {
@@ -43,6 +52,8 @@ export interface Run {
   width?: number;
   /** Where its letters started on the page. */
   x?: number;
+  /** The pieces it was made of, each where it was, for putting the words back exactly. */
+  parts?: Part[];
 }
 
 /** One line of a paragraph as it was on the page: its runs, baseline and ends. */
@@ -222,6 +233,9 @@ function runsOf(pieces: Piece[]): Run[] {
     let text = p.text;
     const spaced = last && gap && !last.text.endsWith(" ") && !text.startsWith(" ");
     if (spaced) text = ` ${text}`;
+    const parts: Part[] = (p.parts ?? [{ text: p.text, x: p.x, width: p.width }]).map((q, i) =>
+      i === 0 && spaced ? { ...q, text: ` ${q.text}` } : q,
+    );
     if (
       last &&
       last.font === p.font &&
@@ -233,6 +247,7 @@ function runsOf(pieces: Piece[]): Run[] {
     ) {
       last.text += text;
       last.width = p.x + p.width - (startOf.get(last) ?? p.x);
+      last.parts = [...(last.parts ?? []), ...parts];
     } else
       runs.push({
         text,
@@ -244,6 +259,7 @@ function runsOf(pieces: Piece[]): Run[] {
         rise: p.rise ?? 0,
         width: p.width,
         x: p.x,
+        parts,
       });
     if (runs[runs.length - 1] !== last) startOf.set(runs[runs.length - 1] as Run, p.x);
     end = p.x + p.width;
@@ -593,7 +609,8 @@ function paragraphOf(segs: Segment[], left: number, right: number, body: number)
         last.rise === r.rise
       )
         last.text += r.text;
-      else runs.push({ ...r });
+      // Parts are for lines as they were; a paragraph's runs flow, so they go.
+      else runs.push({ ...r, parts: undefined });
     }
   }
   const text = textOf(runs);

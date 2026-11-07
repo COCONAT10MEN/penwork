@@ -58,4 +58,13 @@ describe("finding a PDF's font among the installed ones", () => {
     expect(none.installed).toBeUndefined();
     expect(none.css).toMatch(/Times New Roman/);
   });
+
+  it("takes the free same-size fonts, and KaTeX's, as Windows' own", () => {
+    const pick = (n: string, g: "sans" | "serif", italic = false) =>
+      matchFace(WINDOWS, n, g, { bold: false, italic }).css;
+    expect(pick("ABCDEF+Arimo", "sans")).toMatch(/^'Arial'/);
+    expect(pick("LiberationSans", "sans")).toMatch(/^'Arial'/);
+    expect(pick("KaTeX_Math-Italic", "serif", true)).toMatch(/^'Times New Roman'/);
+    expect(pick("KaTeX_AMS-Regular", "serif")).toMatch(/^'Cambria Math'/);
+  });
 });

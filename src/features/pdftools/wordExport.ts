@@ -7,6 +7,7 @@ import type {
   TableBlock,
 } from "../../lib/pdftools/pageLayout";
 import { readPage } from "./pageRead";
+import { pageBoxes } from "./wordExact";
 import { renderPage } from "./pdfRead";
 
 /**
@@ -216,19 +217,71 @@ function pageSections(
   return sections.filter((s, i) => s.children.length || i === 0);
 }
 
+/** How pages go into Word: kept looking as they are, as flowing text, or each as suits it. */
+export type WordLayout = "auto" | "exact" | "flow";
+
+/**
+ * A page kept looking as it is: its art as a picture behind, filling the page, and a marker where
+ * its text boxes go in, added to the file's XML after (wordExact.ts).
+ */
+async function exactSection(
+  docx: Docx,
+  layout: PageLayout,
+  background: HTMLCanvasElement,
+  marker: string,
+  first: boolean,
+): Promise<Section> {
+  const blob = await new Promise<Blob | null>((done) =>
+    background.toBlob(done, "image/jpeg", 0.82),
+  );
+  const bytes = new Uint8Array(blob ? await blob.arrayBuffer() : new ArrayBuffer(0));
+  return {
+    properties: {
+      page: {
+        size: { width: tw(layout.width), height: tw(layout.height) },
+        margin: { top: 0, bottom: 0, left: 0, right: 0, header: 0, footer: 0 },
+      },
+      ...(first ? {} : { type: docx.SectionType.NEXT_PAGE }),
+    },
+    children: [
+      new docx.Paragraph({
+        spacing: { before: 0, after: 0, line: 20, lineRule: docx.LineRuleType.EXACT },
+        children: [
+          new docx.ImageRun({
+            type: "jpg",
+            data: bytes,
+            transformation: { width: px(layout.width), height: px(layout.height) },
+            floating: {
+              horizontalPosition: { relative: docx.HorizontalPositionRelativeFrom.PAGE, offset: 0 },
+              verticalPosition: { relative: docx.VerticalPositionRelativeFrom.PAGE, offset: 0 },
+              behindDocument: true,
+              allowOverlap: true,
+              wrap: { type: docx.TextWrappingType.NONE },
+            },
+          }),
+          new docx.TextRun(marker),
+        ],
+      }),
+    ],
+  };
+}
+
 export async function toWord(
   doc: PDFDocumentProxy,
   stem: string,
   progress: Progress,
+  mode: WordLayout = "auto",
 ): Promise<{ name: string; bytes: Uint8Array }[]> {
   const docx = await import("docx");
   const sections: Section[] = [];
+  const boxes = new Map<string, string>();
+  let ids = 1000;
   for (let n = 1; n <= doc.numPages; n++) {
     progress(n - 1, doc.numPages);
-    const read = await readPage(doc, n, 2);
+    const read = await readPage(doc, n, 2, { background: mode !== "flow" });
     if (read.scanned) {
       // A scanned page: its picture, so nothing is lost. OCR first makes its text editable.
-      const pic = await renderPage(doc, n, 2, "jpg", 0.88);
+      const pic = await renderPage(doc, n, 2, "jpg", 0.85);
       const w = read.layout.width;
       const h = read.layout.height;
       sections.push({
@@ -253,7 +306,17 @@ export async function toWord(
       });
       continue;
     }
-    sections.push(...pageSections(docx, read.layout, read.pictures, n === 1));
+    const exact = mode === "exact" || (mode === "auto" && read.designed);
+    if (exact && read.background) {
+      const marker = `@@PWTB${n}@@`;
+      const { xml, count } = pageBoxes(read.layout, ids);
+      ids += count;
+      boxes.set(marker, xml);
+      sections.push(await exactSection(docx, read.layout, read.background, marker, n === 1));
+    } else sections.push(...pageSections(docx, read.layout, read.pictures, n === 1));
+    // Let go of this page's drawings before the next.
+    read.canvas.width = 0;
+    if (read.background) read.background.width = 0;
   }
   progress(doc.numPages, doc.numPages);
   const file = new docx.Document({
@@ -263,6 +326,19 @@ export async function toWord(
     },
     sections: sections as never,
   });
-  const blob = await docx.Packer.toBlob(file);
-  return [{ name: `${stem}.docx`, bytes: new Uint8Array(await blob.arrayBuffer()) }];
+  let bytes = new Uint8Array(await (await docx.Packer.toBlob(file)).arrayBuffer());
+  if (boxes.size) {
+    // The text boxes go in where their markers are.
+    const { unzipSync, zipSync, strFromU8, strToU8 } = await import("fflate");
+    const zip = unzipSync(bytes);
+    const xml = strFromU8(zip["word/document.xml"] ?? new Uint8Array());
+    zip["word/document.xml"] = strToU8(
+      xml.replace(
+        /<w:r>(?:(?!<w:r>)[\s\S])*?(@@PWTB\d+@@)<\/w:t><\/w:r>/g,
+        (_m, marker: string) => boxes.get(marker) ?? "",
+      ),
+    );
+    bytes = zipSync(zip, { level: 6 });
+  }
+  return [{ name: `${stem}.docx`, bytes }];
 }

@@ -18,6 +18,8 @@ export interface Piece {
   italic: boolean;
   /** "#rrggbb". */
   color: string;
+  /** Worked out here: how far above its line's baseline it sits. */
+  rise?: number;
 }
 
 export interface Picture {
@@ -35,6 +37,20 @@ export interface Run {
   bold: boolean;
   italic: boolean;
   color: string;
+  /** Raised above the line (superscript) or below it (subscript, negative), in points. */
+  rise: number;
+  /** How wide its letters were on the page (not counting a space put in before them). */
+  width?: number;
+  /** Where its letters started on the page. */
+  x?: number;
+}
+
+/** One line of a paragraph as it was on the page: its runs, baseline and ends. */
+export interface Line {
+  runs: Run[];
+  baseline: number;
+  x0: number;
+  x1: number;
 }
 
 /** Where a block sits when the text runs in two columns: which run of columns, which side. */
@@ -48,6 +64,8 @@ export interface Column {
 export interface ParagraphBlock {
   kind: "paragraph";
   column?: Column;
+  /** Its lines as they were, for placing it exactly. */
+  lines: Line[];
   /** Top of the first line's letters, left and right of the text. */
   top: number;
   bottom: number;
@@ -125,18 +143,61 @@ const ascent = (s: Segment) => s.y - s.size * 0.8;
 const descent = (s: Segment) => s.y + s.size * 0.22;
 
 /** Lines by baseline, each split into segments where the gap is wider than a column gutter. */
+/** Where a line's text sits: the baseline of its biggest words. */
+const baselineOf = (line: Piece[]) =>
+  line.reduce((big, p) => (p.size > big.size ? p : big), line[0] as Piece).y;
+const sizeOf = (line: Piece[]) => Math.max(...line.map((p) => p.size));
+const spanOf = (line: Piece[]) => [
+  Math.min(...line.map((p) => p.x)),
+  Math.max(...line.map((p) => p.x + p.width)),
+];
+
 function toLines(pieces: Piece[]): Segment[][] {
   const sorted = pieces.filter((p) => p.text.trim()).sort((a, b) => a.y - b.y || a.x - b.x);
-  const lines: Piece[][] = [];
+  const first: Piece[][] = [];
   for (const p of sorted) {
-    const last = lines[lines.length - 1];
+    const last = first[first.length - 1];
     const head = last?.[0];
     if (last && head && Math.abs(head.y - p.y) <= Math.max(1.5, Math.min(head.size, p.size) * 0.35))
       last.push(p);
-    else lines.push([p]);
+    else first.push([p]);
+  }
+  // A line of only small text just above or below a bigger one, within its width, is that line's
+  // superscripts or subscripts (m², H₂O): it joins it.
+  const lines: Piece[][] = [];
+  for (let i = 0; i < first.length; i++) {
+    const line = first[i] as Piece[];
+    const size = sizeOf(line);
+    const [a0, a1] = spanOf(line) as [number, number];
+    const fits = (other: Piece[] | undefined) => {
+      if (!other) return Infinity;
+      const big = sizeOf(other);
+      const [b0, b1] = spanOf(other) as [number, number];
+      const dy = Math.abs(baselineOf(other) - baselineOf(line));
+      // Nothing of it may sit over or under words of that line: a fraction's top and bottom stack,
+      // and only one of them can join the line; the other keeps its own place.
+      const stacked = line.some((p) =>
+        other.some((q) => p.x < q.x + q.width - 0.5 && q.x < p.x + p.width - 0.5),
+      );
+      return !stacked && size < big * 0.85 && dy < big * 0.7 && a0 >= b0 - big && a1 <= b1 + big * 3
+        ? dy
+        : Infinity;
+    };
+    const prev = lines[lines.length - 1];
+    const next = first[i + 1];
+    const toPrev = fits(prev);
+    const toNext = fits(next);
+    if (toPrev === Infinity && toNext === Infinity) lines.push(line);
+    else if (toPrev <= toNext) prev?.push(...line);
+    else next?.unshift(...line);
+  }
+  for (const line of lines) {
+    const base = baselineOf(line);
+    for (const p of line) p.rise = Math.abs(base - p.y) > p.size * 0.15 ? base - p.y : 0;
   }
   return lines.map((line) => {
     line.sort((a, b) => a.x - b.x);
+    const base = baselineOf(line);
     const segments: Segment[] = [];
     for (const p of line) {
       const s = segments[segments.length - 1];
@@ -144,7 +205,7 @@ function toLines(pieces: Piece[]): Segment[][] {
         s.pieces.push(p);
         s.x1 = Math.max(s.x1, p.x + p.width);
         s.size = Math.max(s.size, p.size);
-      } else segments.push({ pieces: [p], x0: p.x, x1: p.x + p.width, y: p.y, size: p.size });
+      } else segments.push({ pieces: [p], x0: p.x, x1: p.x + p.width, y: base, size: p.size });
     }
     return segments;
   });
@@ -153,22 +214,26 @@ function toLines(pieces: Piece[]): Segment[][] {
 /** A segment's words as runs: pieces of one style join, and gaps the PDF left become spaces. */
 function runsOf(pieces: Piece[]): Run[] {
   const runs: Run[] = [];
+  const startOf = new Map<Run, number>();
   let end = -Infinity;
   for (const p of pieces) {
     const gap = p.x - end > p.size * 0.18;
     const last = runs[runs.length - 1];
     let text = p.text;
-    if (last && gap && !last.text.endsWith(" ") && !text.startsWith(" ")) text = ` ${text}`;
+    const spaced = last && gap && !last.text.endsWith(" ") && !text.startsWith(" ");
+    if (spaced) text = ` ${text}`;
     if (
       last &&
       last.font === p.font &&
       Math.abs(last.size - p.size) < 0.25 &&
       last.bold === p.bold &&
       last.italic === p.italic &&
-      last.color === p.color
-    )
+      last.color === p.color &&
+      last.rise === (p.rise ?? 0)
+    ) {
       last.text += text;
-    else
+      last.width = p.x + p.width - (startOf.get(last) ?? p.x);
+    } else
       runs.push({
         text,
         font: p.font,
@@ -176,7 +241,11 @@ function runsOf(pieces: Piece[]): Run[] {
         bold: p.bold,
         italic: p.italic,
         color: p.color,
+        rise: p.rise ?? 0,
+        width: p.width,
+        x: p.x,
       });
+    if (runs[runs.length - 1] !== last) startOf.set(runs[runs.length - 1] as Run, p.x);
     end = p.x + p.width;
   }
   return runs;
@@ -520,7 +589,8 @@ function paragraphOf(segs: Segment[], left: number, right: number, body: number)
         last.size === r.size &&
         last.bold === r.bold &&
         last.italic === r.italic &&
-        last.color === r.color
+        last.color === r.color &&
+        last.rise === r.rise
       )
         last.text += r.text;
       else runs.push({ ...r });
@@ -544,5 +614,6 @@ function paragraphOf(segs: Segment[], left: number, right: number, body: number)
     list,
     size,
     runs,
+    lines: segs.map((s) => ({ runs: runsOf(s.pieces), baseline: s.y, x0: s.x0, x1: s.x1 })),
   };
 }

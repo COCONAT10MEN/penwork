@@ -3,6 +3,7 @@ import { fileStem } from "../../lib/office";
 import { runTool } from "./client";
 import { compare } from "./compare";
 import { toExcel, toPowerPoint, toText, toWord } from "./convert";
+import type { WordLayout } from "./wordExport";
 import { deliver } from "./files";
 import { loadPdf, PDF_ASSETS } from "../office/pdfLoader";
 import { pagesWithoutText, recognize, type OcrLanguage } from "./ocr";
@@ -42,14 +43,40 @@ function convertTool(
 }
 
 export const CONVERT_TOOLS: Tool[] = [
-  convertTool(
-    "toWord",
-    "PDF to Word",
-    "description",
-    "An editable .docx with its headings, lists and paragraphs",
-    "docx doc convert export",
-    toWord,
-  ),
+  {
+    id: "toWord",
+    title: "PDF to Word",
+    icon: "description",
+    group: "convert",
+    blurb: "An editable .docx",
+    keywords: "docx doc convert export",
+    fields: [
+      {
+        key: "layout",
+        kind: "choice",
+        label: "Layout",
+        options: [
+          { value: "auto", label: "Automatic" },
+          { value: "exact", label: "Keep the look" },
+          { value: "flow", label: "Flowing text" },
+        ],
+      },
+      {
+        key: "note",
+        kind: "note",
+        text: "Keep the look puts the text in boxes over a picture of each page. Flowing text is easier to edit. Automatic picks per page.",
+      },
+    ],
+    defaults: { layout: "auto" },
+    action: "Convert",
+    async run(host, v, progress) {
+      await deliver(
+        sourceOf(host),
+        await toWord(host.doc, stemOf(host), progress, v.layout as WordLayout),
+        "",
+      );
+    },
+  },
   convertTool(
     "toExcel",
     "PDF to Excel",

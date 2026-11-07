@@ -105,4 +105,35 @@ describe("reading a page's layout back", () => {
     );
     expect(out.blocks.map((b) => b.kind)).toEqual(["paragraph", "picture", "paragraph"]);
   });
+
+  it("joins a raised small number to its line as a superscript", () => {
+    const out = layoutPage(
+      [piece("Unit: Wb/m", 72, 100, 60), piece("2", 132, 96, 4, { size: 7 })],
+      [],
+      PAGE,
+    );
+    expect(out.blocks).toHaveLength(1);
+    const p = out.blocks[0];
+    const runs = p?.kind === "paragraph" ? p.runs : [];
+    expect(runs.map((r) => [r.text.trim(), Math.round(r.rise)])).toEqual([
+      ["Unit: Wb/m", 0],
+      ["2", 4],
+    ]);
+  });
+
+  it("keeps a stacked fraction's two halves apart: only one joins the line", () => {
+    const out = layoutPage(
+      [
+        piece("B =", 72, 100, 20),
+        piece("μI", 98, 96, 10, { size: 7 }),
+        piece("2πd", 97, 104, 12, { size: 7 }),
+      ],
+      [],
+      PAGE,
+    );
+    const lines = out.blocks.flatMap((b) => (b.kind === "paragraph" ? b.lines : []));
+    expect(lines).toHaveLength(2);
+    expect(lines[0]?.runs.map((r) => r.text.trim())).toEqual(["B =", "μI"]);
+    expect(lines[1]?.runs.map((r) => r.text.trim())).toEqual(["2πd"]);
+  });
 });

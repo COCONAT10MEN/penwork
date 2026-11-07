@@ -115,8 +115,15 @@ A PDF that won't open offers Repair.
   `pageRead.ts`): paragraphs with each run's own font, size, weight, slant and colour, alignment, indents,
   spacing and line height; headings by size; tables where words line up row after row; text in two columns
   read column by column; pictures cut out where they sit.
-  - **Word**: a Word page per PDF page at the same size and margins, real paragraphs that wrap, Word headings
-    and tables, the pictures in place, two columns as Word's own columns. A scanned page stays its picture.
+  - **Word** has a Layout choice. *Flowing text*: a Word page per PDF page at the same size and margins,
+    real paragraphs that wrap, Word headings and tables, the pictures in place, two columns as Word's own
+    columns. *Keep the look* (`wordExact.ts`): the page drawn without its text (pdf.js's operationsFilter
+    leaves out upright text) is a picture behind, and the text sits on it in text boxes exactly where it
+    was, a Word paragraph a line, wide gaps as tab stops, stand-in fonts fitted to the old width, raised
+    and lowered pieces as such. Written as Word writes text boxes (DrawingML). *Automatic* keeps the look
+    for designed pages (much drawn besides text and pictures) and flows the rest. Text drawn more than
+    once in one place (a web page's text shadow) is written once; sideways text and lettering filled with
+    a picture stay part of the picture. A scanned page stays its picture.
   - **PowerPoint**: the text is editable text boxes in its own font, size and colour, over the page's drawing
     with the text painted out.
   - **Excel**: tables as rows and columns with a bold header; money, percentages and separated numbers as

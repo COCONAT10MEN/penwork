@@ -21,6 +21,73 @@ export interface ReadPage {
   pictures: Map<number, { bytes: Uint8Array; type: "png" | "jpg" }>;
   /** True when the page has no text at all: a scan, best kept as its picture. */
   scanned: boolean;
+  /**
+   * With `background` asked for: the page drawn without its text (art, boxes, diagrams, pictures,
+   * and text that's part of the art: sideways labels, lettering filled with a picture), and whether
+   * the page is designed (much drawn besides text and pictures), so better kept looking as it is.
+   */
+  background?: HTMLCanvasElement;
+  designed?: boolean;
+}
+
+type Matrix = [number, number, number, number, number, number];
+const multiply = (m: Matrix, n: Matrix): Matrix => [
+  m[0] * n[0] + m[2] * n[1],
+  m[1] * n[0] + m[3] * n[1],
+  m[0] * n[2] + m[2] * n[3],
+  m[1] * n[2] + m[3] * n[3],
+  m[0] * n[4] + m[2] * n[5] + m[4],
+  m[1] * n[4] + m[3] * n[5] + m[5],
+];
+const turned = (m: Matrix) =>
+  Math.abs(m[1]) + Math.abs(m[2]) > 0.02 * (Math.abs(m[0]) + Math.abs(m[3]));
+
+/**
+ * For pdf.js's render: leaves out the drawing of plain text (filled or outlined, upright), so the
+ * page comes out with everything else. Sideways text and text used as a clip (lettering filled with
+ * a picture or a gradient) stay: they're part of the art. Worked out as the drawing goes.
+ */
+function withoutText(OPS: Record<string, number>) {
+  const show = new Set([
+    OPS.showText,
+    OPS.showSpacedText,
+    OPS.nextLineShowText,
+    OPS.nextLineSetSpacingShowText,
+  ]);
+  let scanned = 0;
+  const drop: boolean[] = [];
+  let ctm: Matrix = [1, 0, 0, 1, 0, 0];
+  let tm: Matrix = [1, 0, 0, 1, 0, 0];
+  let mode = 0;
+  const stack: { ctm: Matrix; mode: number }[] = [];
+  return (i: number, list: { fnArray: number[]; argsArray: unknown[] }) => {
+    for (; scanned <= i && scanned < list.fnArray.length; scanned++) {
+      const fn = list.fnArray[scanned];
+      const args = (list.argsArray[scanned] ?? []) as unknown[];
+      if (fn === OPS.save) stack.push({ ctm, mode });
+      else if (fn === OPS.restore) {
+        const back = stack.pop();
+        if (back) ({ ctm, mode } = back);
+      } else if (fn === OPS.transform) ctm = multiply(ctm, args as unknown as Matrix);
+      else if (fn === OPS.paintFormXObjectBegin) {
+        stack.push({ ctm, mode });
+        const m = args[0] as Matrix | null;
+        if (m) ctm = multiply(ctm, m);
+      } else if (fn === OPS.paintFormXObjectEnd) {
+        const back = stack.pop();
+        if (back) ({ ctm, mode } = back);
+      } else if (fn === OPS.beginText) tm = [1, 0, 0, 1, 0, 0];
+      else if (fn === OPS.setTextMatrix)
+        tm = Array.from(
+          (Array.isArray(args[0]) || ArrayBuffer.isView(args[0])
+            ? args[0]
+            : args) as ArrayLike<number>,
+        ) as Matrix;
+      else if (fn === OPS.setTextRenderingMode) mode = Number(args[0] ?? 0);
+      drop[scanned] = fn !== undefined && show.has(fn) && mode <= 2 && !turned(multiply(ctm, tm));
+    }
+    return !drop[i];
+  };
 }
 
 interface TextItem {
@@ -114,7 +181,12 @@ async function picturesOn(
   return out;
 }
 
-export async function readPage(doc: PDFDocumentProxy, n: number, scale = 2): Promise<ReadPage> {
+export async function readPage(
+  doc: PDFDocumentProxy,
+  n: number,
+  scale = 2,
+  o: { background?: boolean } = {},
+): Promise<ReadPage> {
   const page = await doc.getPage(n);
   const view = page.getViewport({ scale: 1 });
   const drawn = page.getViewport({ scale });
@@ -128,13 +200,41 @@ export async function readPage(doc: PDFDocumentProxy, n: number, scale = 2): Pro
   // Drawing the page also loads its fonts, which are read below.
   await page.render({ canvasContext: ctx, canvas, viewport: drawn }).promise;
   const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-  const at = (x: number, y: number) => {
+  // The page again without its text, when asked: what the text sits on.
+  let background: HTMLCanvasElement | undefined;
+  let under: Uint8ClampedArray | undefined;
+  if (o.background) {
+    const { pdfjs } = await loadPdf();
+    background = document.createElement("canvas");
+    background.width = canvas.width;
+    background.height = canvas.height;
+    const bctx = background.getContext("2d", { willReadFrequently: true });
+    if (bctx) {
+      bctx.fillStyle = "#fff";
+      bctx.fillRect(0, 0, background.width, background.height);
+      await page.render({
+        canvasContext: bctx,
+        canvas: background,
+        viewport: drawn,
+        operationsFilter: withoutText(pdfjs.OPS as unknown as Record<string, number>),
+      }).promise;
+      under = bctx.getImageData(0, 0, background.width, background.height).data;
+    }
+  }
+  const index = (x: number, y: number) => {
     const px = Math.max(0, Math.min(canvas.width - 1, Math.round(x * scale)));
     const py = Math.max(0, Math.min(canvas.height - 1, Math.round(y * scale)));
-    const i = (py * canvas.width + px) * 4;
+    return (py * canvas.width + px) * 4;
+  };
+  const at = (x: number, y: number) => {
+    const i = index(x, y);
     return [pixels[i] ?? 255, pixels[i + 1] ?? 255, pixels[i + 2] ?? 255] as const;
   };
-  /** The colour of text in a box: the pixel most unlike the paper around it. */
+  /**
+   * The colour of text in a box: the pixel most unlike what's under it (the page without its text,
+   * when there is one; else the paper just outside the box), and how unlike it is: next to nothing
+   * means the text isn't drawn there at all (invisible text, or text that's part of the art).
+   */
   const inkIn = (x: number, top: number, width: number, height: number) => {
     const paper = at(x - 1, top - 1);
     let best = 0;
@@ -142,14 +242,19 @@ export async function readPage(doc: PDFDocumentProxy, n: number, scale = 2): Pro
     const step = Math.max(0.5, 1 / scale);
     for (let yy = top; yy < top + height; yy += step)
       for (let xx = x; xx < x + width; xx += step) {
-        const c = at(xx, yy);
-        const d = Math.abs(c[0] - paper[0]) + Math.abs(c[1] - paper[1]) + Math.abs(c[2] - paper[2]);
+        const i = index(xx, yy);
+        const c = [pixels[i] ?? 255, pixels[i + 1] ?? 255, pixels[i + 2] ?? 255] as const;
+        const b = under ? [under[i] ?? 255, under[i + 1] ?? 255, under[i + 2] ?? 255] : paper;
+        const d =
+          Math.abs(c[0] - (b[0] ?? 0)) +
+          Math.abs(c[1] - (b[1] ?? 0)) +
+          Math.abs(c[2] - (b[2] ?? 0));
         if (d > best) {
           best = d;
           ink = c;
         }
       }
-    return hex(...ink);
+    return { color: hex(...ink), shown: best };
   };
 
   const content = await page.getTextContent();
@@ -160,6 +265,8 @@ export async function readPage(doc: PDFDocumentProxy, n: number, scale = 2): Pro
     const item = raw as TextItem;
     if (!("str" in item) || !item.str) continue;
     const [a = 1, b = 0, c = 0, d = 1, e = 0, f = 0] = item.transform;
+    // Sideways text stays part of the picture of the page; it can't sit on a line of text.
+    if (Math.abs(b) + Math.abs(c) > 0.02 * (Math.abs(a) + Math.abs(d))) continue;
     const size = Math.hypot(c, d) || Math.hypot(a, b);
     const [x = 0, y = 0] = view.convertToViewportPoint(e, f);
     const loaded = page.commonObjs.has(item.fontName)
@@ -180,6 +287,12 @@ export async function readPage(doc: PDFDocumentProxy, n: number, scale = 2): Pro
       family = familyOf(name, generic, bold, italic);
       families.set(key, family);
     }
+    const ink = item.str.trim()
+      ? inkIn(x, y - size * 0.7, Math.max(1, item.width), size * 0.7)
+      : { color: "#000000", shown: 255 };
+    // Text that leaves no mark on the page as drawn: invisible (OCR under a scan), or drawn as
+    // part of the art. With a background it's in the picture already, so it isn't written again.
+    if (under && ink.shown < 60) continue;
     pieces.push({
       text: item.str,
       x,
@@ -189,12 +302,23 @@ export async function readPage(doc: PDFDocumentProxy, n: number, scale = 2): Pro
       font: await family,
       bold,
       italic,
-      color: item.str.trim()
-        ? inkIn(x, y - size * 0.7, Math.max(1, item.width), size * 0.7)
-        : "#000000",
+      color: ink.color,
     });
   }
 
+  // The same words drawn again in nearly the same place are one: a web page's text shadow or glow
+  // is the text drawn under itself. The last drawn is the one on top, the one that's seen.
+  for (let i = pieces.length - 1; i >= 0; i--) {
+    const p = pieces[i] as Piece;
+    const copy = pieces.findIndex(
+      (q, j) =>
+        j < i &&
+        q.text === p.text &&
+        Math.abs(q.x - p.x) < p.size * 0.5 &&
+        Math.abs(q.y - p.y) < p.size * 0.5,
+    );
+    if (copy >= 0) pieces.splice(copy, 1);
+  }
   const hasText = pieces.some((p) => p.text.trim());
   let pictures = await picturesOn(page, view);
   // A picture filling the page behind text is its background (a scan with OCR text, a letterhead).
@@ -217,6 +341,22 @@ export async function readPage(doc: PDFDocumentProxy, n: number, scale = 2): Pro
     );
     if (blob) crops.set(p.id, { bytes: new Uint8Array(await blob.arrayBuffer()), type });
   }
+  // Designed: much drawn besides the text and the pictures (boxes, fills, art, diagrams).
+  let designed = false;
+  if (under) {
+    let marked = 0;
+    let seen = 0;
+    const inPicture = (x: number, y: number) =>
+      pictures.some((p) => x >= p.x && x <= p.x + p.width && y >= p.y && y <= p.y + p.height);
+    for (let y = 0; y < view.height; y += 3)
+      for (let x = 0; x < view.width; x += 3) {
+        seen++;
+        if (inPicture(x, y)) continue;
+        const i = index(x, y);
+        if (765 - (under[i] ?? 255) - (under[i + 1] ?? 255) - (under[i + 2] ?? 255) > 40) marked++;
+      }
+    designed = marked / Math.max(1, seen) > 0.04;
+  }
   page.cleanup();
   return {
     layout: layoutPage(pieces, pictures, { width: view.width, height: view.height }),
@@ -224,5 +364,6 @@ export async function readPage(doc: PDFDocumentProxy, n: number, scale = 2): Pro
     scale,
     pictures: crops,
     scanned: !hasText,
+    ...(background ? { background, designed } : {}),
   };
 }

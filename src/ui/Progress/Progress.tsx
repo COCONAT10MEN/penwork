@@ -58,12 +58,13 @@ export function LinearProgress({ label, value, wavy = true }: LinearProgressProp
       <span className={styles.rest} />
       <span className={styles.stop} />
       <span className={styles.active}>
-        {wavy ? (
+        {/* The flat line is always there; the wave fades in over it, and out again where Google
+            keeps the bar flat (the first 10% and the last 5%). */}
+        <span className={styles.flat} />
+        {wavy && (
           <svg className={styles.wave} width="3200" height="12" aria-hidden="true">
             <path d={WAVE} />
           </svg>
-        ) : (
-          <span className={styles.flat} />
         )}
       </span>
     </div>

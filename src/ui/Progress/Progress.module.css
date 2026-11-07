@@ -52,11 +52,17 @@
   stroke: var(--md-sys-color-primary);
   stroke-width: 4;
   stroke-linecap: round;
-  /* One wavelength a second, and flat at both ends of the bar, as Google draws it. */
+  /* One wavelength a second. Where the bar is flat it fades to the flat line under it; squashing
+     the wave flat instead squashed its line to nothing, and the bar disappeared. */
   animation: wave 1000ms linear infinite;
-  transform: scaleY(var(--pw-amp, 1));
-  transform-origin: 50% 6px;
-  transition: transform var(--md-sys-motion-effects-slow-duration)
+  opacity: var(--pw-amp, 1);
+  transition: opacity var(--md-sys-motion-effects-slow-duration)
+    var(--md-sys-motion-effects-slow-easing);
+}
+/* Under the wave, the flat line shows only where the wave has faded. */
+.flat:has(+ .wave) {
+  opacity: calc(1 - var(--pw-amp, 1));
+  transition: opacity var(--md-sys-motion-effects-slow-duration)
     var(--md-sys-motion-effects-slow-easing);
 }
 /* One wavelength (32px), so the loop has no visible jump. */
